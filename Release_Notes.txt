@@ -1,0 +1,42 @@
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 1.0.0
+
+ JOB script changes:
+   JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - Placed into VS/EE for first time.
+    - Obtains obsproc_global and obsproc_dump version numbers via imported
+      environment variables $obsproc_global_ver and $obsproc_dump_ver, resp.
+      These are defined in the upstream ecflow script.
+    - Streamlined, allows for more generalization (e.g., for checkout runs).
+    - Exports new environment variable $HOMEobsproc_dump which points to
+      directory path for generic dump subdirectories under version control
+      (in production this is normally /nwprod/obsproc_dump.$obsproc_dump_ver).
+      Replaces /nw${envir} in order to point to files in exec, fix and ush
+      directories moved from to vertical directory structure.
+    - Exports new environment variable $HOMEobsproc_network which points to
+      directory path for network-specific dump subdirectories under version
+      control (in production this is normally
+      /nwprod/obsproc_global.$obsproc_global_ver).
+      Replaces /nw${envir} in order to point to files in parm directory moved
+      from to vertical structure.
+
+ Parm file changes:
+   prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
+   prepobs_prepssmi.gfs.parm:
+    - Placed into VS/EE for first time. No changes to contents.
+
+ Model script changes:
+   exglobal_dump.sh.ecf:
+    - Placed into VS/EE for first time.
+    - Modified to dump GOES IR, water vapor, and visible satellite-derived
+      winds using a time window of -1.00 to -0.01 hours relative to cycle time
+      rather than -1.50 to +1.50 relative to cycle time.
+      BENEFIT: NESDIS is changing the frequency of their GOES satellite
+               derived winds from 3-hourly to 1-hourly. This change will allow
+               one complete wind set to continue to be dumped and assimilated
+               (not changing the time window would triple the number of winds
+               dumped and assimilated, all over the same locations). This
+               change will also allow winds closer to cycle time to now be
+               assimilated.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
