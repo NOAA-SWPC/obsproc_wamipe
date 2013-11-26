@@ -1,0 +1,51 @@
+#BSUB -J jcdas_dump_00
+#BSUB -o /com/output/prod/today/cdas_dump_00.o%J
+#BSUB -e /com/output/prod/today/cdas_dump_00.o%J
+#BSUB -L /bin/sh
+#BSUB -q prod_serv
+#BSUB -W 00:30
+#BSUB -cwd /tmpnwprd
+#BSUB -P REAN-OPS
+#BSUB -R rusage[mem=12000]
+#BSUB -R affinity[core]
+
+%include "/ecf/ecfnets/scripts/head.h"
+
+set -x
+export envir=prod
+export cyc=00
+export job=cdas_dump_00
+
+# CALL executable job script here
+
+# versions file obsproc_global.ver obtains the versions used for
+#  obsproc_global ($obsproc_global_ver) & obsproc_dump ($obsproc_dump_ver) -
+#  these are exported to the JOB script
+
+VERSION_FILE=/nw${envir}/versions/obsproc_global.ver
+if [ -f $VERSION_FILE ]; then
+   . $VERSION_FILE
+else
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+   ecflow_client --abort
+   exit
+fi
+
+/nw${envir}/obsproc_global.${obsproc_global_ver}/jobs/JCDAS_DUMP
+
+%include "/ecf/ecfnets/scripts/tail.h"
+%manual
+######################################################################
+#
+#  PURPOSE:  Job to execute the CDAS DATA DUMP processing for the 00Z cycle
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

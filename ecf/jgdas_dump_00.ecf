@@ -1,0 +1,52 @@
+#BSUB -J jgdas_dump_00
+#BSUB -o  /com/output/prod/today/gdas_dump_00.o%J
+#BSUB -e  /com/output/prod/today/gdas_dump_00.o%J
+#BSUB -cwd /tmpnwprd
+#BSUB -q prod_serv
+#BSUB -R rusage[mem=4000]
+#BSUB -R affinity[core]
+#BSUB -W 00:15
+#BSUB -L /bin/sh
+#BSUB -P GDAS-OPS
+
+%include "/ecf/ecfnets/scripts/head.h"
+
+# EXPORT list here
+set -x
+export envir=prod
+export cyc=00
+export job=gdas_dump_${cyc}
+
+# CALL executable job script here
+
+# versions file obsproc_global.ver obtains the versions used for
+#  obsproc_global ($obsproc_global_ver) & obsproc_dump ($obsproc_dump_ver) -
+#  these are exported to the JOB script
+
+VERSION_FILE=/nw${envir}/versions/obsproc_global.ver
+if [ -f $VERSION_FILE ]; then
+   . $VERSION_FILE
+else
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+   ecflow_client --abort
+   exit
+fi
+
+/nw${envir}/obsproc_global.${obsproc_global_ver}/jobs/JGDAS_DUMP
+
+%include "/ecf/ecfnets/scripts/tail.h"
+%manual
+######################################################################
+# Purpose:
+#
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end
