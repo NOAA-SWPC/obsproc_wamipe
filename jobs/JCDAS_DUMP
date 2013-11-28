@@ -62,8 +62,8 @@ fi
 # obtain unique process id (pid) and make temp directory
 #########################################################
 export pid=$$
-export DATA_IN=${DATA_IN:-/tmpnwprd}
-export DATA=${DATA:-$DATA_IN/${job}.${pid}}
+export DATAROOT=${DATAROOT:-/tmpnwprd}
+export DATA=${DATA:-$DATAROOT/${job}.${pid}}
 
 CLEAN=${CLEAN:-YES}
 if [ $CLEAN = YES ]; then
@@ -130,8 +130,7 @@ export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
 # Below for path to observational database in dumpjb
 export TANK=${TANK:-${DCOMROOT}/us007003}
 
-# Below for path to executables in dumpjb
-export DUEX=${DUEX:-$HOMEobsproc_dump/exec}
+# NOTE: path to dump executables defaults to $HOMEobsproc_dump/exec in dumpjb
 
 # Below for path to grib file proessing exec in model script & bufr_dump_obs
 export EXGRBIX=${EXGRBIX:-/nwprod/util/exec}
@@ -275,7 +274,7 @@ fi
 
 CLEAN=${CLEAN:-YES}
 if [ $CLEAN = YES ]; then
-   cd $DATA_IN
+   cd $DATAROOT
    rm -rf $DATA
 fi
 
