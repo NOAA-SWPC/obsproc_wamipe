@@ -36,10 +36,9 @@ fi
 
 %include "/ecf/ecfnets/scripts/tail.h"
 %manual
-######################################################################
-# Purpose: job to execute the gfs data dump processing for the 00Z
-#          cycle
-######################################################################
+###########################################################################
+#  PURPOSE:  Job to execute the GFS DATA DUMP processing for the 00Z cycle
+###########################################################################
 
 ######################################################################
 # job specific troubleshooting instructions:

@@ -23,11 +23,12 @@ date
 ######################################################
 export RUN_ENVIR=${RUN_ENVIR:-prod}
 
-###########################
-# Specify NET and RUN Name
-###########################
+##################################
+# Specify NET, RUN and model Name
+##################################
 export NET=${NET:-cdas}
 export RUN=${RUN:-cdas}
+export model=${model:-cdas}
 
 if [ $envir = "prod" ]
 then
@@ -204,8 +205,8 @@ export COM_OUT_ROOT=${COM_OUT_ROOT:-/com}
 export COM_OUT=${COM_OUT:-${COM_OUT_ROOT}/${NET}/${envir}}
 
 export COM=${COM:-${COM_IN}}
-export COMIN=${COMIN:-${COM_IN}/${RUN}.${PDY}}
-export COMOUT=${COMOUT:-${COM_OUT}/${RUN}.${PDY}}
+export COMIN=${COMIN:-${COM_IN}/${model}.${PDY}}
+export COMOUT=${COMOUT:-${COM_OUT}/${model}.${PDY}}
 
 mkdir -m 775 -p $COMOUT
 
@@ -243,10 +244,10 @@ env
 if [ $GET_IOPROFILE = YES ]; then
    /usrx/local/mio/tools/bin/miostats -X0 \
    $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   err_cdas_dump=$?
+   eval err_${model}_dump=$?
 else
    $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   err_cdas_dump=$?
+   eval err_${model}_dump=$?
 fi
 
 echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran

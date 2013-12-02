@@ -28,7 +28,7 @@ export RUN_ENVIR=${RUN_ENVIR:-prod}
 ##################################
 export NET=${NET:-gfs}
 export RUN=${RUN:-gdas1}
-export model=${model:-gdas}  # Used in subscripts for file names
+export model=${model:-gdas}
 
 if [ $envir = "prod" ]
 then
@@ -202,10 +202,10 @@ export NET=gdas
 if [ $GET_IOPROFILE = YES ]; then
    /usrx/local/mio/tools/bin/miostats -X0 \
    $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   err_gdas_dump=$?
+   eval err_${model}_dump=$?
 else
    $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   err_gdas_dump=$?
+   eval err_${model}_dump=$?
 fi
 
 echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
