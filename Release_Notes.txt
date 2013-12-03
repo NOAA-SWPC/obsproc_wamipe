@@ -33,11 +33,11 @@ obsproc_global release 1.0.0
       for the CDAS, GDAS and GFS rather than -1.50 to +1.50 hours relative to
       cycle time.
       BENEFIT: NESDIS is changing the frequency of their GOES satellite
-               derived winds from 3-hourly to 1-hourly. This change will allow
-               one complete wind set to continue to be dumped and assimilated
-               (not changing the time window would triple the number of winds
-               dumped and assimilated, all over the same locations). This
-               change will also allow winds closer to cycle time to now be
-               assimilated.
+               derived winds from 3-hourly to 1-hourly. The change to
+               exglobal_dump.sh.ecf will allow one complete wind set to
+               continue to be dumped and assimilated (not changing the time
+               window would triple the number of winds dumped and assimilated,
+               all over the same locations). This change will also allow winds
+               closer to cycle time to now be assimilated.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
