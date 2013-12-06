@@ -12,13 +12,13 @@ obsproc_global release 1.0.0
       directory path for generic dump subdirectories under version control
       (in production this is normally /nwprod/obsproc_dump.$obsproc_dump_ver).
       Replaces /nw${envir} in order to point to files in exec, fix and ush
-      directories moved from to vertical directory structure.
+      directories moved from horizontal to vertical directory structure.
     - Exports new environment variable $HOMEobsproc_network which points to
       directory path for network-specific dump subdirectories under version
       control (in production this is normally
       /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir} in
-      order to point to files in parm directory moved from to vertical
-      structure.
+      order to point to files in parm directory moved from horizontal to
+      vertical directory structure.
 
  Parm file changes:
    prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
