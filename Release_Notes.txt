@@ -40,4 +40,12 @@ obsproc_global release 1.0.0
                all over the same locations). This change will also allow winds
                closer to cycle time to now be assimilated.
 
+ ECF script changes:
+   cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
+    - Placed into VS/EE.  Obtains versions for obsproc_global
+      ($obsproc_global_ver) and obsproc_dump ($obsproc_dump_ver) from
+      obsproc_global.ver file  - both are now exported for use by JOB scripts
+      JCDAS_DUMP, JGDAS_DUMP, and JGFS_DUMP
+    - Generalized to handle all cycles.
+
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
