@@ -1,20 +1,20 @@
-#BSUB -J jcdas_dump_00
-#BSUB -o /com/output/prod/today/cdas_dump_00.o%J
-#BSUB -e /com/output/prod/today/cdas_dump_00.o%J
+#BSUB -J %E%gdas_dump_%CYC%
+#BSUB -o /com/output/%ENVIR%/today/gdas_dump_%CYC%.o%J
+#BSUB -e /com/output/%ENVIR%/today/gdas_dump_%CYC%.o%J
 #BSUB -L /bin/sh
-#BSUB -q prod_serv
-#BSUB -W 00:30
 #BSUB -cwd /tmpnwprd
-#BSUB -P REAN-OPS
-#BSUB -R rusage[mem=12000]
+#BSUB -q prod_serv
+#BSUB -W 00:15
+#BSUB -P %PROJ%
+#BSUB -R rusage[mem=4000]
 #BSUB -R affinity[core]
 
-%include "/ecf/ecfnets/scripts/head.h"
+%include <head.h>
 
 set -x
-export envir=prod
-export cyc=00
-export job=cdas_dump_00
+export envir=%ENVIR%
+export cyc=%CYC%
+export job=gdas_dump_%CYC%
 
 # CALL executable job script here
 
@@ -31,13 +31,19 @@ else
    exit
 fi
 
-/nw${envir}/obsproc_global.${obsproc_global_ver}/jobs/JCDAS_DUMP
+/nw${envir}/obsproc_global.${obsproc_global_ver}/jobs/JGDAS_DUMP
 
-%include "/ecf/ecfnets/scripts/tail.h"
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
 %manual
-############################################################################
-#  PURPOSE:  Job to execute the CDAS DATA DUMP processing for the 00Z cycle
-############################################################################
+##########################################################################
+# Purpose: To execute the job that performs 6-hourly GDAS dump processing
+##########################################################################
 
 ######################################################################
 # Job specific troubleshooting instructions:
