@@ -1,5 +1,20 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 1.0.0
+obsproc_global release 1.0.0 --> released Dec ??, 2013
+
+files
+  obsproc_global/ecf/cdas/dump/jcdas_dump.ecf
+  obsproc_global/ecf/gdas/dump/jgdas_dump.ecf
+  obsproc_global/ecf/gfs/dump/jgfs_dump.ecf
+  obsproc_global/jobs/JCDAS_DUMP
+  obsproc_global/jobs/JGDAS_DUMP
+  obsproc_global/jobs/JGFS_DUMP
+  obsproc_global/parm/prepobs_prepssmi.cdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gfs.parm
+  obsproc_global/scripts/exglobal_dump.sh.ecf
+
+( * - not changed)
+
 
  JOB script changes:
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
@@ -55,5 +70,44 @@ obsproc_global release 1.0.0
       obsproc_global.ver file - both are now exported for use by JOB scripts
       JCDAS_DUMP, JGDAS_DUMP, and JGFS_DUMP
     - Generalized to handle all cycles.
+
+
+ Output changes:
+ ---------------
+   No changes.
+
+
+ Compute Resource Information:
+ -----------------------------
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
+    - uses code from obsproc_dump.v3.0.0
+    - no other changes
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP.
+   - This is part of the parallel-production test of the hourly GOES satellite
+     winds.
+
+
+ Dissemination:
+ --------------
+   - The main user of this output is the CDAS, GDAS and GFS models.
+   - No change in dissemination.
+   - No change in archival on HPSS.
+
+
+ Special Instructions:
+ ---------------------
+   This must be implemented at EXACTLY the same time as NESDIS' promotion of
+   the hourly GOES satellite winds to their production server, and
+   simultaneously with the implementations of obsproc_dump_monitor.v1.0.0,
+   obsproc_dump.v3.0.0, obsproc_nam.v1.0.0, obsproc_rap.v1.0.0,
+   obsproc_rtma.v1.1.0 and obsproc_utma.v1.1.0.
+
+   Please copy new file
+   /meso/save/Dennis.Keyser/HOME/versions/obsproc_global.ver to
+   /nwprod/versions.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
