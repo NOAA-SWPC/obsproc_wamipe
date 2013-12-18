@@ -93,12 +93,10 @@ export pgmout="OUTPUT.${pid}"
 # SENDCOM=YES   - Copy output files to /com directory
 # SENDECF=YES   - Flag Events on ECFLOW
 # SENDDBN=YES   - Alert output file to TOC, set to NO for testing
-# GET_IOPROFILE - Run I/O statistics
 ##################################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}       # need to set to NO for testing only
-export GET_IOPROFILE=${GET_IOPROFILE:-NO}
 
 ##########################
 # Specify Execution Areas
@@ -199,23 +197,10 @@ export NET=gdas
 #####################
 # Execute the script
 #####################
-if [ $GET_IOPROFILE = YES ]; then
-   /usrx/local/mio/tools/bin/miostats -X0 \
-   $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   eval err_${model}_dump=$?
-else
-   $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-   eval err_${model}_dump=$?
-fi
+$SCRIPTSobsproc_global/exglobal_dump.sh.ecf
+eval err_${model}_dump=$?
 
 echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
-
-#################################################
-# Save the profiling data captured from miostats
-#################################################
-if [ $GET_IOPROFILE = YES ]; then
-    . /com/miostats/.set_IOprofile
-fi
 
 CLEAN=${CLEAN:-YES}
 if [ $CLEAN = YES ]; then
