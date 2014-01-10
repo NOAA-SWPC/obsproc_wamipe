@@ -1,5 +1,5 @@
 
- THESE CARDS VALID FOR GSI/GFS DATA PREPROCESSOR
+ THESE CARDS VALID FOR GSI/GDAS DATA PREPROCESSOR
      IBM VERSION 09/09/2004 - UPDATE #11
  CARDS LAST UPDATED 12Z 11/16/2010 - (VERSION 09/09/2004 - UPDATE # 11.0)
      (NOTE: TEMPORARILY IPRINT=0 and MODPRT=800 to add more printout
@@ -17,7 +17,7 @@
    POLEJ =360.00, XMESHL=  5.00,
  /
  &LDTA
-   IRNMRK    =    3,
+   IRNMRK    =    5,
    PG4243    =FALSE,
    RWINDO    = 300., DWINDO    = 300.,
    FLDMGS    =FALSE, FLDMAF    =FALSE, FLDMFR    = TRUE,
@@ -136,8 +136,9 @@
    KTOP      = 20*23,                    ! TOVS sndg
                60*0,                     ! GOES sndg
 
+   npkrpt    = 12*FALSE,
    JSURFM(3) = 9999, JSURFM(7) = 9999, JSURFM(10) = 9999,
-   JSURFW    = 0,0,9999,0,9999,0,9999,0,0,9999,0,
+   JSURFW    = 0,0,9999,0,9999,0,9999,0,0,9999,0,0,
    PFRALT    = TRUE,
    JPSSMI    =  6*9999, 6*9999, 6*9999, 6*9999,
    JPERSD    =  6*9999,
