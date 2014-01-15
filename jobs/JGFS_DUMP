@@ -66,8 +66,7 @@ export pid=$$
 export DATAROOT=${DATAROOT:-/tmpnwprd}
 export DATA=${DATA:-$DATAROOT/${job}.${pid}}
 
-CLEAN=${CLEAN:-YES}
-if [ $CLEAN = YES ]; then
+if [ "${CLEANUP:-YES}" = YES ]; then
    rm -r -f $DATA
 fi
 mkdir -p $DATA
@@ -201,8 +200,7 @@ eval err_${model}_dump=$?
 
 echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 
-CLEAN=${CLEAN:-YES}
-if [ $CLEAN = YES ]; then
+if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
    rm -rf $DATA
 fi
