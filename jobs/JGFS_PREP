@@ -53,7 +53,7 @@ if [[ ${USER} == nwprod ]]; then
 else
   DATAROOT=${DATAROOT:-/stmp/${USER}}
 fi
-export DATA=${DATA:-$DATAROOT/i${job}.${host}.$$}
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
