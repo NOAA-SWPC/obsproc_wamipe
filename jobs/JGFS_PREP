@@ -49,7 +49,7 @@ export model=${model:-gfs}
 ###############################
 host=$(hostname -s)
 if [[ ${USER} == nwprod ]]; then
-  DATAROOT=/tmpnwprd1
+  DATAROOT=/tmpnwprd
 else
   DATAROOT=${DATAROOT:-/stmp/${USER}}
 fi
