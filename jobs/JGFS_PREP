@@ -84,10 +84,8 @@ export pgmout="OUTPUT.${pid}"
 if [ $envir = "prod" ]
 then
    export SENDDBN=${SENDDBN:-YES}
-   export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.$$}
 else
    export SENDDBN=${SENDDBN:-NO}
-   export jlogfile=${jlogfile:-/com/logs/${envir}/jlogfile}
    export COM=${COM:-/com/${NET}/${envir}}
    export COM_IN=${COM_IN:-/com/${NET}/${envir}}
    export COM_OUT=${COM_OUT:-/com/${NET}/${envir}}
@@ -112,11 +110,6 @@ fi
 ##########################################
 # SETUP GFS PREPBUFR PROCESSING VARIABLES
 ##########################################
-
-###################
-# File To Log Msgs
-###################
-export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 export cycle=t${cyc}z
 export tmmark=tm00
