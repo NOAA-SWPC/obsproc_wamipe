@@ -143,7 +143,7 @@ export HOMEobsproc_prep=${HOMEobsproc_prep:-/nw${envir}/obsproc_prep.${obsproc_p
 export EXECPREP=${EXECPREP:-${HOMEobsproc_prep}/exec}
 export FIXPREP=${FIXPREP:-${HOMEobsproc_prep}/fix}
 export PARMPREP=${PARMPREP:-${HOMEobsproc_network}/parm}
-export DICTPREP=${DICTPREP:-nwprod/dictionaries}
+export DICTPREP=${DICTPREP:-/nwprod/dictionaries}
 
 export HOMESYND=${HOMESYND:-$HOMEobsproc_prep}
 export EXECSYND=${EXECSYND:-${HOMESYND}/exec}
