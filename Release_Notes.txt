@@ -74,12 +74,19 @@ files
 
  Output changes:
  ---------------
-   No changes.
-
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
+    - "ascatw" dump files will now contain scatterometer winds from METOP-B (as
+      well as from METOP-A from before)
+  
 
  Compute Resource Information:
  -----------------------------
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
+    - the "ascatw" dump files will now be approximately twice as large
+      since they will now include METOP-B (as well as METOP-A from before)
+         CDAS: ascatw increases from ~ 17 MBytes/day to ~ 34 MBytes/day
+         GDAS: ascatw increases from ~ 17 MBytes/day to ~ 34 MBytes/day
+         GFS:  ascatw increases from ~ 14 MBytes/day to ~ 28 MBytes/day
     - uses code from obsproc_dump.v3.0.0
     - no other changes
 
@@ -104,7 +111,8 @@ files
    the hourly GOES satellite winds to their production server, and
    simultaneously with the implementations of obsproc_dump_monitor.v1.0.0,
    obsproc_dump.v3.0.0, obsproc_nam.v1.0.0, obsproc_rap.v1.0.0,
-   obsproc_rtma.v1.1.0 and obsproc_utma.v1.1.0.
+   obsproc_rtma.v1.1.0, obsproc_utma.v1.1.0, obsproc_satingest.v2.0.0 and
+   obsproc_shared/bufr_cword.v1.0.0.
 
    Please copy new file
    /meso/save/Dennis.Keyser/HOME/versions/obsproc_global.ver to
