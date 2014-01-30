@@ -1,0 +1,314 @@
+#!/bin/sh
+
+set -xa     
+
+######################################################
+# The following variable could be defined in the LSF
+# submission script (the ECFLOW script), if not it
+# will take the default value which is set for the
+# NCO running environment
+######################################################
+export RUN_ENVIR=${RUN_ENVIR:-prod}
+
+###########################
+# Specify NET and RUN Name
+###########################
+export NET=${NET:-cdas}
+export RUN=${RUN:-cdas}
+
+if [ $envir = "prod" ]
+then
+   export SENDDBN=${SENDDBN:-YES}
+   export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.$$}
+else
+   export SENDDBN=${SENDDBN:-NO}
+   export jlogfile=${jlogfile:-/com/logs/${envir}/jlogfile}
+   export COM=${COM:-/com/${NET}/${envir}}
+   export COM_IN=${COM_IN:-/com/${NET}/${envir}}
+   export COM1=${COM1:-/com/${NET}/${envir}/${RUN}.}
+   export COM_OUT=${COM_OUT:-/com/${NET}/${envir}}
+   export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
+   export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
+   export PARMPREP=/nwtest/parm
+   export envir_getges=prod
+   export USHGETGES=/nwprod/util/ush
+fi
+
+#################################
+# SET SHELL PROCESSING VARIABLES
+#################################
+export PS4='$SECONDS + '
+date
+
+#################################################
+# SETUP CDAS PREPBUFR PREP2 PROCESSING VARIABLES
+#################################################
+
+#########################################################
+# obtain unique process id (pid) and make temp directory
+#########################################################
+export pid=$$
+export DATA_IN=${DATA_IN:-/tmpnwprd}
+export DATA=${DATA:-$DATA_IN/${job}.${pid}}
+
+CLEAN=${CLEAN:-YES}
+if [ $CLEAN = YES ]; then
+   rm -r -f $DATA
+fi
+mkdir -p $DATA
+cd $DATA
+
+###################
+# File To Log Msgs
+###################
+export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+######################################
+# Determine Job Output Name on System
+######################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+##################################################################
+# SENDCOM=YES   - Copy output files to /com directory
+# SENDECF=YES   - Flag Events on ECFLOW
+# SENDDBN=YES   - Alert output file to TOC, set to NO for testing
+# GET_IOPROFILE - Run I/O statistics
+##################################################################
+export SENDCOM=${SENDCOM:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDDBN=${SENDDBN:-YES}       # need to set to NO for testing only
+export GET_IOPROFILE=${GET_IOPROFILE:-NO}
+
+export HOMEcdas=${HOMEcdas:-/nw${envir}}
+export FIXcdas=${FIXcdas:-$HOMEcdas/fix}
+export SCRIPTScdas=${SCRIPTScdas:-$HOMEcdas/scripts}
+
+##########################
+# Specify Execution Areas
+##########################
+export HOMEPREP=${HOMEPREP:-/nwprod}
+export EXECPREP=${EXECPREP:-${HOMEPREP}/exec}
+export FIXPREP=${FIXPREP:-${HOMEPREP}/fix}
+export PARMPREP=${PARMPREP:-${HOMEPREP}/parm}
+export DICTPREP=${DICTPREP:-${HOMEPREP}/dictionaries}
+
+export HOMESYND=${HOMESYND:-/nwprod}
+export EXECSYND=${EXECSYND:-${HOMESYND}/exec}
+export FIXSYND=${FIXSYND:-${HOMESYND}/fix}
+export PARMSYND=${PARMSYND:-${HOMESYND}/parm}
+
+export HOMEUTIL=${HOMEUTIL:-/nwprod/util}
+export EXECUTIL=${EXECUTIL:-${HOMEUTIL}/exec}
+
+#######################
+# Set up the UTILITIES
+#######################
+export ushscript=${ushscript:-/nwprod/ush}
+export utilscript=${utilscript:-/nwprod/util/ush}
+export utilparm=${utilparm:-/nwprod/util/parm}
+export utilexec=${utilexec:-/nwprod/util/exec}
+export utilities=${utilities:-/nwprod/util/ush}
+
+################################################################
+# Run setup to initialize working directory and utility scripts
+################################################################
+sh $utilscript/setup.sh
+cp /usr/bin/time $DATA/time
+chmod 755 $DATA/time
+
+##########################################
+# Run setpdy and initialize PDY variables
+##########################################
+if [ -z "$PDY" ]; then
+   if test "$cyc" = "06"
+   then
+
+# With a very late cutoff, it is possible for the 06Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t12z
+# file for our PDY
+
+      export cycle=t12z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t06z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   elif test "$cyc" = "18"
+   then
+
+# With a very late cutoff, it is possible for the 18Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t00z
+# file to make PDY then backdate this PDY by 24-hours to get our PDY
+
+      export cycle=t00z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      PDY=$PDYm1
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t18z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   else
+
+# At 00 and 12Z, there should never be a problem
+
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   fi
+
+else
+
+# If PDY was previously specified (checkout only) fall through to here
+
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+
+fi
+
+# Finally, backdate our PDY by 24-hours since model runs 1-day behind
+
+PDY=$PDYm1
+sh $utilscript/setpdy.sh
+. $DATA/PDY
+
+#########################
+# Define COM directories
+#########################
+export COM_IN_ROOT=${COM_IN_ROOT:-/com}
+export COM_IN=${COM_IN:-${COM_IN_ROOT}/${NET}/${envir}}
+export COM1=${COM1:-${COM_IN}/${RUN}.}
+export COM_OUT_ROOT=${COM_OUT_ROOT:-/com}
+export COM_OUT=${COM_OUT:-${COM_OUT_ROOT}/${NET}/${envir}}
+
+export COM=${COM:-${COM_IN}}
+export COMIN=${COMIN:-${COM_IN}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-${COM_OUT}/${RUN}.${PDY}}
+
+mkdir -m 775 -p $COMOUT
+
+#########################################################
+# Specify variables specific to this execution of script
+#########################################################
+
+# VARIABLES THAT CONTROL PROCESSING OF INDIVIDUAL PROGRAMS
+# --------------------------------------------------------
+
+export PREPDATA=${PREPDATA:-NO}
+                      # Execute programs PREPOBS_MPCOPYBUFR, PREPOBS_PREPDATA,
+                      # PREPOBS_LISTHEADERS and PREPOBS_MONOPREPBUFR if YES
+                      #   SHOULD ALWAYS BE SET TO "NO"
+                      #   Instead, feed the file below into the Q.C. codes
+
+export PREPBUFR_IN=${PREPBUFR_IN:-$COMIN/${RUN}.${cycle}.prepbufr_pre-qc}
+
+export GETGUESS=${GETGUESS:-YES}
+                      # Encode first guess (background) values interpolated to
+                      # observation locations in the PREPBUFR file for use by
+                      # the q.c. programs.  This guess is always from a global
+                      # sigma guess file valid at the center PREPBUFR
+                      # processing date/time.
+
+export network_getges=${network_getges:-cdas}
+                      # getges processes only CDAS files
+
+#  -- These can individually be switched to NO without affecting the
+#      success of other programs and the success of the complete job
+#       (if job fails in one of these programs, set offending program
+#       to NO and resubmit to "work-around" problem)
+
+export SYNDATA=${SYNDATA:-NO}    # Execute program SYNDAT_SYNDATA   if YES
+                                 #   SHOULD ALWAYS BE SET TO "NO"
+
+export PREVENTS=${PREVENTS:-YES} # Execute program PREPOBS_PREVENTS if YES
+
+export PREPACQC=${PREPACQC:-YES} # Execute PREPACQC script processing if YES
+   export PROCESS_ACQC=${PROCESS_ACQC:-YES} # Execute program PREPOBS_PREPACQC
+                                            #  if YES
+   export PROCESS_ACPF=${PROCESS_ACPF:-NO} # Execute program PREPOBS_PREPACPF
+                                            #  if YES
+                                 #   SHOULD ALWAYS BE SET TO "NO" (profiles
+                                 #    are not generated in CDAS)
+
+export PROFCQC=${PROFCQC:-NO}    # Execute program PREPOBS_PROFCQC  if YES
+                                 #   SHOULD ALWAYS BE SET TO "NO"
+
+export CQCVAD=${CQCVAD:-NO}      # Execute program PREPOBS_CQCVAD   if YES
+                                 #   SHOULD ALWAYS BE SET TO "NO"
+
+export CQCBUFR=${CQCBUFR:-YES}   # Execute program PREPOBS_CQCBUFR  if YES
+
+export CQCC=${CQCC:-$PARMPREP/prepobs_cqcbufr.${NET}.parm}
+                                 # Must export CQCBUFR parm card path
+
+export OIQCBUFR=${OIQCBUFR:-YES} # Execute program PREPOBS_OIQCBUFR if YES
+
+export DO_QC=${DO_QC:-YES}
+                      # IF NO, programs PREPOBS_PREVENTS, PREPOBS_PREPACQC,
+                      # PREPOBS_PREPACPF, PREPOBS_PROFCQC, PREPOBS_CQCVAD,
+                      # PREPOBS_CQCBUFR and PREPOBS_OIQCBUFR will NEVER execute
+                      # regardless of switches above -
+
+env
+
+#####################
+# Execute the script
+#####################
+if [ $GET_IOPROFILE = YES ]; then
+   /usrx/local/mio/tools/bin/miostats -X0 \
+   $SCRIPTScdas/exglobal_makeprepbufr.sh.ecf
+   err_cdas_prep2=$?
+else
+   $SCRIPTScdas/exglobal_makeprepbufr.sh.ecf
+   err_cdas_prep2=$?
+fi
+
+COPY_TO_ARKV=${COPY_TO_ARKV:-YES}
+if [ $COPY_TO_ARKV = YES ]; then
+#
+# Copy prep data to arkv directory
+#
+
+   ARKPDY=`echo $PDY | cut -c1-6`
+   [ -s cqc_events ] && cp cqc_events \
+    /com/arkv/${envir}/cdas.${ARKPDY}/cqc_events.${PDY}${cyc}
+   [ -s cqc_stncnt ] && cp cqc_stncnt \
+    /com/arkv/${envir}/cdas.${ARKPDY}/cqc_stncnt.${PDY}${cyc}
+   [ -s cqc_stnlst ] && cp cqc_stnlst \
+    /com/arkv/${envir}/cdas.${ARKPDY}/cqc_stnlst.${PDY}${cyc}
+   [ -s cqc_wndpbm ] && cp cqc_wndpbm \
+    /com/arkv/${envir}/cdas.${ARKPDY}/cqc_wndpbm.${PDY}${cyc}
+   [ -s tosslist ] && cp tosslist \
+    /com/arkv/${envir}/cdas.${ARKPDY}/tosscat${PDY}${cyc}
+   #cp $LOADL_STEP_OUT /com/arkv/${envir}/cdas.${ARKPDY}/prep2${PDY}${cyc}.out
+   cp $LSB_OUTPUTFILE /com/arkv/${envir}/cdas.${ARKPDY}/prep2${PDY}${cyc}.out
+
+fi
+
+#################################################
+# Save the profiling data captured from miostats
+#################################################
+if [ $GET_IOPROFILE = YES ]; then
+    . /com/miostats/.set_IOprofile
+fi
+
+CLEAN=${CLEAN:-YES}
+if [ $CLEAN = YES ]; then
+   cd $DATA_IN
+   rm -rf $DATA
+fi
+
+date
+#ecflow_client --complete
+
