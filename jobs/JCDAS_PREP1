@@ -1,14 +1,41 @@
-#!/bin/sh
+#!/bin/ksh
 
 set -xa     
+date
 
-######################################################
-# The following variable could be defined in the LSF
-# submission script (the ECFLOW script), if not it
-# will take the default value which is set for the
-# NCO running environment
-######################################################
-export RUN_ENVIR=${RUN_ENVIR:-prod}
+if [ -n "$obsproc_prep_ver" ]; then
+   set +x
+   echo
+   echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
+   echo "Current OBSPROC_PREP version is $obsproc_prep_ver"
+   echo
+   set -x
+fi
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s +' ;;        # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
+
+########################################
+# Check that required variables are set
+########################################
+set +x
+echo
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo
+echo
+set -x
 
 ###########################
 # Specify NET and RUN Name
@@ -16,13 +43,48 @@ export RUN_ENVIR=${RUN_ENVIR:-prod}
 export NET=${NET:-cdas}
 export RUN=${RUN:-cdas}
 
+###############################
+# Create new working directory
+###############################
+host=$(hostname -s)
+if [[ ${USER} == nwprod ]]; then
+  DATAROOT=/tmpnwprd
+else
+  DATAROOT=${DATAROOT:-/stmp/${USER}}
+fi
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+rm -rf $DATA
+mkdir -p $DATA
+cd $DATA
+
+######################################
+# Set job log file for postmsg output
+######################################
+if [[ ${USER} == nwprod ]]; then
+  if [[ ${envir} == prod ]]; then
+    jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
+  else
+    jlogfile=/com/logs/${envir}/jlogfile
+  fi
+else
+  jlogfile=${jlogfile:-${DATA}/jlogfile}
+fi
+
+######################################
+# Determine Job Output Name on System
+######################################
+export pid=$$
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+
 if [ $envir = "prod" ]
 then
    export SENDDBN=${SENDDBN:-YES}
-   export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.$$}
 else
    export SENDDBN=${SENDDBN:-NO}
-   export jlogfile=${jlogfile:-/com/logs/${envir}/jlogfile}
    export COM=${COM:-/com/${NET}/${envir}}
    export COM_IN=${COM_IN:-/com/${NET}/${envir}}
    export COM_OUT=${COM_OUT:-/com/${NET}/${envir}}
@@ -31,36 +93,22 @@ else
    export PARMPREP=/nwtest/parm
    export envir_getges=prod
    export USHGETGES=/nwprod/util/ush
+   export ushscript_prep=/nw${envir}/ush
+                                      # path to observational data prep scripts
 fi
 
-#################################
-# SET SHELL PROCESSING VARIABLES
-#################################
-export PS4='$SECONDS + '
-date
+#####################################
+# Run config to get input parameters
+#####################################
+if [ "$RUN_ENVIR" = dev ]      ### For Developers to specify the necessary
+                               ### parameters to overwrite the default settings
+then
+  . /meso/save/${LOGNAME}/.....
+fi
 
 #################################################
 # SETUP CDAS PREPBUFR PREP1 PROCESSING VARIABLES
 #################################################
-
-#########################################################
-# obtain unique process id (pid) and make temp directory
-#########################################################
-export pid=$$
-export DATA_IN=${DATA_IN:-/tmpnwprd}
-export DATA=${DATA:-$DATA_IN/${job}.${pid}}
-
-CLEAN=${CLEAN:-YES}
-if [ $CLEAN = YES ]; then
-   rm -r -f $DATA
-fi
-mkdir -p $DATA
-cd $DATA
-
-###################
-# File To Log Msgs
-###################
-export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 export cycle=t${cyc}z
 export tmmark=tm00
@@ -77,42 +125,43 @@ export pgmout="OUTPUT.${pid}"
 # SENDCOM=YES   - Copy output files to /com directory
 # SENDECF=YES   - Flag Events on ECFLOW
 # SENDDBN=YES   - Alert output file to TOC, set to NO for testing
-# GET_IOPROFILE - Run I/O statistics
 ##################################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}       # need to set to NO for testing only
-export GET_IOPROFILE=${GET_IOPROFILE:-NO}
-
-export HOMEcdas=${HOMEcdas:-/nw${envir}}
-export FIXcdas=${FIXcdas:-$HOMEcdas/fix}
-export SCRIPTScdas=${SCRIPTScdas:-$HOMEcdas/scripts}
 
 ##########################
 # Specify Execution Areas
 ##########################
-export HOMEPREP=${HOMEPREP:-/nwprod}
-export EXECPREP=${EXECPREP:-${HOMEPREP}/exec}
-export FIXPREP=${FIXPREP:-${HOMEPREP}/fix}
-export PARMPREP=${PARMPREP:-${HOMEPREP}/parm}
-export DICTPREP=${DICTPREP:-${HOMEPREP}/dictionaries}
+export HOMEobsproc_network=${HOMEobsproc_network:-/nw${envir}/obsproc_global.${obsproc_global_ver}}
+export FIXobsproc_global=${FIXobsproc_global:-$HOMEobsproc_network/fix}
+export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:-$HOMEobsproc_network/scripts}
 
-export HOMESYND=${HOMESYND:-/nwprod}
+export HOMEobsproc_prep=${HOMEobsproc_prep:-/nw${envir}/obsproc_prep.${obsproc_prep_ver}}
+
+export EXECPREP=${EXECPREP:-${HOMEobsproc_prep}/exec}
+export FIXPREP=${FIXPREP:-${HOMEobsproc_prep}/fix}
+export PARMPREP=${PARMPREP:-${HOMEobsproc_network}/parm}
+export DICTPREP=${DICTPREP:-/nwprod/dictionaries}
+
+export HOMESYND=${HOMESYND:-$HOMEobsproc_prep}
 export EXECSYND=${EXECSYND:-${HOMESYND}/exec}
 export FIXSYND=${FIXSYND:-${HOMESYND}/fix}
-export PARMSYND=${PARMSYND:-${HOMESYND}/parm}
+export PARMSYND=${PARMSYND:-${HOMEobsproc_network}/parm}
 
 export HOMEUTIL=${HOMEUTIL:-/nwprod/util}
 export EXECUTIL=${EXECUTIL:-${HOMEUTIL}/exec}
 
+############################
+# Below for path to prepobs scripts in model scripts
+export ushscript_prep=${ushscript_prep:-$HOMEobsproc_prep/ush}
+
 #######################
 # Set up the UTILITIES
 #######################
-export ushscript=${ushscript:-/nwprod/ush}
 export utilscript=${utilscript:-/nwprod/util/ush}
 export utilparm=${utilparm:-/nwprod/util/parm}
 export utilexec=${utilexec:-/nwprod/util/exec}
-export utilities=${utilities:-/nwprod/util/ush}
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -281,14 +330,8 @@ env
 #####################
 # Execute the script
 #####################
-if [ $GET_IOPROFILE = YES ]; then
-   /usrx/local/mio/tools/bin/miostats -X0 \
-   $SCRIPTScdas/exglobal_makeprepbufr.sh.ecf
-   err_cdas_prep1=$?
-else
-   $SCRIPTScdas/exglobal_makeprepbufr.sh.ecf
-   err_cdas_prep1=$?
-fi
+$SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
+eval err_${RUN}_prep1=$?
 
 COPY_TO_ARKV=${COPY_TO_ARKV:-YES}
 if [ $COPY_TO_ARKV = YES ]; then
@@ -303,17 +346,11 @@ if [ $COPY_TO_ARKV = YES ]; then
    cp $LSB_OUTPUTFILE /com/arkv/${envir}/cdas.${ARKPDY}/prep1${PDY}${cyc}.out
 fi
 
-#################################################
-# Save the profiling data captured from miostats
-#################################################
-if [ $GET_IOPROFILE = YES ]; then
-    . /com/miostats/.set_IOprofile
-fi
+echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 
-CLEAN=${CLEAN:-YES}
-if [ $CLEAN = YES ]; then
-   cd $DATA_IN
-   rm -rf $DATA
+if [ "${CLEANUP:-YES}" = YES ]; then
+  cd $DATAROOT
+  rm -rf $DATA
 fi
 
 date

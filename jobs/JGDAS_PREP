@@ -37,9 +37,9 @@ echo
 echo
 set -x
 
-#####################################
-# Specify NET and RUN Name and model
-#####################################
+##################################
+# Specify NET, RUN and model Name
+##################################
 export NET=${NET:-gfs}
 export RUN=${RUN:-gdas1}
 export model=${model:-gdas}  # Used in subscripts for file names
@@ -281,7 +281,7 @@ export NET=gdas
 #####################
 # Execute the script
 #####################
-$SCRIPTSgdas/exglobal_makeprepbufr.sh.ecf
+$SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
 eval err_${model}_prep=$?
 
 echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_prep_ran

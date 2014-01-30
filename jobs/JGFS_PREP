@@ -22,7 +22,7 @@ case $DEBUG_LEVEL in
                                             #  want to diff output from 2 runs)
   2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
   3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
-  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";; 
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
 esac
 
 ########################################
@@ -31,8 +31,8 @@ esac
 set +x
 echo
 echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
-echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"} 
-echo job is ${job:?"###FATAL ERROR \"job\" is not set"} 
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
 echo
 echo
 set -x
