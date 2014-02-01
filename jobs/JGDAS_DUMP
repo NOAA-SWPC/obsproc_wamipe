@@ -13,7 +13,7 @@ set -x
 # SET SHELL PROCESSING VARIABLES
 #################################
 export PS4='$SECONDS + '
-date
+date -u
 
 ######################################################
 # The following variable could be defined in the LSF
@@ -199,12 +199,12 @@ export NET=gdas
 $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
 eval err_${model}_dump=$?
 
-echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 
 if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
    rm -rf $DATA
 fi
 
-date
+date -u
 exit

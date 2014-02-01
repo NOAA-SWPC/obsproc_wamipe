@@ -13,7 +13,7 @@ set -x
 # SET SHELL PROCESSING VARIABLES
 #################################
 export PS4='$SECONDS + '
-date
+date -u
 
 ######################################################
 # The following variable could be defined in the LSF
@@ -241,7 +241,7 @@ env
 $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
 eval err_${model}_dump=$?
 
-echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 
 #
 # Copy dump data to arkv directory
@@ -262,5 +262,5 @@ if [ "${CLEANUP:-YES}" = YES ]; then
    rm -rf $DATA
 fi
 
-date
+date -u
 exit

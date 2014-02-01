@@ -353,7 +353,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_1
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -539,7 +539,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_1
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/1.out 2>&1
@@ -558,7 +558,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_2
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -642,7 +642,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_2
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/2.out 2>&1
@@ -661,7 +661,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_3
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -736,7 +736,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_3
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/3.out 2>&1
@@ -755,7 +755,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_4
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -831,7 +831,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_4
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/4.out 2>&1
@@ -850,7 +850,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_5
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -883,7 +883,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_5
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/5.out 2>&1
@@ -902,7 +902,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_6
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -1026,7 +1026,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_6
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/6.out 2>&1
@@ -1045,7 +1045,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_7
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -1174,7 +1174,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_7
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/7.out 2>&1
@@ -1193,7 +1193,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_8
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -1251,7 +1251,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_8
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/8.out 2>&1
@@ -1270,7 +1270,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_9
 echo Executing on node  `hostname`
-echo Starting time: `date`
+echo Starting time: `date -u`
 echo "********************************************************************"
 echo
 set -x
@@ -1309,7 +1309,7 @@ set +x
 echo "********************************************************************"
 echo Script thread_9
 echo Finished executing on node  `hostname`
-echo Ending time  : `date`
+echo Ending time  : `date -u`
 echo "********************************************************************"
 set -x
 } > $DATA/9.out 2>&1
