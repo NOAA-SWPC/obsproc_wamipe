@@ -1,27 +1,44 @@
-#!/bin/ksh
-
 set -xa
-
-set +x
-echo
-echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
-echo "OBSPROC_DUMP version used by this job is $obsproc_dump_ver"
-echo
-set -x
-
-#################################
-# SET SHELL PROCESSING VARIABLES
-#################################
-export PS4='$SECONDS + '
 date -u
 
-######################################################
-# The following variable could be defined in the LSF
-# submission script (the ECFLOW script), if not it
-# will take the default value which is set for the
-# NCO running environment
-######################################################
-export RUN_ENVIR=${RUN_ENVIR:-prod}
+if [ -n "$obsproc_global_ver" ]; then
+   set +x
+   echo
+   echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_dump_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_DUMP version used by this job is $obsproc_dump_ver"
+   echo
+   set -x
+fi
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
+
+########################################
+# Check that required variables are set
+########################################
+set +x
+echo
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo
+set -x
 
 ##################################
 # Specify NET, RUN and model Name
@@ -30,115 +47,147 @@ export NET=${NET:-gfs}
 export RUN=${RUN:-gdas1}
 export model=${model:-gdas}
 
-if [ $envir = "prod" ]
-then
-   export SENDDBN=${SENDDBN:-YES}
-   export SENDDBN_GB2=${SENDDBN_GB2:-YES}
-   export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.$$}
-   export DCOMROOT=${DCOMROOT:-/dcom}
+##############################
+# Specify cycle and time-mark
+##############################
+export cycle=t${cyc}z
+export tmmark=tm00
+
+###############################
+# Create new working directory
+###############################
+host=$(hostname -s)
+if [[ ${USER} == nwprod ]]; then
+  DATAROOT=/tmpnwprd1
 else
-   export SENDDBN=${SENDDBN:-NO}
-   export SENDDBN_GB2=${SENDDBN_GB2:-NO}
-   export jlogfile=${jlogfile:-/com/logs/${envir}/jlogfile}
-   export COM_IN=/com/${NET}/prod
-   export COM_OUT=/com/${NET}/${envir}
-   export ushscript_dump=/nw${envir}/ush
-                                      # path to observational data dump scripts
+  DATAROOT=${DATAROOT:-/stmp/${USER}}
 fi
-
-#####################################
-# Run config to get input parameters
-#####################################
-if [ "$RUN_ENVIR" = dev ]      ### For Developers to specify the necessary
-                               ### parameters to overwrite the default settings
-then
-  . /meso/save/${LOGNAME}/.....
-fi
-
-############################################
-# SETUP GDAS DATA DUMP PROCESSING VARIABLES
-############################################
-
-#########################################################
-# obtain unique process id (pid) and make temp directory
-#########################################################
-export pid=$$
-export DATAROOT=${DATAROOT:-/tmpnwprd}
-export DATA=${DATA:-$DATAROOT/${job}.${pid}}
-
-if [ "${CLEANUP:-YES}" = YES ]; then
-   rm -r -f $DATA
-fi
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
 
-###################
-# File To Log Msgs
-###################
-export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
-
-export cycle=t${cyc}z
-export tmmark=tm00
+######################################
+# Set job log file for postmsg output
+######################################
+if [[ ${USER} == nwprod ]]; then
+  if [[ ${envir} == prod ]]; then
+    jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
+  else
+    jlogfile=/com/logs/${envir}/jlogfile
+  fi
+else
+  jlogfile=${jlogfile:-${DATA}/jlogfile}
+fi
 
 ######################################
 # Determine Job Output Name on System
 ######################################
+export pid=$$
 export outid="LL$job"
 [ $envir != prod ]  && export outid="LL${job}_${envir}"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-##################################################################
-# SENDCOM=YES   - Copy output files to /com directory
-# SENDECF=YES   - Flag Events on ECFLOW
-# SENDDBN=YES   - Alert output file to TOC, set to NO for testing
-##################################################################
-export SENDCOM=${SENDCOM:-YES}
-export SENDECF=${SENDECF:-YES}
-export SENDDBN=${SENDDBN:-YES}       # need to set to NO for testing only
+################################################
+# SENDCOM      - Copy files to /com directory
+# SENDECF      - Flag Events on ECFLOW
+# SENDDBN      - Alert output file to TOC
+# SENDDBN_GB2  - Alert output GRIB2 file to TOC
+################################################
+if [[ ${USER} == nwprod ]]; then
+  export SENDCOM=YES
+  export SENDECF=YES
+  if [[ ${envir} == prod ]]; then
+    export SENDDBN=YES
+    export SENDDBN_GB2=YES
+  else
+    export SENDDBN=NO
+    export SENDDBN_GB2=NO
+  fi
+else  # developer
+  export SENDCOM=${SENDCOM:-YES}
+  export SENDECF=NO
+  export SENDDBN=NO
+  export SENDDBN_GB2=NO
+fi
 
 ##########################
 # Specify Execution Areas
 ##########################
-export HOMEobsproc_network=${HOMEobsproc_network:-/nw${envir}/obsproc_global.${obsproc_global_ver}}
-export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:-$HOMEobsproc_network/scripts}
 
-export HOMEobsproc_dump=${HOMEobsproc_dump:-/nw${envir}/obsproc_dump.${obsproc_dump_ver}}
+# -------------------------------
+# Paths for obsproc_network items
+# -------------------------------
+export HOMEobsproc_network=${HOMEobsproc_network:\
+-/nw${envir}/obsproc_global.${obsproc_global_ver:?\
+"###FATAL ERROR \"obsproc_global_ver\" is not set"}}
 
-# Below for paths to SSMI dump re-processing in bufr_dump_obs
+export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:\
+-$HOMEobsproc_network/scripts}
+
+# ----------------------------
+# Paths for obsproc_dump items
+# ----------------------------
+export HOMEobsproc_dump=${HOMEobsproc_dump:\
+-/nw${envir}/obsproc_dump.${obsproc_dump_ver:?\
+"###FATAL ERROR \"obsproc_dump_ver\" is not set"}}
+
+# NOTE: path to dump executables defaults to $HOMEobsproc_dump/exec in dumpjb
+
+# directory path to data dump script executed in model script
+# -----------------------------------------------------------
+export ushscript_dump=${ushscript_dump:-$HOMEobsproc_dump/ush}
+
+# ---------------------------------------------------------
+# Paths for combined obsproc_network and obsproc_dump items
+# ---------------------------------------------------------
+
+# directory paths to SSMI dump re-processing executed in bufr_dump_obs
+# --------------------------------------------------------------------
 export EXECPREP=${EXECPREP:-$HOMEobsproc_dump/exec}
 export PARMPREP=${PARMPREP:-$HOMEobsproc_network/parm}
 export FIXPREP=${FIXPREP:-$HOMEobsproc_dump/fix}
 
-# Below for paths to ERS, QuikSCAT & ASCAT dump re-processing in bufr_dump_obs
+# directory paths to ERS, QuikSCAT & ASCAT dump re-processing executed in
+#  bufr_dump_obs
+# -----------------------------------------------------------------------
 export EXECWAVE=${EXECWAVE:-$HOMEobsproc_dump/exec}
 export PARMWAVE=${PARMWAVE:-$HOMEobsproc_network/parm}
 export FIXWAVE=${FIXWAVE:-$HOMEobsproc_dump/fix}
 
-# Below for paths to SSMI, TRMM & WindSAT dump re-processing in bufr_dump_obs
+# directory paths to SSMI, TRMM & WindSAT dump re-processing executed in
+#  bufr_dump_obs
+# ----------------------------------------------------------------------
 export EXECBUFR=${EXECBUFR:-$HOMEobsproc_dump/exec}
 export PARMBUFR=${PARMBUFR:-$HOMEobsproc_network/parm}
 export FIXBUFR=${FIXBUFR:-$HOMEobsproc_dump/fix}
 
-# Below for paths to engice, sst & snowdepth grib files in model script
+# ---------------------------
+# Paths for non-obsproc items
+# ---------------------------
+
+# TANK is root directory path to observational database used in dumpjb
+#  and engice, sst & snowdepth grib files used in model script
+# --------------------------------------------------------------------
+export DCOMROOT=${DCOMROOT:-/dcom}
+export TANK=${TANK:-${DCOMROOT}/us007003}
+mkdir -p $TANK
+
+# directory paths to engice, sst & snowdepth grib files used in model script
+# --------------------------------------------------------------------------
 export COM_ENGICE=${COM_ENGICE:-/com/omb/prod/sice}
 export COM_SSTOI=${COM_SSTOI:-/com/gfs/prod/sst}
 export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
 
-# Below for path to observational database in dumpjb
-export TANK=${TANK:-${DCOMROOT}/us007003}
-
-# NOTE: path to dump executables defaults to $HOMEobsproc_dump/exec in dumpjb
-
-# Below for path to grib file proessing exec in model script & bufr_dump_obs
+# directory path to grib file processing executed in model script and
+#  bufr_dump_obs
+# --------------------------------------------------------------------
 export EXGRBIX=${EXGRBIX:-/nwprod/util/exec}
 
-# Below for path to observational data dump script in model script
-export ushscript_dump=${ushscript_dump:-$HOMEobsproc_dump/ush}
-
-#######################
-# Set up the UTILITIES
-#######################
+###########################
+# Set up the UTILITY paths
+###########################
 export utilscript=${utilscript:-/nwprod/util/ush}
 export utilparm=${utilparm:-/nwprod/util/parm}
 export utilexec=${utilexec:-/nwprod/util/exec}
@@ -146,7 +195,11 @@ export utilexec=${utilexec:-/nwprod/util/exec}
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-sh $utilscript/setup.sh
+if [[ ${USER} == nwprod ]]; then
+  sh $utilscript/setup.sh
+else
+  sh ${SETUP:-/nwprod/util/ush}/setup.sh
+fi
 
 ##########################################
 # Run setpdy and initialize PDY variables
@@ -157,16 +210,29 @@ sh $utilscript/setpdy.sh
 #########################
 # Define COM directories
 #########################
-export COM_IN_ROOT=${COM_IN_ROOT:-/com}
-export COM_IN=${COM_IN:-${COM_IN_ROOT}/${NET}/${envir}}
-export COM_OUT_ROOT=${COM_OUT_ROOT:-/com}
-export COM_OUT=${COM_OUT:-${COM_OUT_ROOT}/${NET}/${envir}}
+if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
+  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
+  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
+  mkdir -m 775 -p $COMOUT
+else
+  export COMIN_ROOT=${COMIN_ROOT:-/com}
+  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
 
-export COM=${COM:-${COM_IN}}
-export COMIN=${COMIN:-${COM_IN}/${model}.${PDY}}
-export COMOUT=${COMOUT:-${COM_OUT}/${model}.${PDY}}
+# COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
+#  prevent job from writing into a non-unique directory (e.g., /ptmp/$USER/com)
+#  that might already have a dump status file in it from a previous checkout
+#  run (this could mess up some logic downstream) -- since $DATA is not
+#  necessarily known at time COMOUT_ROOT would have to be exported in parent
+#  script we go with $DATA/com as default here
+# -----------------------------------------------------------------------------
+  export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  mkdir -m 755 -p $COMOUT
+fi
 
-mkdir -m 775 -p $COMOUT
+############################################
+# SETUP GDAS DATA DUMP PROCESSING VARIABLES
+############################################
 
 #########################################################
 # Specify variables specific to this execution of script
@@ -205,6 +271,6 @@ if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
    rm -rf $DATA
 fi
-
 date -u
+
 exit
