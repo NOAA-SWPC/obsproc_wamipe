@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 1.0.0 --> released Dec ??, 2013
+obsproc_global release 1.0.0 --> released Jan ??, 2014
 
 files
   obsproc_global/ecf/cdas/dump/jcdas_dump.ecf
@@ -18,11 +18,13 @@ files
 
  JOB script changes:
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
-    - Placed into VS/EE for first time.
+    - Changed all "date" commands to "date -u" since WCOSS should always
+      present date in UTC.
     - Obtains obsproc_global and obsproc_dump version numbers via imported
       environment variables $obsproc_global_ver and $obsproc_dump_ver, resp.
       These are defined in the upstream ecflow script.
-    - Streamlined, allows for more generalization (e.g., for checkout runs).
+    - Full environmental equivalence.  Streamlined, allows for more
+      generalization (e.g., for checkout runs).
     - Exports new environment variable $HOMEobsproc_dump which points to
       directory path for generic dump subdirectories under version control
       (in production this is normally /nwprod/obsproc_dump.$obsproc_dump_ver).
@@ -34,15 +36,17 @@ files
       /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir} in
       order to point to files in parm directory moved from horizontal to
       vertical directory structure.
+   JCDAS_DUMP:
+    - Uses "cp -p" rather than "cp when copying files to /com/arkv directory
+      in order to preserve group ownership as "rstprod" for restricted files.
 
  Parm file changes:
    prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
    prepobs_prepssmi.gfs.parm:
-    - Placed into VS/EE for first time. No changes to contents.
+    - No changes to contents.
 
  Model script changes:
    exglobal_dump.sh.ecf:
-    - Placed into VS/EE for first time.
     - Modified to dump GOES IR, water vapor, and visible satellite-derived
       winds using a time window of -1.00 to -0.01 hours relative to cycle time
       for the CDAS, GDAS and GFS rather than -1.50 to +1.50 hours relative to
@@ -65,10 +69,9 @@ files
 
  ECF script changes:
    cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
-    - Placed into VS/EE.  Obtains versions for obsproc_global
-      ($obsproc_global_ver) and obsproc_dump ($obsproc_dump_ver) from
-      obsproc_global.ver file - both are now exported for use by JOB scripts
-      JCDAS_DUMP, JGDAS_DUMP, and JGFS_DUMP
+    - Obtains versions for obsproc_global ($obsproc_global_ver) and
+      obsproc_dump ($obsproc_dump_ver) from .ver file - both are now exported
+      for use by JOB scripts , JGDAS_DUMP, and JGFS_DUMP
     - Generalized to handle all cycles.
 
 
@@ -77,6 +80,9 @@ files
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
     - "ascatw" dump files will now contain scatterometer winds from METOP-B (as
       well as from METOP-A from before)
+   Job JCDAS_DUMP:
+    - users in the "rstprod" group will now be able to read restricted dump
+      files in the /comarkv directory.
   
 
  Compute Resource Information:
