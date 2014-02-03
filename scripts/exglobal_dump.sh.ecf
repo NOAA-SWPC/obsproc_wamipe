@@ -28,7 +28,7 @@ set +u
 #                   * - for CDAS only
 #
 # Dump group #2 (pb, TIME_TRIM = OFF) =
-#               sfcshp atovs adpsfc wndsat
+#               sfcshp atovs adpsfc
 #
 # Dump group #3 (pb, TIME_TRIM = OFF) =
 #               adpupa gpsipw ascatt
@@ -579,17 +579,21 @@ export DUMP_NUMBER=2
 # Dump # 2 : SFCSHP: 5 subtype(s)
 #            ATOVS:  1 subtype(s)
 #            ADPSFC: 4 subtype(s)
-#            WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+#  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+# ===> Dumping of WNDSAT removed from here until new ingest feed is established
+#      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 11
+#            TOTAL NUMBER OF SUBTYPES = 10
 #
 #--------------------------------------------------------------------------
 # GFS:
 # Dump # 2 : SFCSHP: 5 subtype(s)
 #            ADPSFC: 4 subtype(s)
-#            WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+#  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+# ===> Dumping of WNDSAT removed from here until new ingest feed is established
+#      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 10
+#            TOTAL NUMBER OF SUBTYPES = 9
 #
 #==========================================================================
 
@@ -606,8 +610,10 @@ DTIM_latest_adpsfc=${DTIM_latest_adpsfc:-"+2.99"}
 # check for wndsat tank presence in past 10 days
 wndsat=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh wndsat
-err_check_tanks=$?
+##########sh $utilscript/check_tanks.sh wndsat
+##########err_check_tanks=$?
+err_check_tanks=99 # comment out 2 lines above & add this line to ensure wndsat
+                   # is not ever dumped
 if [ $err_check_tanks -eq 0 ];then
    wndsat=wndsat
    DTIM_latest_wndsat=${DTIM_latest_wndsat:-"+2.99"}

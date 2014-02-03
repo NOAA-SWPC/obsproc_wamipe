@@ -66,6 +66,12 @@ files
                otherwise even be included in the "vadwnd" dump, this will
                happen in the FY14Q2 NAM bundle - the Global GSI cannot handle
                these at this time.
+    - Modified to turn off the check for the existence of "wndsat" data tanks
+      and thus any attempt to dump these data..
+      BENEFIT: The WindSat scatterometer data ingest feed is currently broken
+               as these data are now being produced under a new format that
+               NCEP does not recognize.  As we transition to the new feed,
+               we do not want to inadvertently dump these data in operations.
 
  ECF script changes:
    cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
