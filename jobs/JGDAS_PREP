@@ -1,7 +1,7 @@
 #!/bin/ksh
 
 set -xa     
-date
+date -u
 
 if [ -n "$obsproc_prep_ver" ]; then
    set +x
@@ -284,13 +284,13 @@ export NET=gdas
 $SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
 eval err_${model}_prep=$?
 
-echo "`hostname`  --  `date`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 
 if [ "${CLEANUP:-YES}" = YES ]; then
   cd $DATAROOT
   rm -rf $DATA
 fi
 
-date
+date -u
 #ecflow_client --complete
 
