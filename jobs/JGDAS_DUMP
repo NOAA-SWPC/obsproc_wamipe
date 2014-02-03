@@ -267,6 +267,14 @@ eval err_${model}_dump=$?
 
 echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 
+> $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
+[ -n "$obsproc_global_ver" ]  &&  \
+ echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
+[ -n "$obsproc_dump_ver" ]  &&  \
+ echo "OBSPROC_DUMP version used by this job is $obsproc_dump_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
+
 if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
    rm -rf $DATA
