@@ -82,7 +82,7 @@ files
       well as from METOP-A from before)
    Job JCDAS_DUMP:
     - users in the "rstprod" group will now be able to read restricted dump
-      files in the /comarkv directory.
+      files in the /com/arkv directory.
   
 
  Compute Resource Information:
