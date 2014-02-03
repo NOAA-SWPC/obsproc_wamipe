@@ -159,9 +159,9 @@ export FIXWAVE=${FIXWAVE:-$HOMEobsproc_dump/fix}
 # directory paths to SSMI, TRMM & WindSAT dump re-processing executed in
 #  bufr_dump_obs
 # ----------------------------------------------------------------------
-export EXECBUFR=${EXECBUFR:-$HOMEobsproc_dump/exec}
-export PARMBUFR=${PARMBUFR:-$HOMEobsproc_network/parm}
-export FIXBUFR=${FIXBUFR:-$HOMEobsproc_dump/fix}
+export EXECbufr=${EXECbufr:-$HOMEobsproc_dump/exec}
+export PARMbufr=${PARMbufr:-$HOMEobsproc_network/parm}
+export FIXbufr=${FIXbufr:-$HOMEobsproc_dump/fix}
 
 # ---------------------------
 # Paths for non-obsproc items
