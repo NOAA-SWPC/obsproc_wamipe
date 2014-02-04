@@ -436,7 +436,7 @@ DTIM_latest_1bamua=${DTIM_latest_1bamua:-"+2.99"}
 # check for 1bamub tank presence in past 10 days
 n1bamub=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh 1bamub
+sh $USHobsproc_dump/check_tanks.sh 1bamub
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    n1bamub=1bamub
@@ -446,7 +446,7 @@ fi
 # check for 1bhrs3 tank presence in past 10 days
 n1bhrs3=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh 1bhrs3
+sh $USHobsproc_dump/check_tanks.sh 1bhrs3
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    n1bhrs3=1bhrs3
@@ -459,7 +459,7 @@ DTIM_latest_1bmhs=${DTIM_latest_1bmhs:-"+2.99"}
 # check for amsre tank presence in past 10 days
 amsre=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh amsre
+sh $USHobsproc_dump/check_tanks.sh amsre
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    amsre=amsre
@@ -610,7 +610,7 @@ DTIM_latest_adpsfc=${DTIM_latest_adpsfc:-"+2.99"}
 # check for wndsat tank presence in past 10 days
 wndsat=""
 err_check_tanks=0
-##########sh $utilscript/check_tanks.sh wndsat
+##########sh $USHobsproc_dump/check_tanks.sh wndsat
 ##########err_check_tanks=$?
 err_check_tanks=99 # comment out 2 lines above & add this line to ensure wndsat
                    # is not ever dumped
@@ -1086,7 +1086,7 @@ DTIM_latest_ssmisu=${DTIM_latest_ssmisu:-"+2.99"}
 # check for trmm tank presence in past 10 days
 trmm=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh trmm
+sh $USHobsproc_dump/check_tanks.sh trmm
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    trmm=trmm
@@ -1101,7 +1101,7 @@ DTIM_latest_trkob=${DTIM_latest_trkob:-"+2.99"}
 # check for atms tank presence in past 10 days
 atms=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh atms
+sh $USHobsproc_dump/check_tanks.sh atms
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    atms=atms
@@ -1111,7 +1111,7 @@ fi
 # check for cris tank presence in past 10 days
 cris=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh cris
+sh $USHobsproc_dump/check_tanks.sh cris
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    cris=cris
@@ -1121,7 +1121,7 @@ fi
 # check for mls tank presence in past 10 days
 mls=""
 err_check_tanks=0
-sh $utilscript/check_tanks.sh mls
+sh $USHobsproc_dump/check_tanks.sh mls
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
    mls=mls
