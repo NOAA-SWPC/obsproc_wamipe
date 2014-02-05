@@ -20,8 +20,9 @@ files
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - Changed all "date" commands to "date -u" since WCOSS should always
       present date in UTC.
-    - Obtains obsproc_global and obsproc_dump version numbers via imported
-      environment variables $obsproc_global_ver and $obsproc_dump_ver, resp.
+    - Obtains obsproc_global, obsproc_dump and obsproc_shared/bufr_dumplist
+      version numbers via imported environment variables $obsproc_global_ver,
+      $obsproc_dump_ver and obsproc_shared_bufr_dumplist_ver, resp.
       These are defined in the upstream ecflow script.
     - Full environmental equivalence.  Streamlined, allows for more
       generalization (e.g., for checkout runs).
@@ -36,6 +37,12 @@ files
       /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir} in
       order to point to files in parm directory moved from horizontal to
       vertical directory structure.
+    - Exports new environment variables $HOMEobsproc_shared_bufr_dumplist and
+      $FIXobsproc_shared_bufr_dumplist which point to directory path for
+      bufr_dumplist fixed file under version control (in production the latter
+      is normally
+   /nwprod/obsproc_shared/bufr_dumplist.$obsproc_shared_bufr_dumplist_ver/fix).
+      Replaces /nw${envir}/fix from old horizontal directory structure.
    JCDAS_DUMP:
     - Uses "cp -p" rather than "cp when copying files to /com/arkv directory
       in order to preserve group ownership as "rstprod" for restricted files.
@@ -47,6 +54,8 @@ files
 
  Model script changes:
    exglobal_dump.sh.ecf:
+    - $USHobsproc_dump replaces $utilscript as the environment variable
+      representing the directory path to the ush script check_tanks.sh.
     - Modified to dump GOES IR, water vapor, and visible satellite-derived
       winds using a time window of -1.00 to -0.01 hours relative to cycle time
       for the CDAS, GDAS and GFS rather than -1.50 to +1.50 hours relative to
@@ -75,9 +84,11 @@ files
 
  ECF script changes:
    cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
-    - Obtains versions for obsproc_global ($obsproc_global_ver) and
-      obsproc_dump ($obsproc_dump_ver) from .ver file - both are now exported
-      for use by JOB scripts , JGDAS_DUMP, and JGFS_DUMP
+    - Obtains versions for obsproc_global ($obsproc_global_ver),
+      obsproc_dump ($obsproc_dump_ver) and obsproc_shared/bufr_dumplist
+      (obsproc_shared_bufr_dumplist_ver) from obsproc_global.ver file - all
+      are now exported for use by JOB scripts JCDAS_DUMP, JGDAS_DUMP, and
+      JGFS_DUMP.
     - Generalized to handle all cycles.
 
 
@@ -100,6 +111,7 @@ files
          GDAS: ascatw increases from ~ 17 MBytes/day to ~ 34 MBytes/day
          GFS:  ascatw increases from ~ 14 MBytes/day to ~ 28 MBytes/day
     - uses code from obsproc_dump.v3.0.0
+    - uses code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
 
 
