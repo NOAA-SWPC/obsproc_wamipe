@@ -19,7 +19,8 @@ export job=gfs_dump_%CYC%
 # CALL executable job script here
 
 # versions file obsproc_global.ver obtains the versions used for
-#  obsproc_global ($obsproc_global_ver) & obsproc_dump ($obsproc_dump_ver) -
+#  obsproc_global ($obsproc_global_ver), obsproc_dump ($obsproc_dump_ver) &
+#  obsproc_shared/bufr_dumplist ($obsproc_shared_bufr_dumplist_ver) -
 #  these are exported to the JOB script
 
 VERSION_FILE=/nw${envir}/versions/obsproc_global.ver
