@@ -15,6 +15,14 @@ if [ -n "$obsproc_dump_ver" ]; then
    echo
    set -x
 fi
+if [ -n "$obsproc_shared_bufr_dumplist_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
+$obsproc_shared_bufr_dumplist_ver"
+   echo
+   set -x
+fi
 
 ###################################################################
 # Set DEBUG LEVEL - modifies info in execution trace prompt string
@@ -133,11 +141,13 @@ export HOMEobsproc_dump=${HOMEobsproc_dump:\
 -/nw${envir}/obsproc_dump.${obsproc_dump_ver:?\
 "###FATAL ERROR \"obsproc_dump_ver\" is not set"}}
 
+export USHobsproc_dump=${USHobsproc_dump:-$HOMEobsproc_dump/ush}
+
 # NOTE: path to dump executables defaults to $HOMEobsproc_dump/exec in dumpjb
 
 # directory path to data dump script executed in model script
 # -----------------------------------------------------------
-export ushscript_dump=${ushscript_dump:-$HOMEobsproc_dump/ush}
+export ushscript_dump=${ushscript_dump:-$USHobsproc_dump}
 
 # ---------------------------------------------------------
 # Paths for combined obsproc_network and obsproc_dump items
@@ -162,6 +172,16 @@ export FIXWAVE=${FIXWAVE:-$HOMEobsproc_dump/fix}
 export EXECbufr=${EXECbufr:-$HOMEobsproc_dump/exec}
 export PARMbufr=${PARMbufr:-$HOMEobsproc_network/parm}
 export FIXbufr=${FIXbufr:-$HOMEobsproc_dump/fix}
+
+# --------------------------------------------
+# Paths for obsproc_shared_bufr_dumplist items
+# --------------------------------------------
+export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
+-/nw${envir}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_dumplist_ver\" is not set"}}
+
+export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
+-$HOMEobsproc_shared_bufr_dumplist/fix}
 
 # ---------------------------
 # Paths for non-obsproc items
@@ -272,6 +292,10 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 [ -n "$obsproc_dump_ver" ]  &&  \
  echo "OBSPROC_DUMP version used by this job is $obsproc_dump_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
+[ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
+ echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
+$obsproc_shared_bufr_dumplist_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 
 if [ "${CLEANUP:-YES}" = YES ]; then
