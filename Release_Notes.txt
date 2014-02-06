@@ -60,17 +60,6 @@ files
       window of -3.00 to +2.99 hours relative to cycle time for the CDAS, GDAS
       and GFS.
       BENEFIT: GFS/GDAS parallel runs are now looking at these data.
-    - Modified to dump GOES IR, water vapor, and visible satellite-derived
-      winds using a time window of -1.00 to -0.01 hours relative to cycle time
-      for the CDAS, GDAS and GFS rather than -1.50 to +1.50 hours relative to
-      cycle time.
-      BENEFIT: NESDIS is changing the frequency of their GOES satellite
-               derived winds from 3-hourly to 1-hourly. The change to
-               exglobal_dump.sh.ecf will allow one complete wind set to
-               continue to be dumped and assimilated (not changing the time
-               window would triple the number of winds dumped and assimilated,
-               all over the same locations). This change will also allow winds
-               closer to cycle time to now be assimilated.
     - Modified to skip the dumping of NeXRaD VAD winds from level 2 decoder
       (type 002, subtype 017) as part of the "vadwnd" dump ["vadwnd" will still
       contain only NeXRaD VAD winds from radar coded message (type 002, subtype
@@ -133,8 +122,9 @@ files
  Preimplementation Testing Requirements:
  ---------------------------------------
    - Test production jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP.
-   - This is part of the parallel-production test of the hourly GOES satellite
-     winds.
+   - All changes in this version (1.0.0) will be tested when the next version
+     (1.1.0) is tested as part of the parallel-production test of the hourly
+     GOES satellite winds.
 
 
  Dissemination:
@@ -146,12 +136,14 @@ files
 
  Special Instructions:
  ---------------------
-   This must be implemented at EXACTLY the same time as NESDIS' promotion of
-   the hourly GOES satellite winds to their production server, and
-   simultaneously with the implementations of obsproc_dump_monitor.v1.0.0,
-   obsproc_dump.v3.0.0, obsproc_nam.v1.0.0, obsproc_rap.v1.0.0,
-   obsproc_rtma.v1.1.0, obsproc_utma.v1.1.0, obsproc_satingest.v2.0.0,
-   obsproc_shared/bufr_cword.v1.0.0 and obsproc_shared/bufr_dumplist.v1.0.0.
+   This must be implemented simultaneously with the implementations of
+   obsproc_dump_monitor.v1.0.0, obsproc_dump.v3.0.0, obsproc_nam.v1.0.0,
+   obsproc_rap.v1.0.0, obsproc_rtma.v1.1.0, obsproc_urma.v1.1.0,
+   obsproc_satingest.v2.0.0, obsproc_shared/bufr_cword.v1.0.0 and
+   obsproc_shared/bufr_dumplist.v1.0.0.
+
+   It should be implemented PRIOR to NESDIS' promotion of their hourly GOES
+   satellite winds to their production server,
 
    Please copy new file
    /meso/save/Dennis.Keyser/HOME/versions/obsproc_global.ver to
