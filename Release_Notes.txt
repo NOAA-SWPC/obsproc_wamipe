@@ -64,10 +64,10 @@ files
       (type 002, subtype 017) as part of the "vadwnd" dump ["vadwnd" will still
       contain only NeXRaD VAD winds from radar coded message (type 002, subtype
       008) for now].
-      BENEFIT: Although the NeXRaD VAD winds from level 2 decoder may not yet
-               otherwise even be included in the "vadwnd" dump, this will
-               happen in the FY14Q2 NAM bundle - the Global GSI cannot handle
-               these at this time.
+      BENEFIT: The default is to now include NeXRaD VAD winds from the level 2
+               decoder in the "vadwnd" dump file (as they will be used in the
+               FY14Q2 NAM bundle).  The Global GSI cannot handle these at this
+               time.
     - Modified to turn off the check for the existence of "wndsat" data tanks
       and thus any attempt to dump these data..
       BENEFIT: The WindSat scatterometer data ingest feed is currently broken
