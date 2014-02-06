@@ -1214,10 +1214,10 @@ export DUMP_NUMBER=8
 #=======================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
-#       EXCEPT: SATWND subtypes 005/010, 005/011 and 005/12 where
-#               it is -1.00 to -0.01 hours.
 #       EXCEPT: SATWND subtypes 005/064, 005/065, 005/066, 005/070,
-#               and 005/071 where it is -3.00 to +2.99 hours.
+#               and 005/071 where it is -3.00 to +2.99 hours. (note: satwnd
+#               needs at least 1.25-hr window radius because some NESDIS
+#               SATWND report times can be cycle time minus 1:15)
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP
 #
 #--------------------------------------------------------------------------
@@ -1229,12 +1229,6 @@ export DUMP_NUMBER=8
 
 # satwnd types
 # ------------
-DTIM_earliest_005010=${DTIM_earliest_005010:-"-1.00"}
-DTIM_latest_005010=${DTIM_latest_005010:-"-0.01"}
-DTIM_earliest_005011=${DTIM_earliest_005011:-"-1.00"}
-DTIM_latest_005011=${DTIM_latest_005011:-"-0.01"}
-DTIM_earliest_005012=${DTIM_earliest_005012:-"-1.00"}
-DTIM_latest_005012=${DTIM_latest_005012:-"-0.01"}
 DTIM_earliest_005064=${DTIM_earliest_005064:-"-3.00"}
 DTIM_latest_005064=${DTIM_latest_005064:-"+2.99"}
 DTIM_earliest_005065=${DTIM_earliest_005065:-"-3.00"}
