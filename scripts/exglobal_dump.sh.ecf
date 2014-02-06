@@ -790,7 +790,7 @@ export DUMP_NUMBER=4
 
 # Skip NeXRaD VAD WINDS FROM LEVEL 2 DECODER (not ready to be handled in GSI)
 
-export SKIP_002017=YES # Note: this may not yet be part of "vadwnd" dump
+export SKIP_002017=YES
 
 # Dump AIRCFT and AIRCAR with wide time window to improve PREPOBS_PREPACQC
 #  track-check performance
