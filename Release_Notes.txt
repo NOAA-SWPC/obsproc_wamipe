@@ -16,6 +16,15 @@ files:
 ( * - not changed)
 
 
+ ECF script changes:
+   cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
+    - Obtains versions for obsproc_global ($obsproc_global_ver),
+      obsproc_dump ($obsproc_dump_ver) and obsproc_shared/bufr_dumplist
+      (obsproc_shared_bufr_dumplist_ver) from obsproc_global.ver file - all
+      are now exported for use by JOB scripts JCDAS_DUMP, JGDAS_DUMP, and
+      JGFS_DUMP.
+    - Generalized to handle all cycles.
+
  JOB script changes:
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - Changed all "date" commands to "date -u" since WCOSS should always
@@ -47,11 +56,6 @@ files:
     - Uses "cp -p" rather than "cp when copying files to /com/arkv directory
       in order to preserve group ownership as "rstprod" for restricted files.
 
- Parm file changes:
-   prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
-   prepobs_prepssmi.gfs.parm:
-    - No changes to contents.
-
  Model script changes:
    exglobal_dump.sh.ecf:
     - $USHobsproc_dump replaces $utilscript as the environment variable
@@ -75,14 +79,10 @@ files:
                NCEP does not recognize.  As we transition to the new feed,
                we do not want to inadvertently dump these data in operations.
 
- ECF script changes:
-   cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
-    - Obtains versions for obsproc_global ($obsproc_global_ver),
-      obsproc_dump ($obsproc_dump_ver) and obsproc_shared/bufr_dumplist
-      (obsproc_shared_bufr_dumplist_ver) from obsproc_global.ver file - all
-      are now exported for use by JOB scripts JCDAS_DUMP, JGDAS_DUMP, and
-      JGFS_DUMP.
-    - Generalized to handle all cycles.
+ Parm file changes:
+   prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
+   prepobs_prepssmi.gfs.parm:
+    - No changes to contents.
 
 
  Output changes:
