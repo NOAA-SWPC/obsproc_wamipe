@@ -1,7 +1,7 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Jan ??, 2014
 
-files
+files:
   obsproc_global/ecf/cdas/dump/jcdas_dump.ecf
   obsproc_global/ecf/gdas/dump/jgdas_dump.ecf
   obsproc_global/ecf/gfs/dump/jgfs_dump.ecf
@@ -87,7 +87,7 @@ files
 
  Output changes:
  ---------------
-   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - creates new dump files
       /com/$NET/prod/$RUN.$PDY/$model.t${cyc}z.oscatw.tm00.bufr_d ,
       where cyc= 00, 06, 12, 18; NET= cdas and model= cdas for RUN= cdas;
@@ -102,7 +102,7 @@ files
 
  Compute Resource Information:
  -----------------------------
-   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - the "ascatw" dump files will now be approximately twice as large
       since they will now include METOP-B (as well as METOP-A from before)
          CDAS: ascatw increases from ~ 17 MBytes/day to ~ 34 MBytes/day
