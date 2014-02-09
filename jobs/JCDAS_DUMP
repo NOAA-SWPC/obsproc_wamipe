@@ -195,7 +195,6 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 # --------------------------------------------------------------------
 export DCOMROOT=${DCOMROOT:-/dcom}
 export TANK=${TANK:-${DCOMROOT}/us007003}
-mkdir -p $TANK
 
 # directory paths to engice, sst & snowdepth grib files used in model script
 # --------------------------------------------------------------------------
