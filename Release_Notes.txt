@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 1.0.0 --> released Jan ??, 2014
+obsproc_global release 1.0.0 --> released Feb 8, 2014
 
 files:
   obsproc_global/jobs/JCDAS_DUMP
