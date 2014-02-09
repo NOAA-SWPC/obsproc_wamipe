@@ -2,9 +2,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Jan ??, 2014
 
 files:
-  obsproc_global/ecf/cdas/dump/jcdas_dump.ecf
-  obsproc_global/ecf/gdas/dump/jgdas_dump.ecf
-  obsproc_global/ecf/gfs/dump/jgfs_dump.ecf
   obsproc_global/jobs/JCDAS_DUMP
   obsproc_global/jobs/JGDAS_DUMP
   obsproc_global/jobs/JGFS_DUMP
@@ -15,15 +12,6 @@ files:
 
 ( * - not changed)
 
-
- ECF script changes:
-   cdas/dump/jcdas_dump.ecf, gdas/dump/jgdas_dump.ecf, gfs/dump/jgfs_dump.ecf:
-    - Obtains versions for obsproc_global ($obsproc_global_ver),
-      obsproc_dump ($obsproc_dump_ver) and obsproc_shared/bufr_dumplist
-      (obsproc_shared_bufr_dumplist_ver) from obsproc_global.ver file - all
-      are now exported for use by JOB scripts JCDAS_DUMP, JGDAS_DUMP, and
-      JGFS_DUMP.
-    - Generalized to handle all cycles.
 
  JOB script changes:
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
