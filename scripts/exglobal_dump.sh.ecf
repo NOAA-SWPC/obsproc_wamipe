@@ -307,6 +307,125 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       fi
    fi
 
+# function to highlight an echoed msg with surrounding hashed separator lines.
+   echo_hashed_msg () {
+     set +x
+     msg=$*
+     echo -e "\n ${msg//?/#}"
+     echo " ${msg}"
+     echo -e " ${msg//?/#}\n"
+     set -x
+   }
+# end of function setup
+
+#  Following for GFS and GDAS only
+   if [ $model == gdas -o $model == gfs ]; then
+######################################################################
+######################################################################
+#  For the following, try as far as $ndaysback to find recent file.  #
+#  Post warning if no file found for $ndaysback_warn or beyond.      #
+#  The job will continue if no suitable file is available.           #
+#  ----------------------------------------------------------------  #
+#  copy NPR.SNWN.SP.S1200.MESH16   from $TANK_GRIBFLDS               #
+#  copy NPR.SNWS.SP.S1200.MESH16   from $TANK_GRIBFLDS               #
+#  copy imssnow96.grb.grib2        from $TANK_GRIBFLDS               #
+#  copy seaice.t00z.5min.grb       from $COM_ICE5MIN                 #
+#  copy seaice.t00z.5min.grb.grib2 from $COM_ICE5MIN                 #
+#  copy rtgssthr_grb_0.083         from $COM_SSTRTG                  #
+#  copy rtgssthr_grb_0.083.grib2   from $COM_SSTRTG                  #
+######################################################################
+######################################################################
+     for gribfile in  \
+       NPR.SNWN.SP.S1200.MESH16   \
+       NPR.SNWS.SP.S1200.MESH16   \
+       imssnow96.grb.grib2        \
+       seaice.t00z.5min.grb       \
+       seaice.t00z.5min.grb.grib2 \
+       rtgssthr_grb_0.083         \
+       rtgssthr_grb_0.083.grib2
+     do
+# set the values specific to each file
+       case $gribfile in
+         NPR.SNWN.SP.S1200.MESH16 | NPR.SNWS.SP.S1200.MESH16 )    # AFWA snow
+           grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
+           target_filename=$gribfile.grb
+           ndaysback=1;
+           ndaysback_warn=1;;
+         imssnow96.grb.grib2 )                     # IMS snow
+           grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
+           target_filename=imssnow96.grib2
+           ndaysback=1;
+           ndaysback_warn=99;;
+         seaice.t00z.5min.grb )
+           grib_source='${COM_ICE5MIN}.$DDATE';
+           target_filename=seaice.5min.grb
+           ndaysback=7;
+           ndaysback_warn=1;;
+         seaice.t00z.5min.grb.grib2 )
+           grib_source='${COM_ICE5MIN}.$DDATE';
+           target_filename=seaice.5min.grib2
+           ndaysback=7;
+           ndaysback_warn=1;;
+         rtgssthr_grb_0.083 )
+           grib_source='${COM_SSTRTG}.$DDATE';
+           target_filename=rtgssthr.grb
+           ndaysback=10;
+           ndaysback_warn=1;;
+         rtgssthr_grb_0.083.grib2 )
+           grib_source='${COM_SSTRTG}.$DDATE';
+           target_filename=rtgssthr.grib2
+           ndaysback=10;
+           ndaysback_warn=1;;
+         *) 
+           msg="***FATAL ERROR: unexpected grib field file $gribfile"; 
+           echo_hashed_msg "$msg"
+           $DATA/postmsg "$jlogfile" "$msg"
+           $DATA/err_exit;;
+       esac
+# set up string of dates to check
+       if [ $ndaysback -gt 0 ];then
+         CHECK_DATES="$PDY $($utilscript/finddate.sh $PDY s-$ndaysback)"
+       else
+         CHECK_DATES=$PDY
+       fi
+       set +x; 
+       echo -e "\nWill check as far back as ${CHECK_DATES##* } for $gribfile"
+       set -x
+       ndtry=0
+       found=false
+# loop through dates to check for this file type
+       for DDATE in $CHECK_DATES;do
+         eval tryfile=$grib_source/$gribfile
+         if [ -s $tryfile ];then
+           set +x; echo -e "\nPicking up file $tryfile\n"; set -x
+           cp $tryfile ${COMSP}$target_filename
+           found=true
+           break
+         fi
+         if [ $DDATE -ne ${CHECK_DATES##* } ]; then
+           set +x;echo -e "\n$tryfile not available. Try previous day.\n";set -x
+         else
+           set +x;echo -e "\n$tryfile not available.\n";set -x
+         fi
+         ndtry=`expr $ndtry + 1`
+         if [ $ndtry -gt $ndaysback_warn ];then
+           msg="**WARNING: INVESTIGATE UNEXPECTED ABSENCE OF $tryfile"
+           echo_hashed_msg "$msg"
+           $DATA/postmsg "$jlogfile" "$msg"
+         fi   
+      done
+      if [ $found != true ]; then
+        if [ $ndtry -gt $ndaysback_warn ]; then
+          msg="***WARNING: NO $gribfile FOUND FOR $ndtry DAYS!!!   CRITICAL!!!"
+        else
+          msg="***WARNING: NO $gribfile FOUND FOR $ndtry DAYS!"
+        fi
+        echo_hashed_msg "$msg"
+        $DATA/postmsg "$jlogfile" "$msg"
+      fi    
+    done
+  fi
+
 #  endif loop $PROCESS_GRIBFLDS
 fi
 

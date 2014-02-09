@@ -55,6 +55,8 @@ files:
    JCDAS_DUMP:
     - Uses "cp -p" rather than "cp when copying files to /com/arkv directory
       in order to preserve group ownership as "rstprod" for restricted files.
+   JGDAS_DUMP, JGFS_DUMP:
+    - Exports new directory path variables for additional ice and sst files.
 
  Model script changes:
    exglobal_dump.sh.ecf:
@@ -78,6 +80,8 @@ files:
                as these data are now being produced under a new format that
                NCEP does not recognize.  As we transition to the new feed,
                we do not want to inadvertently dump these data in operations.
+    - Modified to pick up additional ice, sst, and snow files .
+      BENEFIT: GFS/GDAS parallel runs are now looking at these data.
 
  Parm file changes:
    prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
@@ -113,6 +117,10 @@ files:
         gdas: oscatw   ~  87 MBytes
         gfs:  oscatw   ~  66 MBytes
         TOTAL:       ~   241 MBytes
+    - disk space required per day for all new ice, sst & snow grib files is:
+        gfs:  fields   ~ 172 MBytes
+        gdas: fields   ~ 172 MBytes
+        TOTAL:       ~   344 MBytes
     - 3 second increase in wallclock run time
     - uses code from obsproc_dump.v3.0.0
     - uses code from obsproc_shared/bufr_dumplist.v1.0.0
