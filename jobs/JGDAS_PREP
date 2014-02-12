@@ -60,7 +60,7 @@ host=$(hostname -s)
 if [[ ${USER} == nwprod ]]; then
   DATAROOT=/tmpnwprd
 else
-  DATAROOT=${DATAROOT:-/stmp/${USER}}
+  DATAROOT=${DATAROOT:-/stmpp1/${USER}}
   TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
                     #  directory when jobs are submitted, set it
                     #  to $DATAROOT so its under the user's control
@@ -193,7 +193,7 @@ else
   export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
-#  prevent job from writing into a non-unique directory (e.g., /ptmp/$USER/com)
+#  prevent job from writing into a non-unique directory (e.g., /ptmpp1/$USER/com)
 #  that might already have a dump status file in it from a previous checkout
 #  run (this could mess up some logic downstream) -- since $DATA is not
 #  necessarily known at time COMOUT_ROOT would have to be exported in parent
