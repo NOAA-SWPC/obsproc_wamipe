@@ -148,18 +148,27 @@ export ushscript_prep=${ushscript_prep:-$USHobsproc_prep}
 # Paths for combined obsproc_network and obsproc_prep items
 # ---------------------------------------------------------
 
+# directory paths to overall PREP processing executed in
+#  prepobs_makeprepbufr.sh and its various child scripts
+# -------------------------------------------------------
 export EXECPREP=${EXECPREP:-${HOMEobsproc_prep}/exec}
 export FIXPREP=${FIXPREP:-${HOMEobsproc_prep}/fix}
 export PARMPREP=${PARMPREP:-${HOMEobsproc_network}/parm}
-export DICTPREP=${DICTPREP:-/nwprod/dictionaries}
 
-export HOMESYND=${HOMESYND:-$HOMEobsproc_prep}
-export EXECSYND=${EXECSYND:-${HOMESYND}/exec}
-export FIXSYND=${FIXSYND:-${HOMESYND}/fix}
+# directory paths to SYNDATA processing executed in prepobs_syndata.sh
+# --------------------------------------------------------------------
+export EXECSYND=${EXECSYND:-${HOMEobsproc_prep}/exec}
+export FIXSYND=${FIXSYND:-${HOMEobsproc_prep}/fix}
 export PARMSYND=${PARMSYND:-${HOMEobsproc_network}/parm}
 
-export HOMEUTIL=${HOMEUTIL:-/nwprod/util}
-export EXECUTIL=${EXECUTIL:-${HOMEUTIL}/exec}
+# ---------------------------
+# Paths for non-obsproc items
+# ---------------------------
+
+# DICTPREP is directory path to metar.tbl dictionary used in
+#  prepobs_prepacqc.sh if PREPOBS_PREPACPF is executed
+# ----------------------------------------------------------
+export DICTPREP=${DICTPREP:-/nwprod/dictionaries}
 
 ###########################
 # Set up the UTILITY paths
@@ -195,11 +204,9 @@ else
   export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
-#  prevent job from writing into a non-unique directory (e.g., /ptmpp1/$USER/com)
-#  that might already have a dump status file in it from a previous checkout
-#  run (this could mess up some logic downstream) -- since $DATA is not
-#  necessarily known at time COMOUT_ROOT would have to be exported in parent
-#  script we go with $DATA/com as default here
+#  prevent job from writing into a non-unique directory (e.g.,
+#  /ptmpp1/$USER/com) that might already have output in it from a previous
+#  checkout run for the same cycle (this could mess up some logic downstream).
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
