@@ -1,19 +1,5 @@
 
-  Cards for CDAS Version of PREPSSMI -- Version 12 September 2004
-
-  Last update 12Z 02 March 1998: Switch from F-10 to F-14 satellite
-  Last update 12Z 16 March 2000: Removed switch ICAT, added switch IMIN;
-                                 F-15 replaces F-14
-  Last update 12Z 13 June  2000: Added optional "IVAR" switches to replace
-                                 first set of switches when
-                                 "PREPSSMI_PROD_TYPE" = 'COMBINATION' and
-                                 PREPOBS_PREPSSMI is run twice (see ""Special
-                                 Case for "PREPSSMI_PROD_TYPE" = 'COMBINATION'""
-                                 below)
-  Last update 12Z 25 Jan   2005: Expanded size of IVAR array from 9 to 10 to
-                                 account for sea surface temperature product
-  Last update 12Z 14 Aug   2006: Turn off processing of data from DMSP F-15
-                                 satellite (data are bad)
+  Cards for CDAS Version of PREPSSMI
 
   Note: "IVAR" below must be on a line all to itself, and it must not be
         split across 2 lines (this is because the script may replace it

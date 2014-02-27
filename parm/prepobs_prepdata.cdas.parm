@@ -1,16 +1,5 @@
 
  THESE CARDS VALID FOR SSI/CDAS DATA PREPROCESSOR
-     IBM VERSION 09/09/2004 - UPDATE #11
- CARDS LAST UPDATED 12Z 11/16/2010 - (VERSION 09/09/2004 - UPDATE # 11.0)
- Differences from PREVIOUS VERSION of data cards (PREPDATA VERSION 09/09/2004 -
-  UPDATE #6.0):
-        Changed switch AWINDO(1,4) from 300. to 325. and AWINDO(2,4) from 150.
-         to 325. (processing MDCRS aircraft reports outside CONUS with time
-         window of +/- 3.25 hours rather than +/- 3.00 hours and processing
-         MDCRS aircraft inside CONUS with time window of +/- 3.25 hours rather
-         than +/- 1.50 hours since these are now dumped with a wider time
-         window (+/- 3.25 hours instead of +/- 3.00 hours) - improves their
-         track-checking in new version of the PREPOBS_PREPACQC program
 
  &RGRID
    POLA  = FALSE, NORTH =  TRUE, ALONVT=-90.00, POLEI =  5.00,
