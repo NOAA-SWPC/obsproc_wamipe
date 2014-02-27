@@ -1,4 +1,138 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.0.0 --> released ??? ?, 2014
+
+files:
+ *obsproc_global/fix/prepobs_errtable.cdas
+ *obsproc_global/fix/prepobs_errtable.global
+ *obsproc_global/fix/prepobs_oiqc.oberrs
+ *obsproc_global/fix/prepobs_oiqc.oberrs.cdas
+  obsproc_global/jobs/JCDAS_DUMP
+ *obsproc_global/jobs/JCDAS_PREP1
+ *obsproc_global/jobs/JCDAS_PREP2
+  obsproc_global/jobs/JGDAS_DUMP
+ *obsproc_global/jobs/JGDAS_PREP
+  obsproc_global/jobs/JGFS_DUMP
+ *obsproc_global/jobs/JGFS_PREP
+ *obsproc_global/parm/prepobs_cqcbufr.cdas.parm
+ *obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+ *obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+ *obsproc_global/parm/prepobs_prepacqc.cdas.parm
+ *obsproc_global/parm/prepobs_prepacqc.gdas.parm
+ *obsproc_global/parm/prepobs_prepacqc.gfs.parm
+ *obsproc_global/parm/prepobs_prepdata.cdas.parm
+ *obsproc_global/parm/prepobs_prepdata.gdas.parm
+ *obsproc_global/parm/prepobs_prepdata.gfs.parm
+ *obsproc_global/parm/prepobs_prepssmi.cdas.parm
+ *obsproc_global/parm/prepobs_prepssmi.gdas.parm
+ *obsproc_global/parm/prepobs_prepssmi.gfs.parm
+ *obsproc_global/parm/prepobs_prevents.cdas.parm
+ *obsproc_global/parm/prepobs_profcqc.gdas.parm
+ *obsproc_global/parm/prepobs_profcqc.gfs.parm
+ *obsproc_global/parm/syndat_syndata.gdas.parm
+ *obsproc_global/parm/syndat_syndata.gfs.parm
+  obsproc_global/scripts/exglobal_dump.sh.ecf
+ *obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( * - changed)
+
+
+ JOB script changes:
+   JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Changed all "date" commands to "date -u" since WCOSS should always
+      present date in UTC.
+    - Obtains obsproc_global and obsproc_prep version numbers via imported
+      environment variables $obsproc_global_ver and $obsproc_prep_ver, resp.
+      These are defined in the upstream ecflow script.
+    - Full environmental equivalence.  Streamlined, allows for more
+      generalization (e.g., for checkout runs).
+    - Exports new environment variable $HOMEobsproc_prep which points to
+      directory path for generic prep subdirectories under version control
+      (in production this is normally /nwprod/obsproc_prep.$obsproc_prep_ver).
+      Replaces /nw${envir} in order to point to files in exec, fix and ush
+      directories moved from horizontal to vertical directory structure.
+    - Exports new environment variable $HOMEobsproc_network which points to
+      directory path for network-specific prep subdirectories under version
+      control (in production this is normally
+      /nwprod/obsproc_global.$obsproc_nam_ver).  Replaces /nw${envir} in order
+      to to files in parm and fix directories moved from horizontal to
+      vertical directory structure.
+
+ Model script changes:
+   exglobal_makeprepbufr.sh.ecf:
+    - Modified to change path to prepobs_makeprepbufr.sh from $ushscript to
+      $ushscript_prep (part of vertical structure transition). No other
+      changes.
+
+ Fixed file changes:
+   prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,
+   prepobs_oiqc.oberrs.cdas:
+    - No changes.
+
+ Parm file changes:
+   prepobs_prepdata.gdas.parm, prepobs_prepdata.gdas.parm:
+    - Removed comments related to version number, implementation date, and/or
+      history. No longer needed now that these are in subversion.
+    - New 12'th surface type (representing Coast Guard data) added to array
+      JSURFW (=0).
+      BENEFIT: Coast guard mass and wind data now processed - ????
+    - New switch NPKRPT (12*FALSE) to control processing of surface obs with
+      missing pressure information (FALSE here means these will continue to be
+      discarded).
+   prepobs_cqcbufr.cdas.parm, prepobs_cqcbufr.gdas.parm,
+   prepobs_cqcbufr.gfs.parm, prepobs_prepacqc.cdas.parm,
+   prepobs_prepacqc.gdas.parm, prepobs_prepacqc.gfs.parm,
+   prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
+   prepobs_prepssmi.gfs.parm, prepobs_prevents.cdas.parm,
+   prepobs_profcqc.gdas.parm, prepobs_profcqc.gfs.parm,
+   syndat_syndata.gdas.parm, syndat_syndata.gfs.parm:
+    - Removed comments related to version number, implementation date, and/or
+      history. No longer needed now that these are in subversion. Otherwise,
+      no changes to contents.
+
+
+ Output changes:
+ ---------------
+   JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Coast guard surface marine mass and wind data will now be processed as
+      part of report types 180/280. ????????????????????????????
+
+
+ Compute Resource Information:
+ -----------------------------
+   Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - ?????????????????????????????
+    - uses code from obsproc_prep.v3.0.0
+    - no other changes
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - continues to use code from obsproc_dump.v3.0.0
+    - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
+    - no other changes
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP.
+
+
+ Dissemination:
+ --------------
+   - The main user of this output is the CDAS, GDAS and GFS models.
+   - No change in dissemination.
+   - No change in archival on HPSS.
+
+
+ Special Instructions:
+ ---------------------
+   This must be implemented simultaneously with the implementations of
+   obsproc_prep.v3.0.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
+   obsproc_rtma.v2.0.0 and obsproc_urma.v2.0.0.
+   (may add dump_post and prep_post too!!)
+
+   Please copy new file
+   .../obsproc_global.ver to
+   /nwprod/versions, replacing like-named file.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
 
 files:
@@ -39,7 +173,6 @@ files:
     - continues to use code from obsproc_dump.v3.0.0
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
-   No changes.
 
 
  Preimplementation Testing Requirements:
