@@ -69,12 +69,13 @@ files:
     - No changes.
 
  Parm file changes:
-   prepobs_prepdata.gdas.parm, prepobs_prepdata.gdas.parm:
+   prepobs_prepdata.cdas.parm, prepobs_prepdata.gdas.parm,
+   prepobs_prepdata.gfs.parm:
     - Removed comments related to version number, implementation date, and/or
       history. No longer needed now that these are in subversion.
     - New 12'th surface type (representing Coast Guard data) added to array
-      JSURFW (=0).
-      BENEFIT: Coast guard mass and wind data now processed - ????
+      JSURFW (=0). Will not be processed becasue pressure always missing and
+      NPKRPT(12)=F - see below.
     - New switch NPKRPT (12*FALSE) to control processing of surface obs with
       missing pressure information (FALSE here means these will continue to be
       discarded).
@@ -92,15 +93,12 @@ files:
 
  Output changes:
  ---------------
-   JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
-    - Coast guard surface marine mass and wind data will now be processed as
-      part of report types 180/280. ????????????????????????????
+   No changes.
 
 
  Compute Resource Information:
  -----------------------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
-    - ?????????????????????????????
     - uses code from obsproc_prep.v3.0.0
     - no other changes
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
