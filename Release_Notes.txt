@@ -134,15 +134,15 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
 
 files:
- *obsproc_global/jobs/JCDAS_DUMP
- *obsproc_global/jobs/JGDAS_DUMP
- *obsproc_global/jobs/JGFS_DUMP
- *obsproc_global/parm/prepobs_prepssmi.cdas.parm
- *obsproc_global/parm/prepobs_prepssmi.gdas.parm
- *obsproc_global/parm/prepobs_prepssmi.gfs.parm
-  obsproc_global/scripts/exglobal_dump.sh.ecf
+  obsproc_global/jobs/JCDAS_DUMP
+  obsproc_global/jobs/JGDAS_DUMP
+  obsproc_global/jobs/JGFS_DUMP
+  obsproc_global/parm/prepobs_prepssmi.cdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gfs.parm
+ *obsproc_global/scripts/exglobal_dump.sh.ecf
 
-( * - not changed)
+( * - changed)
 
 
  Model script changes:
@@ -203,15 +203,15 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Feb 8, 2014
 
 files:
-  obsproc_global/jobs/JCDAS_DUMP
-  obsproc_global/jobs/JGDAS_DUMP
-  obsproc_global/jobs/JGFS_DUMP
-  obsproc_global/parm/prepobs_prepssmi.cdas.parm
-  obsproc_global/parm/prepobs_prepssmi.gdas.parm
-  obsproc_global/parm/prepobs_prepssmi.gfs.parm
-  obsproc_global/scripts/exglobal_dump.sh.ecf
+ *obsproc_global/jobs/JCDAS_DUMP
+ *obsproc_global/jobs/JGDAS_DUMP
+ *obsproc_global/jobs/JGFS_DUMP
+ *obsproc_global/parm/prepobs_prepssmi.cdas.parm
+ *obsproc_global/parm/prepobs_prepssmi.gdas.parm
+ *obsproc_global/parm/prepobs_prepssmi.gfs.parm
+ *obsproc_global/scripts/exglobal_dump.sh.ecf
 
-( * - not changed)
+( * - changed)
 
 
  JOB script changes:
