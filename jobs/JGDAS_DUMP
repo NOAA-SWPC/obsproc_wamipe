@@ -66,7 +66,11 @@ export tmmark=tm00
 ###############################
 host=$(hostname -s)
 if [[ ${USER} == nwprod ]]; then
-  DATAROOT=/tmpnwprd1
+  if [[ ${envir} == prod ]]; then
+    DATAROOT=/tmpnwprd
+  else
+    DATAROOT=/tmpnwprd2
+  fi
 else
   DATAROOT=${DATAROOT:-/stmp/${USER}}
   TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
@@ -193,6 +197,13 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 # TANK is root directory path to observational database used in dumpjb
 # --------------------------------------------------------------------
 export DCOMROOT=${DCOMROOT:-/dcom}
+if [[ ${USER} == nwprod ]]; then
+  if [[ ${envir} != prod ]]; then
+     export TANK=${TANK:-${DCOMROOT}/us007003/${envir}}
+     export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003/${envir}}
+  fi
+fi
+
 export TANK=${TANK:-${DCOMROOT}/us007003}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
