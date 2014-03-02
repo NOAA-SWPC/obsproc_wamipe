@@ -72,7 +72,7 @@ if [[ ${USER} == nwprod ]]; then
     DATAROOT=/tmpnwprd2
   fi
 else
-  DATAROOT=${DATAROOT:-/stmp/${USER}}
+  DATAROOT=${DATAROOT:-/stmpp1/${USER}}
   TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
                     #  directory when jobs are submitted, set it
                     #  to $DATAROOT so its under the user's control
