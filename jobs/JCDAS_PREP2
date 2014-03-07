@@ -149,6 +149,7 @@ export ushscript_prep=${ushscript_prep:-$USHobsproc_prep}
 
 # directory paths to overall PREP processing executed in
 #  prepobs_makeprepbufr.sh and its various child scripts
+#  (other than prepobs_syndata.sh, see below)
 # -------------------------------------------------------
 export EXECPREP=${EXECPREP:-${HOMEobsproc_prep}/exec}
 export FIXPREP=${FIXPREP:-${HOMEobsproc_prep}/fix}
