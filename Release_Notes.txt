@@ -66,7 +66,7 @@ files:
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,
    prepobs_oiqc.oberrs.cdas:
-    - No changes.
+    - No changes (but added here for first time).
 
  Parm file changes:
    prepobs_prepdata.cdas.parm, prepobs_prepdata.gdas.parm,
@@ -74,8 +74,9 @@ files:
     - Removed comments related to version number, implementation date, and/or
       history. No longer needed now that these are in subversion.
     - New 12'th surface type (representing Coast Guard data) added to array
-      JSURFW (=0). Will not be processed becasue pressure always missing and
-      NPKRPT(12)=F - see below.
+      JSURFW (=0). 
+      BENEFIT: Coast Guard data that report pressure information will be
+      encoded into prepbufr file as report type 180/280. 
     - New switch NPKRPT (12*FALSE) to control processing of surface obs with
       missing pressure information (FALSE here means these will continue to be
       discarded).
@@ -93,12 +94,29 @@ files:
 
  Output changes:
  ---------------
-   No changes.
+   Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Coast Guard surface marine mass and wind data will now be processed as
+      part of report types 180/280 when pressure information is available. 
+    - Surface reports with incomplete wind information will now be retained
+      and encoded into the prepbufr file.
 
 
  Compute Resource Information:
  -----------------------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - the CDAS, GDAS, and GFS "prepbufr" files will now be approximately
+      1.02 times (102%) as large and  as before since they will now include
+      Coast Guard surface marine data and additional surface reports with 
+      incomplete wind information that had previously been discarded.
+        CDAS: space used by all prepbufr files increases from ~ 130 MBytes/day
+              to ~ 133 MBytes/day
+        GDAS: space used by all prepbufr files increases from ~ 200 MBytes/day
+              to ~ 204 MBytes/day
+        GFS:  space used by all prepbufr files increases from ~ 180 MBytes/day
+              to ~ 184 MBytes/day
+    - no wallclock run time change: CDAS
+    - 58 second increase in wallclock run time: GDAS
+    - 54 second increase in wallclock run time: GFS
     - uses code from obsproc_prep.v3.0.0
     - no other changes
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
@@ -124,11 +142,14 @@ files:
    This must be implemented simultaneously with the implementations of
    obsproc_prep.v3.0.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
    obsproc_rtma.v2.0.0 and obsproc_urma.v2.0.0.
-   (may add dump_post and prep_post too!!)
+!!!(may add dump_post and prep_post too!!)
 
-   Please copy new file
-   .../obsproc_global.ver to
-   /nwprod/versions, replacing like-named file.
+!!!This must be implemented simultaneously with NCEPLIBS (glbevents.f) or
+   immediately afterward NCEPLIBS (gblevents.f).
+
+   Please check out file obsproc_global.ver from  
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/LATEST_GREATEST 
+!!!and copy to /nwprod/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
