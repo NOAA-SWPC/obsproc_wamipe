@@ -144,7 +144,7 @@ files:
    obsproc_rtma.v2.0.0 and obsproc_urma.v2.0.0.
 !!!(may add dump_post and prep_post too!!)
 
-   This must be implemented simultaneously with or immediately afterward the
+   This must be implemented simultaneously with or immediately after the
    w3emc_v2.2.0 implementation.
 
    Please check out file obsproc_global.ver from  
