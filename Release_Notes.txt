@@ -282,7 +282,7 @@ files:
       008) for now].
       BENEFIT: The default is to now include NeXRaD VAD winds from the level 2
                decoder in the "vadwnd" dump file (as they will be used in the
-               FY14Q2 NAM bundle).  The Global GSI cannot handle these at this
+               next NAM bundle).  The Global GSI cannot handle these at this
                time.
     - Modified to turn off the check for the existence of "wndsat" data tanks
       and thus any attempt to dump these data..
@@ -302,15 +302,15 @@ files:
  Output changes:
  ---------------
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
-    - creates new dump files
+    - Creates new dump files
       /com/$NET/prod/$RUN.$PDY/$model.t${cyc}z.oscatw.tm00.bufr_d ,
       where cyc= 00, 06, 12, 18; NET= cdas and model= cdas for RUN= cdas;
       NET= gfs and model= gdas1 for RUN= gdas; and NET= gfs and model= gfs for
-      RUN= gfs
+      RUN= gfs.
     - "ascatw" dump files will now contain scatterometer winds from METOP-B (as
-      well as from METOP-A from before)
+      well as from METOP-A from before).
    Job JCDAS_DUMP:
-    - users in the "rstprod" group will now be able to read restricted dump
+    - Users in the "rstprod" group will now be able to read restricted dump
       files in the /com/arkv directory.
   
 
