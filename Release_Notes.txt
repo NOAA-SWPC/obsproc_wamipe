@@ -54,7 +54,7 @@ files:
       directory path for network-specific prep subdirectories under version
       control (in production this is normally
       /nwprod/obsproc_global.$obsproc_nam_ver).  Replaces /nw${envir} in order
-      to to files in parm and fix directories moved from horizontal to
+      to to files in scripts, parm and fix directories moved from horizontal to
       vertical directory structure.
 
  Model script changes:
@@ -254,8 +254,8 @@ files:
       directory path for network-specific dump subdirectories under version
       control (in production this is normally
       /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir} in
-      order to point to files in parm directory moved from horizontal to
-      vertical directory structure.
+      order to point to files in scripts and parm directory moved from
+      horizontal to vertical directory structure.
     - Exports new environment variables $HOMEobsproc_shared_bufr_dumplist and
       $FIXobsproc_shared_bufr_dumplist which point to directory path for
       bufr_dumplist fixed file under version control (in production the latter
