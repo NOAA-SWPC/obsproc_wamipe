@@ -66,13 +66,9 @@ export tmmark=tm00
 ###############################
 host=$(hostname -s)
 if [[ ${USER} == nwprod ]]; then
-  if [[ ${envir} == prod ]]; then
-    DATAROOT=/tmpnwprd
-  else
-    DATAROOT=/tmpnwprd2
-  fi
+  DATAROOT=/tmpnwprd1
 else
-  DATAROOT=${DATAROOT:-/stmpp1/${USER}}
+  DATAROOT=${DATAROOT:-/stmpd1/${USER}}
   TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
                     #  directory when jobs are submitted, set it
                     #  to $DATAROOT so its under the user's control
@@ -197,14 +193,6 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 # TANK is root directory path to observational database used in dumpjb
 # --------------------------------------------------------------------
 export DCOMROOT=${DCOMROOT:-/dcom}
-
-if [[ ${USER} == nwprod ]]; then
-  if [[ ${envir} != prod ]]; then
-     export TANK=${TANK:-${DCOMROOT}/us007003/${envir}}
-     export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003/${envir}}
-  fi
-fi
-
 export TANK=${TANK:-${DCOMROOT}/us007003}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
@@ -255,8 +243,8 @@ else
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory (e.g.,
-#  /ptmpp1/$USER/com) that might already have a dump status file in it from a
-#  previous checkout run (this could mess up some logic downstream)
+#  /ptmp[p][d]1/$USER/com) that might already have a dump status file in it
+#  from a previous checkout run (this could mess up some logic downstream)
 # ----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
