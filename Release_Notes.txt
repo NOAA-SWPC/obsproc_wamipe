@@ -276,6 +276,10 @@ files:
       window of -3.00 to +2.99 hours relative to cycle time for the CDAS, GDAS
       and GFS.
       BENEFIT: GFS/GDAS parallel runs are now looking at these data.
+               Monitoring (RTDM) System graphics.
+      N O T I C E:  By the time this was implemented, OSCAT data were no longer
+                    available.  The instrument stopped working on 2/20/14 and
+                    was declared as "Dead" on 4/3/14.
     - Modified to skip the dumping of NeXRaD VAD winds from level 2 decoder
       (type 002, subtype 017) as part of the "vadwnd" dump ["vadwnd" will still
       contain only NeXRaD VAD winds from radar coded message (type 002, subtype
@@ -306,7 +310,7 @@ files:
       /com/$NET/prod/$RUN.$PDY/$model.t${cyc}z.oscatw.tm00.bufr_d ,
       where cyc= 00, 06, 12, 18; NET= cdas and model= cdas for RUN= cdas;
       NET= gfs and model= gdas1 for RUN= gdas; and NET= gfs and model= gfs for
-      RUN= gfs.
+      RUN= gfs. --> NO, OSCAT DIED!!
     - "ascatw" dump files will now contain scatterometer winds from METOP-B (as
       well as from METOP-A from before).
    Job JCDAS_DUMP:
@@ -323,10 +327,10 @@ files:
          GDAS: ascatw increases from ~ 17 MBytes/day to ~ 34 MBytes/day
          GFS:  ascatw increases from ~ 14 MBytes/day to ~ 28 MBytes/day
     - disk space required per day for all new output dump files is:
-        cdas: oscatw   ~  88 MBytes
-        gdas: oscatw   ~  87 MBytes
-        gfs:  oscatw   ~  66 MBytes
-        TOTAL:       ~   241 MBytes
+        cdas: oscatw   ~  88 MBytes --> NO, OSCAT DIED!!
+        gdas: oscatw   ~  87 MBytes --> NO, OSCAT DIED!!
+        gfs:  oscatw   ~  66 MBytes --> NO, OSCAT DIED!!
+        TOTAL:       ~   241 MBytes --> NO, OSCAT DIED!!
     - disk space required per day for all new ice, sst & snow grib files is:
         gfs:  fields   ~ 172 MBytes
         gdas: fields   ~ 172 MBytes
