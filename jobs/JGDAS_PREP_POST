@@ -1,0 +1,254 @@
+set -xa
+date -u
+
+if [ -n "$obsproc_global_ver" ]; then
+   set +x
+   echo
+   echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_prep_post_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_PREP version used by this job is $obsproc_prep_post_ver"
+   echo
+   set -x
+fi
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
+
+########################################
+# Check that required variables are set
+########################################
+set +x
+echo
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo
+set -x
+
+##################################
+# Specify NET, RUN and model Name
+##################################
+export NET=${NET:-gfs}
+export RUN=${RUN:-gdas1}
+export model=${model:-gdas}  # Used in subscripts for file names
+
+##############################
+# Specify cycle and time-mark
+##############################
+export cycle=t${cyc}z
+export tmmark=tm00
+
+###############################
+# Create new working directory
+###############################
+host=$(hostname -s)
+if [[ ${USER} == nwprod ]]; then
+  DATAROOT=/tmpnwprd
+else
+  DATAROOT=${DATAROOT:-/stmpd1/${USER}}
+  TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
+                    #  directory when jobs are submitted, set it
+                    #  to $DATAROOT so its under the user's control
+fi
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+rm -rf $DATA
+
+######################################
+# Set job log file for postmsg output
+######################################
+if [[ ${USER} == nwprod ]]; then
+  if [[ ${envir} == prod ]]; then
+    jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
+  else
+    jlogfile=/com/logs/${envir}/jlogfile
+  fi
+else
+  jlogfile=${jlogfile:-${DATA}/jlogfile}
+fi
+
+######################################
+# Determine Job Output Name on System
+######################################
+export pid=$$
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+################################################
+# SENDCOM      - Copy files to /com directory
+# SENDECF      - Flag Events on ECFLOW
+# SENDDBN      - Alert output file to TOC
+# SENDDBN_GB2  - Alert output GRIB2 file to TOC
+################################################
+if [[ ${USER} == nwprod ]]; then
+  export SENDCOM=YES
+  export SENDECF=YES
+  if [[ ${envir} == prod ]]; then
+    export SENDDBN=YES
+    export SENDDBN_GB2=YES
+  else
+    export SENDDBN=NO
+    export SENDDBN_GB2=NO
+  fi
+else  # developer
+  export SENDCOM=${SENDCOM:-YES}
+  export SENDECF=NO
+  export SENDDBN=NO
+  export SENDDBN_GB2=NO
+fi
+
+####################################
+# Specify Execution Areas
+####################################
+
+# -------------------------------
+# Paths for obsproc_network items
+# -------------------------------
+export HOMEobsproc_network=${HOMEobsproc_network:\
+-/nw${envir}/obsproc_global.${obsproc_global_ver:?\
+"###FATAL ERROR \"obsproc_global_ver\" is not set"}}
+
+# ---------------------------------
+# Paths for obsproc_prep_post items
+# ---------------------------------
+export HOMEobsproc_prep_post=${HOMEobsproc_prep_post:\
+-/nw${envir}/obsproc_prep_post.${obsproc_prep_post_ver:?\
+"###FATAL ERROR \"obsproc_prep_post_ver\" is not set"}}
+
+export USHobsproc_prep_post=${USHobsproc_prep_post:\
+-$HOMEobsproc_prep_post/ush}
+export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
+-$HOMEobsproc_prep_post/scripts}
+
+# --------------------------------------------------------------
+# Paths for combined obsproc_network and obsproc_prep_post items
+# --------------------------------------------------------------
+
+# directory paths to overall PREP_POST processing executed in
+#  ???prepobs_makeprepbufr.sh and its various child scripts
+# -------------------------------------------------------
+export EXECPREPPOST=${EXECPREPPOST:-${HOMEobsproc_prep_post}/exec}
+export PARMPREPPOST=${PARMPREPPOST:-${HOMEobsproc_network}/parm}
+
+# ???
+export HOMEbufr=${HOMEbufr:-/nw${envir}}
+export EXECbufr=${EXECbufr:-${HOMEbufr}/exec}
+# ???export PARMbufr=${PARMbufr:-$HOMEbufr/parm}
+# ???export FIXbufr=${FIXbufr:-$HOMEbufr/fix}
+export UTILfix=/nw${envir}/util/fix  # ???
+
+###########################
+# Set up the UTILITY paths
+###########################
+export utilscript=${utilscript:-/nwprod/util/ush}
+export utilparm=${utilparm:-/nwprod/util/parm}
+export utilexec=${utilexec:-/nwprod/util/exec}
+# ??? need obsproc_shared_ush
+export ushscript_remorest=${ushscript_remorest:-$ushscript}
+                              # above is path to restricted data removal script
+
+################################################################
+# Run setup to initialize working directory and utility scripts
+###############################################################
+if [[ ${USER} == nwprod ]]; then
+  sh $utilscript/setup.sh
+else
+  sh ${SETUP:-/nwprod/util/ush}/setup.sh
+fi
+
+#########################################
+# Run setup and initialize PDY variables 
+#########################################
+sh $utilscript/setpdy.sh
+. $DATA/PDY
+MM=`echo $PDY | cut -c5-6`
+MON=`/nwprod/util/ush/month_name.sh $MM MON`
+export YYYYMM=`echo $PDY  | cut -c1-6`
+export MON
+
+#########################
+# Define COM directories
+#########################
+if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
+  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
+  export COMINGFS=/com/${NET}/prod/${NET}.${PDY}
+  export COMIN1=/com/${NET}/prod/${model}.
+  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
+  export COMOUT1=/com/${NET}/${envir}/${model}.${PDY}
+  export GETGES_COM=/com
+  export SATCOM=/com/${NET}/${envir}/satcounts/${MON}
+  export DATCOM=/com/arch/${envir}/data_counts.${YYYYMM}
+  export DATCOM1=/com/arch/${envir}
+  export ARCHCOM=/com/${NET}/${envir}
+  mkdir -m 775 -p $COMOUT
+  mkdir -m 775 -p $SATCOM
+  mkdir -m 775 -p $DATCOM
+else
+  export COMIN_ROOT=${COMIN_ROOT:-/com}
+  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
+
+# COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
+#  prevent job from writing into a non-unique directory (e.g.,
+#  /ptmp[p][d]1/$USER/com) that might already have output in it from a previous
+#  checkout run for the same cycle (this could mess up some logic downstream)
+# -----------------------------------------------------------------------------
+  export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  mkdir -m 755 -p $COMOUT
+fi
+
+
+##############################################
+# Specify variables specific to this execution of script
+##############################################
+
+export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
+export PROCESS_TIMETWINS=${PROCESS_TIMETWINS:-NO} # only done in all GDAS runs
+export PROCESS_ALL_REPORT_COUNTS=${PROCESS_ALL_REPORT_COUNTS:-NO}
+                                             # above only done in 18z GDAS runs
+export PROCESS_SATELLITE_COUNTS=${PROCESS_SATELLITE_COUNTS:-NO}
+                                             # above only done in all GDAS runs
+
+env
+
+#####################
+# Execute the script
+#####################
+$SCRIPTSobsproc_prep_post/exprep_post.sh.ecf
+eval err_${model}_prep_post=$?
+
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_post_ran
+
+> $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
+[ -n "$obsproc_global_ver" ]  &&  \
+ echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
+[ -n "$obsproc_prep_post_ver" ]  &&  \
+ echo "OBSPROC_PREP_POST version used by this job is \
+ $obsproc_prep_post_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
+
+if [ "${CLEANUP:-YES}" = YES ]; then
+   cd $DATAROOT
+   rm -rf $DATA
+fi
+
+date -u
+
+exit
