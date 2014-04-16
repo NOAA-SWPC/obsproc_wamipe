@@ -1,0 +1,108 @@
+#!/bin/ksh
+
+set -xa
+
+# #### 07/17/2003 #########################################
+# SETUP GFS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
+# #########################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=gfs
+export RUN=gfs
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
+
+####################################
+# SENDECF  - Flag Events on ECF
+# SENDDBN  - Issue DBNet Client Calls
+# GET_IOPROFILE - Run I/O statistics
+####################################
+export SENDECF=YES
+export SENDDBN=YES
+export SENDCOM=YES
+export GET_IOPROFILE=NO #does not work for this job
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export ushscript_remorest=${ushscript_remorest:-$ushscript}
+                              # above is path to restricted data removal script
+export utilscript=/nwprod/util/ush
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+sh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+sh $utilscript/setpdy.sh
+. PDY
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
+export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
+mkdir -m 775 -p $COMOUT
+
+##############################################
+# Specify variables specific to this execution of script
+##############################################
+
+
+env
+
+#############################################################
+# execute the script
+if [ $GET_IOPROFILE = YES ]; then
+   /usrx/local/mio/tools/bin/miostats -X0 \
+   /nw${envir}/scripts/exprep_post.sh.ecf
+else
+   /nw${envir}/scripts/exprep_post.sh.ecf
+fi
+#############################################################
+
+##################################################
+# save the profiling data captured from miostats
+##################################################
+if [ $GET_IOPROFILE = YES ]; then
+    . /com/miostats/.set_IOprofile
+fi
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date
