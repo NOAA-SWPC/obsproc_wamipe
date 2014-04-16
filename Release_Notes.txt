@@ -56,6 +56,15 @@ files:
       /nwprod/obsproc_global.$obsproc_nam_ver).  Replaces /nw${envir} in order
       to to files in scripts, parm and fix directories moved from horizontal to
       vertical directory structure.
+   JGDAS_PREP, JGFS_PREP:
+    - Export environment variable $errPREPDATA_limit as "4" at all center hour
+      (cycle) times. Before, it was set to default of "0" at all center hour
+      times in obsproc_prep ush script prepobs_makeprepbufr.sh.
+      BENEFIT: PREPOBS_PREPDATA will no longer abort in any center hour (cycle)
+               time run when it finds no data in either the input "adpupa" or
+               "adpsfc" dump files. A diagnostic will be printed in stdout.
+               The modern GSI can run ok if these data are not available for
+               some unexpected reason.
 
  Model script changes:
    exglobal_makeprepbufr.sh.ecf:
