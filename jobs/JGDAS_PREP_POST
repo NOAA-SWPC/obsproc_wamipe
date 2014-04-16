@@ -1,0 +1,118 @@
+#!/bin/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date
+
+#########################################################
+# SETUP GDAS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
+#########################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=gfs
+export RUN=gdas1
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
+
+####################################
+# SENDECF  - Flag Events on ECF
+# SENDDBN  - Issue DBNet Client Calls
+####################################
+export SENDECF=YES
+export SENDDBN=YES
+export SENDCOM=YES
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+
+export HOMEutil=/nw${envir}/util
+export EXECutil=$HOMEutil/exec
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export ushscript_remorest=${ushscript_remorest:-$ushscript}
+                              # above is path to restricted data removal script
+export utilscript=/nw${envir}/util/ush
+
+##############################
+
+export UTILfix=/nw${envir}/util/fix
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+sh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+sh $utilscript/setpdy.sh
+. $DATA/PDY
+MM=`echo $PDY | cut -c5-6`
+MON=`/nwprod/util/ush/month_name.sh $MM MON`
+export YYYYMM=`echo $PDY  | cut -c1-6`
+export MON
+
+##############################################
+# Define COM directories
+##############################################
+export GETGES_COM=/com
+export COMIN=/com/${NET}/${envir}/gdas.${PDY}
+export COMINGFS=/com/gfs/prod/gfs.${PDY}
+export COMIN1=/com/gfs/prod/gdas.
+export COMOUT1=/com/gfs/${envir}/gdas.${PDY}
+export COMOUT=/com/${NET}/${envir}/gdas.${PDY}
+export SATCOM=/com/gfs/${envir}/satcounts/${MON}
+export DATCOM=/com/arch/${envir}/data_counts.${YYYYMM}
+export DATCOM1=/com/arch/${envir}
+export ARCHCOM=/com/gfs/${envir}
+
+mkdir -m 775 -p $COMOUT
+mkdir -m 775 -p $SATCOM
+mkdir -m 775 -p $DATCOM
+
+##############################################
+# Specify variables specific to this execution of script
+##############################################
+
+
+env
+
+#############################################################
+# execute the script
+ksh /nw${envir}/scripts/exprep_post.sh.ecf
+#############################################################
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date
