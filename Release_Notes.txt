@@ -141,6 +141,8 @@ files:
  Preimplementation Testing Requirements:
  ---------------------------------------
    - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP.
+   - This is part of the parallel-production test of the OBSPROC Phase 2
+     bundle.
 
 
  Dissemination:
