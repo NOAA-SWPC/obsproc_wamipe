@@ -11,8 +11,10 @@ files:
  *obsproc_global/jobs/JCDAS_PREP2
   obsproc_global/jobs/JGDAS_DUMP
  *obsproc_global/jobs/JGDAS_PREP
+ *obsproc_global/jobs/JGDAS_PREP_POST
   obsproc_global/jobs/JGFS_DUMP
  *obsproc_global/jobs/JGFS_PREP
+ *obsproc_global/jobs/JGFS_PREP_POST
  *obsproc_global/parm/prepobs_cqcbufr.cdas.parm
  *obsproc_global/parm/prepobs_cqcbufr.gdas.parm
  *obsproc_global/parm/prepobs_cqcbufr.gfs.parm
@@ -65,6 +67,8 @@ files:
                "adpsfc" dump files. A diagnostic will be printed in stdout.
                The modern GSI can run ok if these data are not available for
                some unexpected reason.
+   JGDAS_PREP_POST, JGFS_PREP_POST:
+ !!!- ?????  -- plus updates for these new job scripts below (where needed)
 
  Model script changes:
    exglobal_makeprepbufr.sh.ecf:
