@@ -132,8 +132,12 @@ files:
     - 54 second increase in wallclock run time: GFS
     - uses code from obsproc_prep.v3.0.0
     - no other changes
+!!!JGDAS_PREP_POST, JGFS_PREP_POST:
+    - uses code from obsproc_prep_post.v2.0.0
+    - uses code from obsproc_shared/bufr_remorest.v1.0.0
+    - ????
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
-    - continues to use code from obsproc_dump.v3.0.0
+    - uses code from obsproc_dump.v3.1.0 (updated from obsproc_dump.v3.0.0)
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
 
@@ -155,15 +159,16 @@ files:
  Special Instructions:
  ---------------------
    This must be implemented simultaneously with the implementations of
-   obsproc_prep.v3.0.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
-   obsproc_rtma.v2.0.0 and obsproc_urma.v2.0.0.
-!!!(may add dump_post and prep_post too!!)
+   obsproc_nam.v2.0.0, obsproc_rap.v2.0.0, obsproc_rtma.v2.0.0,
+   obsproc_urma.v2.0.0, obsproc_dump.v3.1.0, obsproc_dump_post.v2.0.0,
+   obsproc_prep.v3.0.0, obsproc_prep_post.v2.0.0 and
+   obsproc_shared/bufr_remorest.v1.0.0.
 
-   This must be implemented simultaneously with or immediately after the
+   This must also be implemented simultaneously with or immediately after the
    w3emc_v2.2.0 implementation.
 
-   Please check out file obsproc_global.ver from  
-   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/LATEST_GREATEST 
+!!!Please check out file obsproc_global.ver from  
+!!!https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/LATEST_GREATEST 
 !!!and copy to /nwprod/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
