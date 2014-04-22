@@ -157,11 +157,6 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-# directory path to restricted data removal script executed in model script
-# -------------------------------------------------------------------------
-export ushscript_remorest=${ushscript_remorest:-\
-$USHobsproc_shared_bufr_remorest}
-
 # ---------------------------
 # Paths for non-obsproc items
 # ---------------------------
