@@ -6,13 +6,13 @@ files:
  *obsproc_global/fix/prepobs_errtable.global
  *obsproc_global/fix/prepobs_oiqc.oberrs
  *obsproc_global/fix/prepobs_oiqc.oberrs.cdas
-  obsproc_global/jobs/JCDAS_DUMP
+ *obsproc_global/jobs/JCDAS_DUMP
  *obsproc_global/jobs/JCDAS_PREP1
  *obsproc_global/jobs/JCDAS_PREP2
-  obsproc_global/jobs/JGDAS_DUMP
+ *obsproc_global/jobs/JGDAS_DUMP
  *obsproc_global/jobs/JGDAS_PREP
  *obsproc_global/jobs/JGDAS_PREP_POST
-  obsproc_global/jobs/JGFS_DUMP
+ *obsproc_global/jobs/JGFS_DUMP
  *obsproc_global/jobs/JGFS_PREP
  *obsproc_global/jobs/JGFS_PREP_POST
  *obsproc_global/parm/prepobs_cqcbufr.cdas.parm
@@ -39,6 +39,14 @@ files:
 
 
  JOB script changes:
+   All JOB scripts:
+    - Require that the developer export their own particular temporary
+      directory root ($DATAROOT) into the job scripts. If $DATAROOT is not set
+      in these scripts, the script will abort.
+      NOTE: This does not affect production.
+      BENEFIT: This avoids having to hardwire a development-specific default
+               temporary directory root in these job scripts. This can now be
+               different for different development groups.
    JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
     - Changed all "date" commands to "date -u" since WCOSS should always
       present date in UTC.
@@ -162,7 +170,8 @@ files:
    obsproc_dump_monitor.v1.2.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
    obsproc_rtma.v2.0.0, obsproc_urma.v2.0.0, obsproc_dump.v3.1.0,
    obsproc_dump_post.v2.0.0, obsproc_prep.v3.0.0, obsproc_prep_post.v2.0.0,
-   obsproc_shared/bufr_remorest.v1.0.0 and obsproc_shared/bufr_avgdata.v1.0.0.
+   obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0 and
+   obsproc_shared/bufr_avgdata.v1.0.0.
 
    This must also be implemented simultaneously with or immediately after the
    w3emc_v2.2.0 implementation.
