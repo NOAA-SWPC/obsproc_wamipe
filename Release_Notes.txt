@@ -81,8 +81,10 @@ files:
  Model script changes:
    exglobal_makeprepbufr.sh.ecf:
     - Modified to change path to prepobs_makeprepbufr.sh from $ushscript to
-      $ushscript_prep (part of vertical structure transition). No other
-      changes.
+      $ushscript_prep (part of vertical structure transition).
+    - No longer attempts to dump OSCAT data.
+      BENEFIT: This is a waste of time now that the instrument has died
+               (2/20/14).
 
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,
