@@ -43,7 +43,7 @@ set +u
 #               nexrad (cdas only)
 #
 # Dump group #7 (non-pb, TIME_TRIM = OFF) =
-#               omi ssmisu trmm sevcsr bathy tesac trkob atms cris mls oscatw
+#               omi ssmisu trmm sevcsr bathy tesac trkob atms cris mls
 #
 # Dump group #8 (pb, TIME_TRIM = default = ON) =
 #               satwnd
@@ -1194,9 +1194,8 @@ export DUMP_NUMBER=7
 #            ATMS:   1 subtype(s) (if present in past 10 days of tanks)
 #            CRIS:   1 subtype(s) (if present in past 10 days of tanks)
 #            MLS:    1 subtype(s) (if present in past 10 days of tanks)
-#            OSCATW: 1 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 11 
+#            TOTAL NUMBER OF SUBTYPES = 10 
 #
 #=========================================================================
 
@@ -1248,12 +1247,11 @@ if [ $err_check_tanks -eq 0 ];then
    DTIM_latest_mls=${DTIM_latest_mls:-"+2.99"}
 fi
 #-----------------------------------------------
-DTIM_latest_oscatw=${DTIM_latest_oscatw:-"+2.99"}
 
 TIME_TRIM=off
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 omi ssmisu $trmm sevcsr \
- bathy tesac trkob $atms $cris $mls oscatw
+ bathy tesac trkob $atms $cris $mls
 
 error7=$?
 echo "$error7" > $DATA/error7
@@ -1281,8 +1279,6 @@ if [ "$SENDDBN" = "YES" ]; then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_atms $job \
           ${COMSP}atms.tm00.bufr_d
       fi
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_oscatw $job \
-       ${COMSP}oscatw.tm00.bufr_d
 
 ####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
 #      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_bathy $job \
