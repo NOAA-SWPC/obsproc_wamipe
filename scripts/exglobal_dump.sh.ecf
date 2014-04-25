@@ -319,7 +319,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 # end of function setup
 
 #  Following for GFS and GDAS only
-   if [ $model == gdas -o $model == gfs ]; then
+   if [ "$model" == gdas -o "$model" == gfs ]; then
 ######################################################################
 ######################################################################
 #  For the following, try as far as $ndaysback to find recent file.  #
@@ -611,11 +611,11 @@ if [ "$SENDDBN" = "YES" ]; then
    if [ "$NET" = 'gdas' -o "$NET" = 'gfs' ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bamua $job \
        ${COMSP}1bamua.tm00.bufr_d
-      if [ $n1bamub = 1bamub ];then
+      if [ "$n1bamub" = 1bamub ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bamub $job \
           ${COMSP}1bamub.tm00.bufr_d
       fi
-      if [ $n1bhrs3 = 1bhrs3 ];then
+      if [ "$n1bhrs3" = 1bhrs3 ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bhrs3 $job \
           ${COMSP}1bhrs3.tm00.bufr_d
       fi
@@ -623,7 +623,7 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}1bhrs4.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bmhs $job \
        ${COMSP}1bmhs.tm00.bufr_d
-      if [ $amsre = amsre ];then
+      if [ "$amsre" = amsre ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_amsre $job \
           ${COMSP}amsre.tm00.bufr_d
       fi
@@ -754,7 +754,7 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}atovs.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpsfc $job \
        ${COMSP}adpsfc.tm00.bufr_d
-      if [ $wndsat = wndsat ];then
+      if [ "$wndsat" = wndsat ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_wndsat $job \
           ${COMSP}wndsat.tm00.bufr_d
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_wdsatr $job \
@@ -1262,7 +1262,7 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}omi.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ssmisu $job \
        ${COMSP}ssmisu.tm00.bufr_d
-      if [ $trmm = trmm ];then
+      if [ "$trmm" = trmm ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_trmm $job \
           ${COMSP}trmm.tm00.bufr_d
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sptrmm $job \
@@ -1271,11 +1271,11 @@ if [ "$SENDDBN" = "YES" ]; then
 
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sevcsr $job \
        ${COMSP}sevcsr.tm00.bufr_d
-      if [ $mls = mls ];then
+      if [ "$mls" = mls ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_mls $job \
           ${COMSP}mls.tm00.bufr_d
       fi
-      if [ $atms = atms ];then
+      if [ "$atms" = atms ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_atms $job \
           ${COMSP}atms.tm00.bufr_d
       fi
@@ -1288,7 +1288,7 @@ if [ "$SENDDBN" = "YES" ]; then
 #      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_trkob $job \
 #       ${COMSP}trkob.tm00.bufr_d
 ###########################################################################
-      if [ $cris = cris ];then
+      if [ "$cris" = cris ];then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_cris $job \
           ${COMSP}cris.tm00.bufr_d
       fi

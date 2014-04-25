@@ -32,7 +32,7 @@ files:
  *obsproc_global/parm/prepobs_profcqc.gfs.parm
  *obsproc_global/parm/syndat_syndata.gdas.parm
  *obsproc_global/parm/syndat_syndata.gfs.parm
-  obsproc_global/scripts/exglobal_dump.sh.ecf
+ *obsproc_global/scripts/exglobal_dump.sh.ecf
  *obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
 
 ( * - changed)
@@ -85,6 +85,8 @@ files:
     - No longer attempts to dump OSCAT data.
       BENEFIT: This is a waste of time now that the instrument has died
                (2/20/14).
+   exglobal_dump.sh.ecf:
+    - Minor syntax changes to reduce unncecssary error msgs.
 
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,
@@ -325,7 +327,7 @@ files:
                as these data are now being produced under a new format that
                NCEP does not recognize.  As we transition to the new feed,
                we do not want to inadvertently dump these data in operations.
-    - Modified to pick up additional ice, sst, and snow files .
+    - Modified to pick up additional ice, sst, and snow files.
       BENEFIT: GFS/GDAS parallel runs are now looking at these data.
 
  Parm file changes:
