@@ -101,7 +101,7 @@ files:
     - New 12'th surface type (representing Coast Guard data) added to array
       JSURFW (=0). 
       BENEFIT: Coast Guard data that report pressure information will be
-      encoded into prepbufr file as report type 180/280. 
+      encoded into PREPBUFR file as report type 180/280. 
     - New switch NPKRPT (12*FALSE) to control processing of surface obs with
       missing pressure information (FALSE here means these will continue to be
       discarded).
@@ -121,9 +121,8 @@ files:
  ---------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
     - Coast Guard surface marine mass and wind data will now be processed as
-      part of report types 180/280 when pressure information is available. 
-    - Surface reports with incomplete wind information will now be retained
-      and encoded into the prepbufr file.
+      part of report type 180/280 (when pressure information is available) in
+      PREPBUFR file. 
 
 
  Compute Resource Information:
