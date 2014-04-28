@@ -1,0 +1,125 @@
+#!/bin/ksh
+# JGFS_DUMP_POST
+#----
+set -xa
+
+# #### 03/08/2006 #########################################
+# SETUP GFS DATA DUMP POST PROCESSING VARIABLES
+#  DATA COUNTING
+#  LISTING AND FORMAT CONVERSION
+# #########################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=gfs
+export RUN=gfs
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
+export ALERTL=/com/logs/alertlog    # used by child script bufr_datacount.sh
+
+####################################
+# SENDECF  - Flag Events on ECF
+# SENDDBN  - Issue DBNet Client Calls
+# SENDCOM  - Copy files to /com directory
+# SENDSDM  - Send files to SDM printer (used by child script bufr_datacount.sh)
+# GET_IOPROFILE - Run I/O statistics
+####################################
+export SENDECF=YES
+export SENDDBN=YES
+export SENDCOM=YES
+export SENDSDM=YES
+export GET_IOPROFILE=NO #does not work for this job
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+export FIXbufr=${HOMEbufr}/fix        # used by child script bufr_datacount.sh
+
+export HOMEarch=/com/arch/${envir}
+export AVGDarch_IN=$HOMEarch/avgdata  # used by child script bufr_datacount.sh
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export utilscript=/nwprod/util/ush
+
+export ushscript_datacount=$ushscript # path to data counting script
+export ushscript_remorest=$ushscript  # path to restricted data removal script
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+ksh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+ksh $utilscript/setpdy.sh
+. $DATA/PDY
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
+export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
+mkdir -m 775 -p $COMOUT
+
+########################################################
+# Specify variables specific to this execution of script
+########################################################
+
+export PROCESS_DATACOUNTS=YES
+export PROCESS_REMOREST=YES
+export PROCESS_UNBLKBUFR=NO    # Never processed in GFS run
+export PROCESS_LISTERS=YES
+export PROCESS_AVGTABLES=NO    # Never processed in GFS run
+
+env
+
+#############################################################
+# execute the script
+if [ $GET_IOPROFILE = YES ]; then
+   /usrx/local/mio/tools/bin/miostats -X0 \
+   /nw${envir}/scripts/exdump_post.sh.ecf 
+else
+   /nw${envir}/scripts/exdump_post.sh.ecf
+fi
+#############################################################
+
+##################################################
+# save the profiling data captured from miostats
+##################################################
+if [ $GET_IOPROFILE = YES ]; then
+    . /com/miostats/.set_IOprofile
+fi
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date

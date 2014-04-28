@@ -1,0 +1,131 @@
+#!/bin/ksh
+# JGDAS_DUMP_POST
+#---- 
+set -xa
+export PS4='$SECONDS + '
+date
+
+# #### 03/08/2006 #########################################
+# SETUP GDAS DATA DUMP POST PROCESSING VARIABLES
+#  DATA COUNTING
+#  LISTING AND FORMAT CONVERSION
+#  UPDATING DATA AVERAGE TABLES (18Z RUN ONLY)
+# #########################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=gfs
+export RUN=gdas1
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
+export ALERTL=/com/logs/alertlog    # used by child script bufr_datacount.sh
+
+####################################
+# SENDECF  - Flag Events on ECF
+# SENDDBN  - Issue DBNet Client Calls
+# SENDCOM  - Copy files to /com directory
+# SENDSDM  - Send files to SDM printer (used by child script bufr_datacount.sh)
+####################################
+export SENDECF=YES
+export SENDDBN=YES
+export SENDCOM=YES
+export SENDSDM=YES
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+export FIXbufr=${HOMEbufr}/fix         # used by child script bufr_datacount.sh
+
+
+export HOMEarch=/com/arch/${envir}
+export AVGDarch_IN=$HOMEarch/avgdata   # used by child script bufr_datacount.sh
+                                       # (only used when PROCESS_DATACOUNTS=YES)
+export AVGDarch_OUT=$HOMEarch/avgdata  # points to path to write avg tables to
+                                       # (only used when PROCESS_AVGTABLES=YES)
+export OBCNTarch=$HOMEarch/obcount_30day # points to path to write new status
+                                         # files to and read all status files
+                                         # from {used by child script
+                                         # bufr_avgdata.sh, only when
+                                         # PROCESS_AVGTABLES=YES, can only
+                                         # WRITE to this location if COPY=YES
+                                         # (the default for COPY is YES)}
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export utilscript=/nwprod/util/ush
+
+export ushscript_datacount=$ushscript # path to data counting script
+export ushscript_remorest=$ushscript  # path to restricted data removal script
+export ushscript_avgdata=$ushscript   # path to data count averaging script
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+ksh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+ksh $utilscript/setpdy.sh
+. PDY
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/gdas.${PDY}
+export COMOUT=/com/${NET}/${envir}/gdas.${PDY}
+mkdir -m 775 -p $COMOUT
+
+########################################################
+# Specify variables specific to this execution of script
+########################################################
+
+export PROCESS_DATACOUNTS=YES
+export PROCESS_REMOREST=YES
+export PROCESS_UNBLKBUFR=YES
+export PROCESS_LISTERS=YES
+if [ "$cyc" = '18' ]; then
+   export PROCESS_AVGTABLES=YES  # The 18Z run generates data count avg tables
+else
+   export PROCESS_AVGTABLES=NO
+fi
+
+env
+
+export NET=gdas
+#############################################################
+# execute the script
+ksh /nw${envir}/scripts/exdump_post.sh.ecf
+#############################################################
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date
