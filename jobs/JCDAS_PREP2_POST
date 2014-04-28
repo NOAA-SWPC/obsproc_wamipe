@@ -1,0 +1,140 @@
+#!/bin/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date
+
+#################################################################
+# SETUP CDAS POST-ANALYSIS PREPBUFR (PREP2) PROCESSING VARIABLES
+#################################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=cdas
+export RUN=cdas
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
+
+####################################
+# SENDDBN  - Issue DBNet Client Calls
+####################################
+export SENDDBN=YES
+export SENDCOM=YES
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export ushscript_remorest=${ushscript_remorest:-$ushscript}
+                              # above is path to restricted data removal script
+export utilscript=/nwprod/util/ush
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+sh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+if test "$cyc" = "06"
+then
+
+# With a very late cutoff, it is possible for the 06Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t12z
+# file for our PDY
+
+   export cycle=t12z
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+   export cycle=t06z
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+
+elif test "$cyc" = "18"
+then
+
+# With a very late cutoff, it is possible for the 18Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t00z
+# file to make PDY then backdate this PDY by 24-hours to get our PDY
+
+   export cycle=t00z
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+   PDY=$PDYm1
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+   export cycle=t18z
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+
+else
+
+# At 00 and 12Z, there should never be a problem
+
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+
+fi
+
+# Finally, backdate our PDY by 24-hours since model runs 1-day behind
+
+PDY=$PDYm1
+sh $utilscript/setpdy.sh
+. $DATA/PDY
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/${NET}.${PDY}
+export COMOUT=/com/${NET}/${envir}/${NET}.${PDY}
+mkdir -m 775 -p $COMOUT
+
+##############################################
+# Specify variables specific to this execution of script
+##############################################
+
+
+env
+
+#############################################################
+# execute the script
+ksh /nw${envir}/scripts/exprep_post.sh.ecf
+#############################################################
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date
+
