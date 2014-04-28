@@ -148,6 +148,11 @@ files:
     - uses code from obsproc_shared/bufr_remorest.v1.0.0
     - ????
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - The increase of parameter MEDT (from 1000 to 2000) in obsproc_dump
+      program bufr_edtbfr results in nearly a doubling of memory required for
+      that code.  However, the actual impact, if any, on memory requirements
+      for a given call to dumpjb depends on the types and relative amounts of
+      observations processed.
     - uses code from obsproc_dump.v3.1.0 (updated from obsproc_dump.v3.0.0)
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
