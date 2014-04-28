@@ -1,0 +1,163 @@
+#!/bin/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date
+# #### 03/08/2006 #########################################
+# SETUP CDAS DATA DUMP POST PROCESSING VARIABLES
+#  LISTING AND FORMAT CONVERSION
+# #########################################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+export tmmark=tm00
+
+##########################
+# Specify NET and RUN Name
+##########################
+export NET=cdas
+export RUN=cdas
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+[ $envir != prod ]  && export outid="LL${job}_${envir}"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+####################################
+# File To Log Msgs
+####################################
+export export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
+export ALERTL=/com/logs/alertlog    # used by child script bufr_datacount.sh
+
+####################################
+# SENDDBN  - Issue DBNet Client Calls
+# SENDCOM  - Copy files to /com directory
+# SENDSDM  - Send files to SDM printer (used by child script bufr_datacount.sh)
+# GET_IOPROFILE - Run I/O statistics
+####################################
+export SENDDBN=YES
+export SENDCOM=YES
+export SENDSDM=YES
+export GET_IOPROFILE=NO
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEbufr=/nw${envir}
+export EXECbufr=${HOMEbufr}/exec
+export FIXbufr=${HOMEbufr}/fix        # used by child script bufr_datacount.sh
+
+export HOMEarch=/com/arch/${envir}
+export AVGDarch_IN=$HOMEarch/avgdata  # used by child script bufr_datacount.sh
+
+#############################
+# Set up the UTILITIES
+##############################
+export ushscript=/nw${envir}/ush
+export utilscript=/nwprod/util/ush
+
+export ushscript_datacount=$ushscript # path to data counting script
+export ushscript_remorest=$ushscript  # path to restricted data removal script
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+ksh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+if test "$cyc" = "06"
+then
+
+# With a very late cutoff, it is possible for the 06Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t12z
+# file for our PDY
+
+   export cycle=t12z
+   sh $utilscript/setpdy.sh
+   . PDY
+   export cycle=t06z
+   sh $utilscript/setpdy.sh
+   . PDY
+
+elif test "$cyc" = "18"
+then
+
+# With a very late cutoff, it is possible for the 18Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t00z
+# file to make PDY then backdate this PDY by 24-hours to get our PDY
+
+   export cycle=t00z
+   sh $utilscript/setpdy.sh
+   . PDY
+   PDY=$PDYm1
+   sh $utilscript/setpdy.sh
+   . PDY
+   export cycle=t18z
+   sh $utilscript/setpdy.sh
+   . PDY
+
+else
+
+# At 00 and 12Z, there should never be a problem
+
+   ksh $utilscript/setpdy.sh
+   . PDY
+
+fi
+
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
+export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
+mkdir -m 775 -p $COMOUT
+
+########################################################
+# Specify variables specific to this execution of script
+########################################################
+
+export PROCESS_DATACOUNTS=NO # Never processed in CDAS run
+export PROCESS_REMOREST=YES
+export PROCESS_UNBLKBUFR=YES
+export PROCESS_LISTERS=YES
+export PROCESS_AVGTABLES=NO  # Never processed in CDAS run
+
+env
+
+#############################################################
+# execute the script
+if [ $GET_IOPROFILE = YES ]; then
+   /usrx/local/mio/tools/bin/miostats -X0 \
+   /nw${envir}/scripts/exdump_post.sh.ecf
+else
+   /nw${envir}/scripts/exdump_post.sh.ecf
+fi
+#############################################################
+
+##################################################
+# save the profiling data captured from miostats
+##################################################
+if [ $GET_IOPROFILE = YES ]; then
+    . /com/miostats/.set_IOprofile
+fi
+
+cd /tmpnwprd
+rm -rf $DATA
+
+date
+
