@@ -48,11 +48,12 @@ echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
 echo
 set -x
 
-###########################
-# Specify NET and RUN Name
-###########################
+##################################
+# Specify NET, RUN and model Name
+##################################
 export NET=${NET:-cdas}
 export RUN=${RUN:-cdas}
+export model=${model:-cdas}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark
@@ -156,14 +157,6 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-# ---------------------------
-# Paths for non-obsproc items
-# ---------------------------
-
-# Used by $PROCESS_SATELLITE_COUNTS when it is YES
-# ------------------------------------------------
-export ushscript=${ushscript:-/nwprod/ush}
-
 ###########################
 # Set up the UTILITY paths
 ###########################
@@ -183,24 +176,68 @@ fi
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-sh $utilscript/setpdy.sh
-. $DATA/PDY
+if [ -z "$PDY" ]; then
+   if test "$cyc" = "06"
+   then
+
+# With a very late cutoff, it is possible for the 06Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t12z
+# file for our PDY
+
+      export cycle=t12z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t06z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   elif test "$cyc" = "18"
+   then
+
+# With a very late cutoff, it is possible for the 18Z cycle
+# to move into the next day if production is running late -
+# to ensure that the YYYYMMDD are correct, use the /com/date/t00z
+# file to make PDY then backdate this PDY by 24-hours to get our PDY
+
+      export cycle=t00z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      PDY=$PDYm1
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t18z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   else
+
+# At 00 and 12Z, there should never be a problem
+
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   fi
+
+else
+
+# If PDY was previously specified (checkout only) fall through to here
+
+   sh $utilscript/setpdy.sh
+   . $DATA/PDY
+
+fi
 
 #########################
 # Define COM directories
 #########################
 if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
-  export COMIN=/com/${NET}/${envir}/${NET}.${PDY}
-  export COMOUT=/com/${NET}/${envir}/${NET}.${PDY}
+  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
+  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
   mkdir -m 775 -p $COMOUT
-
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=/com
-
 else
   export COMIN_ROOT=${COMIN_ROOT:-/com}
-  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${NET}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory (e.g.,
@@ -208,27 +245,21 @@ else
 #  checkout run for the same cycle (this could mess up some logic downstream)
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${NET}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
-
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=${GETGES_COM:-$COMIN_ROOT}
 fi
 
-#########################################################
-# SETUP CDAS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
-#########################################################
+########################################################
+# SETUP CDAS POST-PREPBUFR (PREP1) PROCESSING VARIABLES
+########################################################
 
 #########################################################
 # Specify variables specific to this execution of script
 #########################################################
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
-export PROCESS_TIMETWINS=NO
-
-# This currently will FAIL if it runs - leave it as default of NO
-# ---------------------------------------------------------------
-export PROCESS_SATELLITE_COUNTS=${PROCESS_SATELLITE_COUNTS:-NO}
+export PROCESS_TIMETWINS=NO  # can never run here
+export PROCESS_ALL_REPORT_COUNTS=NO  # can never run here
+export PROCESS_SATELLITE_COUNTS=NO  # can never run here
 
 env
 
@@ -236,22 +267,22 @@ env
 # Execute the script
 #####################
 $SCRIPTSobsproc_prep_post/exprep_post.sh.ecf
-eval err_${NET}_prep_post=$?
+eval err_${model}_prep1_post=$?
 
-echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${NET}_prep1_post_ran
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep1_post_ran
 
-> $COMOUT/obsproc_version_for_${cycle}_${NET}_prep1_post_run
+> $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep1_post_run
 [ -n "$obsproc_global_ver" ]  &&  \
  echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver" >> \
- $COMOUT/obsproc_version_for_${cycle}_${NET}_prep1_post_run
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep1_post_run
 [ -n "$obsproc_prep_post_ver" ]  &&  \
  echo "OBSPROC_PREP_POST version used by this job is \
- $obsproc_prep_post_ver" >> \
- $COMOUT/obsproc_version_for_${cycle}_${NET}_prep1_post_run
+$obsproc_prep1_post_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep1_post_run
 [ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
 $obsproc_shared_bufr_remorest_ver" >> \
- $COMOUT/obsproc_version_for_${cycle}_${NET}_prep1_post_run
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep1_post_run
 
 if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
