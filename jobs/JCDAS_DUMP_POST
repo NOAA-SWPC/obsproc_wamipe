@@ -122,7 +122,6 @@ export pgmout="OUTPUT.${pid}"
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
-  export SENDSDM=${SENDSDM:-YES}
   if [[ ${envir} == prod ]]; then
     export SENDDBN=YES
     export SENDDBN_GB2=NO
@@ -156,7 +155,7 @@ fi
 # ---------------------------------
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
 -/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver:?\
-"###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}     # is this var needed? db jaw
+"###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
 export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:-$HOMEobsproc_dump_post/scripts}
 
 export USHobsproc_dump_post=${USHobsproc_dump_post:-$HOMEobsproc_dump_post/ush}

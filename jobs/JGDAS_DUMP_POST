@@ -1,9 +1,10 @@
 #!/bin/ksh
 # JGDAS_DUMP_POST
+#   Job script for GDAS DUMP_POST processing
+#
+# modification history
+# 29 Apr 2014 - config'd for running under vertical structure (VS) layout
 #---- 
-set -xa
-export PS4='$SECONDS + '
-date
 
 # #### 03/08/2006 #########################################
 # SETUP GDAS DATA DUMP POST PROCESSING VARIABLES
@@ -12,96 +13,240 @@ date
 #  UPDATING DATA AVERAGE TABLES (18Z RUN ONLY)
 # #########################################################
 
-####################################
-# obtain unique process id (pid) and make temp directory
-####################################
-export pid=$$
-export DATA=/tmpnwprd/${job}.${pid}
-mkdir -p $DATA
-cd $DATA
+set -a
+date -u
 
-export cycle=t${cyc}z
-export tmmark=tm00
+echo " Job script JGDAS_DUMP_POST - start of script" ; echo
+
+# Report versions used
+# --------------------
+versions_list='
+ obsproc_global_ver obsproc_dump_post_ver obsproc_shared_bufr_avgdata_ver
+ obsproc_shared_bufr_remorest_ver obsproc_shared_bufr_dumplist_ver'
+
+all_set=yes
+for var in $versions_list ; do
+  eval version=\${$var}
+  printf "%40s : " $var
+  if [ -n "$version" ] ; then echo $version
+  else echo 'not set' ; all_set=no
+  fi # -n version
+done # for var
+if [ .$all_set != .'yes' ] ; then
+  echo " *** FATAL ERROR: not all required version values set - exiting" ; exit
+fi # all_set != yes
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
+
+# Check that required variables are imported
+# ------------------------------------------
+echo ; echo " Job script JGFS_DUMP_POST - running with:"
+echo "      cyc = ${cyc:?' ...not set.  ###FATAL ERROR'}"
+echo "    envir = ${envir:?' ...not set.  ###FATAL ERROR'}"
+echo "      job = ${job:?' ...not set.  ###FATAL ERROR'}"
+echo
+
+set -x
 
 ##########################
 # Specify NET and RUN Name
 ##########################
 export NET=gfs
 export RUN=gdas1
+export model=gdas
 
-####################################
+##############################
+# Specify cycle and time-mark
+##############################
+export cycle=t${cyc}z
+export tmmark=tm00
+
+###############################
+# Create new working directory
+###############################
+host=$(hostname -s)
+if [[ ${USER} == nwprod ]]; then
+  DATAROOT=/tmpnwprd
+else
+  DATAROOT=${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
+fi
+export pid=$$
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$pid}
+rm -rf $DATA
+mkdir -p $DATA
+cd $DATA
+
+######################################
+# Set job log file for postmsg output
+######################################
+if [[ ${USER} == nwprod ]]; then
+  if [[ ${envir} == prod ]]; then
+    jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
+  else
+    jlogfile=/com/logs/${envir}/jlogfile
+  fi
+else
+  jlogfile=${jlogfile:-${DATA}/jlogfile}
+fi
+
+# Set Alert log file
+# ------------------
+export ALERTL=${ALERTL:-/com/logs/alertlog}
+
+######################################
 # Determine Job Output Name on System
-####################################
+######################################
 export outid="LL$job"
 [ $envir != prod ]  && export outid="LL${job}_${envir}"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-####################################
-# File To Log Msgs
-####################################
-export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
-export ALERTL=/com/logs/alertlog    # used by child script bufr_datacount.sh
-
-####################################
-# SENDECF  - Flag Events on ECF
-# SENDDBN  - Issue DBNet Client Calls
-# SENDCOM  - Copy files to /com directory
-# SENDSDM  - Send files to SDM printer (used by child script bufr_datacount.sh)
-####################################
-export SENDECF=YES
-export SENDDBN=YES
-export SENDCOM=YES
-export SENDSDM=YES
+################################################
+# SENDCOM      - Copy files to /com directory
+# SENDECF      - Flag Events on ECFLOW
+# SENDDBN      - Alert output file to TOC
+# SENDDBN_GB2  - Alert output GRIB2 file to TOC
+################################################
+if [[ ${USER} == nwprod ]]; then
+  export SENDCOM=YES
+  export SENDECF=YES
+  if [[ ${envir} == prod ]]; then
+    export SENDDBN=YES
+    export SENDDBN_GB2=NO
+    export SENDSDM=YES
+  else
+    export SENDDBN=NO
+    export SENDDBN_GB2=NO
+    export SENDSDM=NO
+  fi
+else  # developer
+  export SENDCOM=${SENDCOM:-YES}
+  export SENDECF=NO
+  export SENDDBN=NO
+  export SENDDBN_GB2=NO
+  export SENDSDM=NO
+fi
 
 ####################################
 # Specify Execution Areas
 ####################################
-export HOMEbufr=/nw${envir}
-export EXECbufr=${HOMEbufr}/exec
-export FIXbufr=${HOMEbufr}/fix         # used by child script bufr_datacount.sh
+
+# -------------------------------
+# Paths for obsproc_network items
+# -------------------------------
+#jaw export HOMEobsproc_network=${HOMEobsproc_network:\
+#jaw -/nw${envir}/obsproc_global.${obsproc_global_ver:?\
+#jaw "###FATAL ERROR \"obsproc_global_ver\" is not set"}}     # is this var needed? db jaw
+
+# Paths for obsproc_dump_post items
+# ---------------------------------
+export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
+-/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver:?\
+"###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
+
+export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:-$HOMEobsproc_dump_post/scripts}
+
+export USHobsproc_dump_post=${USHobsproc_dump_post:-$HOMEobsproc_dump_post/ush}
+
+export EXECobsproc_dump_post=${EXECobsproc_dump_post:-$HOMEobsproc_dump_post/exec}
+
+# Paths for obsproc_shared_bufr_dumplist items
+# --------------------------------------------
+export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
+-/nw${envir}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_dumplist_ver\" is not set"}}
+
+export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
+-$HOMEobsproc_shared_bufr_dumplist/fix}
 
 
-export HOMEarch=/com/arch/${envir}
-export AVGDarch_IN=$HOMEarch/avgdata   # used by child script bufr_datacount.sh
-                                       # (only used when PROCESS_DATACOUNTS=YES)
-export AVGDarch_OUT=$HOMEarch/avgdata  # points to path to write avg tables to
-                                       # (only used when PROCESS_AVGTABLES=YES)
-export OBCNTarch=$HOMEarch/obcount_30day # points to path to write new status
-                                         # files to and read all status files
-                                         # from {used by child script
-                                         # bufr_avgdata.sh, only when
-                                         # PROCESS_AVGTABLES=YES, can only
-                                         # WRITE to this location if COPY=YES
-                                         # (the default for COPY is YES)}
+# Settings for obsproc_bufr_datacount
+# -----------------------------------
+HOMEarch=${HOMEarch:-/com/arch/${envir}}
+export AVGDarch_IN=${AVGDarch_IN:-$HOMEarch/avgdata}
 
-#############################
-# Set up the UTILITIES
-##############################
-export ushscript=/nw${envir}/ush
-export utilscript=/nwprod/util/ush
 
-export ushscript_datacount=$ushscript # path to data counting script
-export ushscript_remorest=$ushscript  # path to restricted data removal script
-export ushscript_avgdata=$ushscript   # path to data count averaging script
+# Settings for obsproc_shared_bufr_remorest
+# -----------------------------------------
+export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
+-/nw${envir}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
 
-##############################
+export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
+-$HOMEobsproc_shared_bufr_remorest/ush}
+export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
+-$HOMEobsproc_shared_bufr_remorest/exec}
+
+
+# Settings for obsproc_shared_bufr_avgdata
+# ----------------------------------------
+export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/ush}
+export EXECobsproc_shared_bufr_avgdata=${EXECobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/exec}
+
+export AVGDarch_OUT=${AVGDarch_OUT:-$HOMEarch/avgdata}
+
+
+# ---------------------------
+# Paths for non-obsproc items
+# ---------------------------
+
+##########################
+# Set up the UTILITY paths
+##########################
+export utilscript=${utilscript:-/nwprod/util/ush}
+export utilparm=${utilparm:-/nwprod/util/parm}
+export utilexec=${utilexec:-/nwprod/util/exec}
+
+################################################################
 # Run setup to initialize working directory and utility scripts
-##############################
-ksh $utilscript/setup.sh
+################################################################
+if [[ ${USER} == nwprod ]]; then
+  sh $utilscript/setup.sh
+else
+  sh ${SETUP:-/nwprod/util/ush}/setup.sh
+fi
 
 ##############################
 # Run setpdy and initialize PDY variables
 ##############################
-ksh $utilscript/setpdy.sh
-. PDY
+sh $utilscript/setpdy.sh
+. $DATA/PDY
 
-##############################################
+
+#########################
 # Define COM directories
-##############################################
-export COMIN=/com/${NET}/${envir}/gdas.${PDY}
-export COMOUT=/com/${NET}/${envir}/gdas.${PDY}
-mkdir -m 775 -p $COMOUT
+#########################
+if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
+  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
+  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
+  mkdir -m 775 -p $COMOUT
+else
+  export COMIN_ROOT=${COMIN_ROOT:-/com}
+  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
+
+# COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
+#  prevent job from writing into a non-unique directory (e.g.,
+#  /ptmp[p][d]1/$USER/com) that might already have a dump status file in it
+#  from a previous checkout run (this could mess up some logic downstream)
+# ----------------------------------------------------------------------------
+  export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  mkdir -m 755 -p $COMOUT
+fi
+
 
 ########################################################
 # Specify variables specific to this execution of script
@@ -117,15 +262,27 @@ else
    export PROCESS_AVGTABLES=NO
 fi
 
+set +x ; echo ; echo " --- begin list of environment variable settings"
 env
+echo " --- end of list of environment variable settings" ; echo ; set -x
+
 
 export NET=gdas
 #############################################################
 # execute the script
-ksh /nw${envir}/scripts/exdump_post.sh.ecf
-#############################################################
+ksh $SCRIPTSobsproc_dump_post/exdump_post.sh.ecf
+rc=$?
+set +x ; echo ; echo " back fr model script exdump_post.sh.ecf - rc='$rc'" ; set -x
 
-cd /tmpnwprd
-rm -rf $DATA
 
-date
+CLEAN=${CLEAN:-YES}
+if [ $CLEAN = YES ]; then
+   cd $DATAROOT
+   rm -rf $DATA
+fi
+
+echo ; echo " normal end of JGDAS_DUMP_POST script"
+date -u
+
+exit
+#---end of JGDAS_DUMP_POST
