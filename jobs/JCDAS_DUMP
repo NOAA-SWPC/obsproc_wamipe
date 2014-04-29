@@ -226,42 +226,52 @@ fi
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-if test "$cyc" = "06"
-then
+if [ -z "$PDY" ]; then
+   if test "$cyc" = "06"
+   then
 
 # With a very late cutoff, it is possible for the 06Z cycle
 # to move into the next day if production is running late -
 # to ensure that the YYYYMMDD are correct, use the /com/date/t12z
 # file for our PDY
 
-   export cycle=t12z
-   sh $utilscript/setpdy.sh
-   . $DATA/PDY
-   export cycle=t06z
-   sh $utilscript/setpdy.sh
-   . $DATA/PDY
+      export cycle=t12z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t06z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
 
-elif test "$cyc" = "18"
-then
+   elif test "$cyc" = "18"
+   then
 
 # With a very late cutoff, it is possible for the 18Z cycle
 # to move into the next day if production is running late -
 # to ensure that the YYYYMMDD are correct, use the /com/date/t00z
 # file to make PDY then backdate this PDY by 24-hours to get our PDY
 
-   export cycle=t00z
-   sh $utilscript/setpdy.sh
-   . $DATA/PDY
-   PDY=$PDYm1
-   sh $utilscript/setpdy.sh
-   . $DATA/PDY
-   export cycle=t18z
-   sh $utilscript/setpdy.sh
-   . $DATA/PDY
+      export cycle=t00z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      PDY=$PDYm1
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+      export cycle=t18z
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   else
+
+# At 00 and 12Z, there should never be a problem
+
+      sh $utilscript/setpdy.sh
+      . $DATA/PDY
+
+   fi
 
 else
 
-# At 00 and 12Z, there should never be a problem
+# If PDY was previously specified (checkout only) fall through to here
 
    sh $utilscript/setpdy.sh
    . $DATA/PDY
