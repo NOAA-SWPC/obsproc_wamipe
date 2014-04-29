@@ -40,11 +40,12 @@ echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
 echo
 set -x
 
-###########################
-# Specify NET and RUN Name
-###########################
+##################################
+# Specify NET, RUN and model Name
+##################################
 export NET=${NET:-cdas}
 export RUN=${RUN:-cdas}
+export model=${model:-cdas}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark
@@ -251,12 +252,12 @@ sh $utilscript/setpdy.sh
 # Define COM directories
 #########################
 if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
-  export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
-  export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
+  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
+  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
   export COMIN_ROOT=${COMIN_ROOT:-/com}
-  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${RUN}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory (e.g.,
@@ -264,7 +265,7 @@ else
 #  checkout run for the same cycle (this could mess up some logic downstream)
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
 
@@ -340,7 +341,7 @@ env
 # Execute the script
 #####################
 $SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
-eval err_${RUN}_prep2=$?
+eval err_${model}_prep2=$?
 
 COPY_TO_ARKV=${COPY_TO_ARKV:-YES}
 if [ $COPY_TO_ARKV = YES ]; then
