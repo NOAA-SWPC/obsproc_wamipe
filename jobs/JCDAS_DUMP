@@ -53,7 +53,7 @@ set -x
 ##################################
 export NET=${NET:-cdas}
 export RUN=${RUN:-cdas}
-export model=${model:-cdas}
+export model=${model:-cdas}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark

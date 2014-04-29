@@ -45,7 +45,7 @@ set -x
 ##################################
 export NET=${NET:-gfs}
 export RUN=${RUN:-gfs}
-export model=${model:-gfs}
+export model=${model:-gfs}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark

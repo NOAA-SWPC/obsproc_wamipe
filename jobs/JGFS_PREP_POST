@@ -290,7 +290,7 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_post_ran
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
 [ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
-$obsproc_shared_bufr_remorest_ver" >> \
+ $obsproc_shared_bufr_remorest_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
 
 if [ "${CLEANUP:-YES}" = YES ]; then
