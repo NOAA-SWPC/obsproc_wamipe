@@ -157,14 +157,6 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-# ---------------------------
-# Paths for non-obsproc items
-# ---------------------------
-
-# Used by $PROCESS_SATELLITE_COUNTS when it is YES
-# ------------------------------------------------
-export ushscript=${ushscript:-/nwprod/ush}
-
 ###########################
 # Set up the UTILITY paths
 ###########################
@@ -186,9 +178,6 @@ fi
 ##########################################
 sh $utilscript/setpdy.sh
 . $DATA/PDY
-MM=`echo $PDY | cut -c5-6`
-export MON=`/nwprod/util/ush/month_name.sh $MM MON`
-export YYYYMM=`echo $PDY  | cut -c1-6`
 
 #########################
 # Define COM directories
@@ -197,25 +186,6 @@ if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
   export COMIN=/com/${NET}/${envir}/${model}.${PDY}
   export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
   mkdir -m 775 -p $COMOUT
-
-# The following are used by $PROCESS_TIMETWINS when it is YES
-# -----------------------------------------------------------
-  export COMINGFS=/com/${NET}/${envir}/${NET}.${PDY}
-  export COMIN1=/com/${NET}/${envir}/${model}.
-
-# The following are used by $PROCESS_ALL_REPORT_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export DATCOM=/com/arch/${envir}/data_counts.${YYYYMM}
-  export SATCOM=/com/${NET}/${envir}/satcounts/${MON}
-  export ARCHCOM=/com/${NET}/${envir}
-  export DATCOM1=/com/arch/${envir}
-  mkdir -m 775 -p $DATCOM
-  mkdir -m 775 -p $SATCOM
-
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=/com
-
 else
   export COMIN_ROOT=${COMIN_ROOT:-/com}
   export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
@@ -228,47 +198,19 @@ else
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
-
-# The following are used by $PROCESS_TIMETWINS when it is YES
-# -----------------------------------------------------------
-  export COMINGFS=${COMINGFS:-${COMIN_ROOT}/${NET}/${envir}/${NET}.${PDY}}
-  export COMIN1=${COMIN1:-${COMIN_ROOT}/${NET}/${envir}/${model}.}
-
-# The following are used by $PROCESS_ALL_REPORT_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export DATCOM=${DATCOM:-${COMOUT_ROOT}/arch/${envir}/data_counts.${YYYYMM}}
-  export SATCOM=${SATCOM:-${COMOUT_ROOT}/${NET}/${envir}/satcounts/${MON}}
-  export ARCHCOM=${ARCHCOM:-${COMOUT_ROOT}/${NET}/${envir}}
-  export DATCOM1=${DATCOM1:-${COMOUT_ROOT}/arch/${envir}}
-  mkdir -m 775 -p $DATCOM
-  mkdir -m 775 -p $SATCOM
-
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=${GETGES_COM:-$COMIN_ROOT}
 fi
 
-#########################################################
-# SETUP GDAS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
-#########################################################
+########################################################
+# SETUP GFS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
+########################################################
 
 #########################################################
 # Specify variables specific to this execution of script
 #########################################################
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
-export PROCESS_TIMETWINS=${PROCESS_TIMETWINS:-YES}
-
-# $PROCESS_ALL_REPORT_COUNTS defaults to YES only in 18z runs
-# -----------------------------------------------------------
-if [ $cyc != 18 ]; then  # only done in 18z GDAS runs
-   export PROCESS_ALL_REPORT_COUNTS=${PROCESS_ALL_REPORT_COUNTS:-NO}
-else
-   export PROCESS_ALL_REPORT_COUNTS=${PROCESS_ALL_REPORT_COUNTS:-YES}
-fi
-
-# This currently will FAIL if it runs - leave it as default of NO
-# ---------------------------------------------------------------
-export PROCESS_SATELLITE_COUNTS=${PROCESS_SATELLITE_COUNTS:-NO}
+export PROCESS_TIMETWINS=NO  # can never run here
+export PROCESS_ALL_REPORT_COUNTS=NO  # can never run here
+export PROCESS_SATELLITE_COUNTS=NO  # can never run here
 
 env
 
@@ -288,7 +230,7 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_post_ran
  echo "OBSPROC_PREP_POST version used by this job is \
  $obsproc_prep_post_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
-[ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
+[ -n "$obsproc_shared_bufr_remorest_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
  $obsproc_shared_bufr_remorest_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
