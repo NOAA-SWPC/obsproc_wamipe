@@ -1,40 +1,44 @@
-#!/bin/ksh
-# JGDAS_DUMP_POST
-#   Job script for GDAS DUMP_POST processing
-#
-# modification history
-# 29 Apr 2014 - config'd for running under vertical structure (VS) layout
-#---- 
-
-# #### 03/08/2006 #########################################
-# SETUP GDAS DATA DUMP POST PROCESSING VARIABLES
-#  DATA COUNTING
-#  LISTING AND FORMAT CONVERSION
-#  UPDATING DATA AVERAGE TABLES (18Z RUN ONLY)
-# #########################################################
-
-set -a
+set -xa
 date -u
 
-echo " Job script JGDAS_DUMP_POST - start of script" ; echo
-
-# Report versions used
-# --------------------
-versions_list='
- obsproc_global_ver obsproc_dump_post_ver obsproc_shared_bufr_avgdata_ver
- obsproc_shared_bufr_remorest_ver obsproc_shared_bufr_dumplist_ver'
-
-all_set=yes
-for var in $versions_list ; do
-  eval version=\${$var}
-  printf "%40s : " $var
-  if [ -n "$version" ] ; then echo $version
-  else echo 'not set' ; all_set=no
-  fi # -n version
-done # for var
-if [ .$all_set != .'yes' ] ; then
-  echo " *** FATAL ERROR: not all required version values set - exiting" ; exit
-fi # all_set != yes
+if [ -n "$obsproc_global_ver" ]; then
+   set +x
+   echo
+   echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_dump_post_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_DUMP_POST version used by this job is $obsproc_dump_post_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_shared_bufr_remorest_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
+$obsproc_shared_bufr_remorest_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_shared_bufr_avgdata_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is \
+$obsproc_shared_bufr_avgdata_ver"
+   echo
+   set -x
+fi
+if [ -n "$obsproc_shared_bufr_dumplist_ver" ]; then
+   set +x
+   echo
+   echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
+$obsproc_shared_bufr_dumplist_ver"
+   echo
+   set -x
+fi
 
 ###################################################################
 # Set DEBUG LEVEL - modifies info in execution trace prompt string
@@ -49,22 +53,23 @@ case $DEBUG_LEVEL in
   *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
 esac
 
-# Check that required variables are imported
-# ------------------------------------------
-echo ; echo " Job script JGFS_DUMP_POST - running with:"
-echo "      cyc = ${cyc:?' ...not set.  ###FATAL ERROR'}"
-echo "    envir = ${envir:?' ...not set.  ###FATAL ERROR'}"
-echo "      job = ${job:?' ...not set.  ###FATAL ERROR'}"
+########################################
+# Check that required variables are set
+########################################
+set +x
 echo
-
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo
 set -x
 
-##########################
-# Specify NET and RUN Name
-##########################
-export NET=gfs
-export RUN=gdas1
-export model=gdas
+##################################
+# Specify NET, RUN and model Name
+##################################
+export NET=${NET:-gfs}
+export RUN=${RUN:-gdas1}
+export model=${model:-gdas}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark
@@ -80,87 +85,118 @@ if [[ ${USER} == nwprod ]]; then
   DATAROOT=/tmpnwprd
 else
   DATAROOT=${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
+  TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
+                    #  directory when jobs are submitted, set it
+                    #  to $DATAROOT so its under the user's control
 fi
-export pid=$$
-export DATA=${DATA:-$DATAROOT/${job}.${host}.$pid}
+export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
 
-######################################
+####################################################
 # Set job log file for postmsg output
-######################################
+# Set alert log directory used by bufr_datacount.sh
+####################################################
 if [[ ${USER} == nwprod ]]; then
   if [[ ${envir} == prod ]]; then
     jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
+    ALERTL=/com/logs/alertlog
   else
     jlogfile=/com/logs/${envir}/jlogfile
+    ALERTL=/com/logs/${envir}/alertlog
   fi
 else
   jlogfile=${jlogfile:-${DATA}/jlogfile}
+  ALERTL=${ALERTL:-${DATA}/alertlog}
 fi
-
-# Set Alert log file
-# ------------------
-export ALERTL=${ALERTL:-/com/logs/alertlog}
+mkdir -p $ALERTL
 
 ######################################
 # Determine Job Output Name on System
 ######################################
+export pid=$$
 export outid="LL$job"
 [ $envir != prod ]  && export outid="LL${job}_${envir}"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-################################################
-# SENDCOM      - Copy files to /com directory
-# SENDECF      - Flag Events on ECFLOW
-# SENDDBN      - Alert output file to TOC
-# SENDDBN_GB2  - Alert output GRIB2 file to TOC
-################################################
+###################################################################
+# SENDCOM  - Copy files to /com directory
+# SENDECF  - Flag Events on ECFLOW
+# SENDDBN  - Alert output file to TOC
+# SENDSDM  - Send files to SDM printer (used by bufr_datacount.sh)
+###################################################################
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
   if [[ ${envir} == prod ]]; then
     export SENDDBN=YES
-    export SENDDBN_GB2=NO
     export SENDSDM=YES
   else
     export SENDDBN=NO
-    export SENDDBN_GB2=NO
-    export SENDSDM=NO
+    export SENDSDM=YES
   fi
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
   export SENDDBN=NO
-  export SENDDBN_GB2=NO
   export SENDSDM=NO
 fi
 
-####################################
+##########################
 # Specify Execution Areas
-####################################
+##########################
 
 # -------------------------------
 # Paths for obsproc_network items
 # -------------------------------
-#jaw export HOMEobsproc_network=${HOMEobsproc_network:\
-#jaw -/nw${envir}/obsproc_global.${obsproc_global_ver:?\
-#jaw "###FATAL ERROR \"obsproc_global_ver\" is not set"}}     # is this var needed? db jaw
+export HOMEobsproc_network=${HOMEobsproc_network:\
+-/nw${envir}/obsproc_global.${obsproc_global_ver:?\
+"###FATAL ERROR \"obsproc_global_ver\" is not set"}}
 
+# ---------------------------------
 # Paths for obsproc_dump_post items
 # ---------------------------------
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
 -/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
 
-export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:-$HOMEobsproc_dump_post/scripts}
+export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:\
+-$HOMEobsproc_dump_post/scripts}
+
+export EXECobsproc_dump_post=${EXECobsproc_dump_post:\
+-$HOMEobsproc_dump_post/exec}
 
 export USHobsproc_dump_post=${USHobsproc_dump_post:-$HOMEobsproc_dump_post/ush}
 
-export EXECobsproc_dump_post=${EXECobsproc_dump_post:-$HOMEobsproc_dump_post/exec}
+# --------------------------------------------
+# Paths for obsproc_shared_bufr_remorest items
+# --------------------------------------------
+export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
+-/nw${envir}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
 
+export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
+-$HOMEobsproc_shared_bufr_remorest/exec}
+
+export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
+-$HOMEobsproc_shared_bufr_remorest/ush}
+
+# -------------------------------------------
+# Paths for obsproc_shared_bufr_avgdata items
+# -------------------------------------------
+export HOMEobsproc_shared_bufr_avgdata=${HOMEobsproc_shared_bufr_avgdata:\
+-/nw${envir}/obsproc_shared/bufr_avgdata.${obsproc_shared_bufr_avgdata_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_avgdata_ver\" is not set"}}
+
+export EXECobsproc_shared_bufr_avgdata=${EXECobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/exec}
+
+export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/ush}
+
+# --------------------------------------------
 # Paths for obsproc_shared_bufr_dumplist items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
@@ -170,42 +206,37 @@ export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
 export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 -$HOMEobsproc_shared_bufr_dumplist/fix}
 
-
-# Settings for obsproc_bufr_datacount
-# -----------------------------------
-HOMEarch=${HOMEarch:-/com/arch/${envir}}
-export AVGDarch_IN=${AVGDarch_IN:-$HOMEarch/avgdata}
-
-
-# Settings for obsproc_shared_bufr_remorest
-# -----------------------------------------
-export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
--/nw${envir}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
-"###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
-
-export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
--$HOMEobsproc_shared_bufr_remorest/ush}
-export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
--$HOMEobsproc_shared_bufr_remorest/exec}
-
-
-# Settings for obsproc_shared_bufr_avgdata
-# ----------------------------------------
-export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
--$HOMEobsproc_shared_bufr_avgdata/ush}
-export EXECobsproc_shared_bufr_avgdata=${EXECobsproc_shared_bufr_avgdata:\
--$HOMEobsproc_shared_bufr_avgdata/exec}
-
-export AVGDarch_OUT=${AVGDarch_OUT:-$HOMEarch/avgdata}
-
-
 # ---------------------------
 # Paths for non-obsproc items
 # ---------------------------
 
-##########################
+# directory path to data count/alert processing executed in bufr_datacount.sh
+#  and data count averaging executed in model script and in bufr_avgdata.sh
+# ---------------------------------------------------------------------------
+export HOMEarch=${HOMEarch:-/com/arch/${envir}}
+
+#  .. AVGDarch_IN is directory path containing 30-day avg files (used by
+#     bufr_datacount.sh)
+#     ------------------------------------------------------------------
+export AVGDarch_IN=${AVGDarch_IN:-$HOMEarch/avgdata}
+
+# ..AVGDarch_OUT is directory path to write avg tables to (used in model script)
+#   ----------------------------------------------------------------------------
+if [[ ${USER} == nwprod ]]; then
+  export AVGDarch_OUT=$HOMEarch/avgdata
+else
+  export AVGDarch_OUT=${AVGDarch_OUT:-${DATA}/avgdata}
+fi
+mkdir -p $AVGDarch_OUT
+
+# .. OBCNTarch is directory path to write new status files to & read all status
+#    files from {can WRITE to this location only if COPY=YES (the default)
+#    --------------------------------------------------------------------------
+export OBCNTarch=${OBCNTarch:-$HOMEarch/obcount_30day}
+
+###########################
 # Set up the UTILITY paths
-##########################
+###########################
 export utilscript=${utilscript:-/nwprod/util/ush}
 export utilparm=${utilparm:-/nwprod/util/parm}
 export utilexec=${utilexec:-/nwprod/util/exec}
@@ -219,12 +250,11 @@ else
   sh ${SETUP:-/nwprod/util/ush}/setup.sh
 fi
 
-##############################
+##########################################
 # Run setpdy and initialize PDY variables
-##############################
+##########################################
 sh $utilscript/setpdy.sh
 . $DATA/PDY
-
 
 #########################
 # Define COM directories
@@ -239,50 +269,69 @@ else
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory (e.g.,
-#  /ptmp[p][d]1/$USER/com) that might already have a dump status file in it
-#  from a previous checkout run (this could mess up some logic downstream)
-# ----------------------------------------------------------------------------
+#  /ptmp[p][d]1/$USER/com) that might already have output in it from a previous
+#  checkout run for the same cycle (this could mess up some logic downstream)
+# -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
 
+#################################################
+# SETUP GDAS DATA DUMP POST PROCESSING VARIABLES
+#################################################
 
-########################################################
+#########################################################
 # Specify variables specific to this execution of script
-########################################################
+#########################################################
+export PROCESS_DATACOUNTS=${PROCESS_DATACOUNTS:-YES}
+export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-YES}
+export PROCESS_LISTERS=${PROCESS_LISTERS:-YES}
 
-export PROCESS_DATACOUNTS=YES
-export PROCESS_REMOREST=YES
-export PROCESS_UNBLKBUFR=YES
-export PROCESS_LISTERS=YES
+# Data count average tables are generated in the 18Z run only
 if [ "$cyc" = '18' ]; then
-   export PROCESS_AVGTABLES=YES  # The 18Z run generates data count avg tables
+   export PROCESS_AVGTABLES=${PROCESS_AVGTABLES:-YES}
 else
-   export PROCESS_AVGTABLES=NO
+   export PROCESS_AVGTABLES=${PROCESS_AVGTABLES:-NO}
 fi
 
-set +x ; echo ; echo " --- begin list of environment variable settings"
 env
-echo " --- end of list of environment variable settings" ; echo ; set -x
-
 
 export NET=gdas
-#############################################################
-# execute the script
-ksh $SCRIPTSobsproc_dump_post/exdump_post.sh.ecf
-rc=$?
-set +x ; echo ; echo " back fr model script exdump_post.sh.ecf - rc='$rc'" ; set -x
+#####################
+# Execute the script
+#####################
+$SCRIPTSobsproc_dump_post/exdump_post.sh.ecf
+eval err_${model}_dump_post=$?
 
+echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_post_ran
 
-CLEAN=${CLEAN:-YES}
-if [ $CLEAN = YES ]; then
+> $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_global_ver" ]  &&  \
+ echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_dump_post_ver" ]  &&  \
+ echo "OBSPROC_DUMP_POST version used by this job is \
+$obsproc_dump_post_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_shared_bufr_remorest_ver" ]  &&  \
+ echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
+ $obsproc_shared_bufr_remorest_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_shared_bufr_avgdata_ver" ]  &&  \
+ echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is \
+ $obsproc_shared_bufr_avgdata_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
+ echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
+ $obsproc_shared_bufr_dumplist_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+
+if [ "${CLEANUP:-YES}" = YES ]; then
    cd $DATAROOT
    rm -rf $DATA
 fi
-
-echo ; echo " normal end of JGDAS_DUMP_POST script"
 date -u
 
 exit
-#---end of JGDAS_DUMP_POST
