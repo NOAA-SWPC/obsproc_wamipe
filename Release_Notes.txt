@@ -86,7 +86,7 @@ files:
       BENEFIT: This is a waste of time now that the instrument has died
                (2/20/14).
    exglobal_dump.sh.ecf:
-    - Minor syntax changes to reduce unncecssary error msgs.
+    - Minor syntax changes to reduce unncecssary error msgs (and other cleanup).
 
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,

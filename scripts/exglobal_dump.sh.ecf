@@ -350,7 +350,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
            grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
            target_filename=$gribfile.grb
            ndaysback=1;
-           ndaysback_warn=1;;
+           ndaysback_warn=99;;
          imssnow96.grb.grib2 )                     # IMS snow
            grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
            target_filename=imssnow96.grib2
@@ -395,6 +395,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
        found=false
 # loop through dates to check for this file type
        for DDATE in $CHECK_DATES;do
+         ndtry=`expr $ndtry + 1`
          eval tryfile=$grib_source/$gribfile
          if [ -s $tryfile ];then
            set +x; echo -e "\nPicking up file $tryfile\n"; set -x
@@ -407,23 +408,18 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
          else
            set +x;echo -e "\n$tryfile not available.\n";set -x
          fi
-         ndtry=`expr $ndtry + 1`
          if [ $ndtry -gt $ndaysback_warn ];then
-           msg="**WARNING: INVESTIGATE UNEXPECTED ABSENCE OF $tryfile"
+           msg="***WARNING: INVESTIGATE UNEXPECTED ABSENCE OF $tryfile"
            echo_hashed_msg "$msg"
            $DATA/postmsg "$jlogfile" "$msg"
          fi   
-      done
-      if [ $found != true ]; then
-        if [ $ndtry -gt $ndaysback_warn ]; then
-          msg="***WARNING: NO $gribfile FOUND FOR $ndtry DAYS!!!   CRITICAL!!!"
-        else
-          msg="***WARNING: NO $gribfile FOUND FOR $ndtry DAYS!"
-        fi
-        echo_hashed_msg "$msg"
-        $DATA/postmsg "$jlogfile" "$msg"
-      fi    
-    done
+       done
+       if [ $found != true ]; then
+         msg="***WARNING: NO USEFUL RECENT FILES FOUND FOR $gribfile!!!"
+         echo_hashed_msg "$msg"
+         $DATA/postmsg "$jlogfile" "$msg"
+       fi    
+     done
   fi
 
 #  endif loop $PROCESS_GRIBFLDS
