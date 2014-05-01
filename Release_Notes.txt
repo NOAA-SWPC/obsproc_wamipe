@@ -7,12 +7,17 @@ files:
  *obsproc_global/fix/prepobs_oiqc.oberrs
  *obsproc_global/fix/prepobs_oiqc.oberrs.cdas
  *obsproc_global/jobs/JCDAS_DUMP
+ *obsproc_global/jobs/JCDAS_DUMP_POST
  *obsproc_global/jobs/JCDAS_PREP1
+ *obsproc_global/jobs/JCDAS_PREP1_POST
  *obsproc_global/jobs/JCDAS_PREP2
+ *obsproc_global/jobs/JCDAS_PREP2_POST
  *obsproc_global/jobs/JGDAS_DUMP
+ *obsproc_global/jobs/JGDAS_DUMP_POST
  *obsproc_global/jobs/JGDAS_PREP
  *obsproc_global/jobs/JGDAS_PREP_POST
  *obsproc_global/jobs/JGFS_DUMP
+ *obsproc_global/jobs/JGFS_DUMP_POST
  *obsproc_global/jobs/JGFS_PREP
  *obsproc_global/jobs/JGFS_PREP_POST
  *obsproc_global/parm/prepobs_cqcbufr.cdas.parm
@@ -75,7 +80,9 @@ files:
                "adpsfc" dump files. A diagnostic will be printed in stdout.
                The modern GSI can run ok if these data are not available for
                some unexpected reason.
-   JGDAS_PREP_POST, JGFS_PREP_POST:
+   JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
+ !!!- ?????  -- plus updates for these new job scripts below (where needed)
+   JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
  !!!- ?????  -- plus updates for these new job scripts below (where needed)
 
  Model script changes:
@@ -143,31 +150,36 @@ files:
     - 54 second increase in wallclock run time: GFS
     - uses code from obsproc_prep.v3.0.0
     - no other changes
-!!!JGDAS_PREP_POST, JGFS_PREP_POST:
+!!!JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
     - uses code from obsproc_prep_post.v2.0.0
     - uses code from obsproc_shared/bufr_remorest.v1.0.0
     - ????
+    - no other changes
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
-    - The increase of parameter MEDT (from 1000 to 2000) in obsproc_dump
-      program bufr_edtbfr results in nearly a doubling of memory required for
-      that code.  However, the actual impact, if any, on memory requirements
-      for a given call to dumpjb depends on the types and relative amounts of
-      observations processed.
     - uses code from obsproc_dump.v3.1.0 (updated from obsproc_dump.v3.0.0)
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
+    - no other changes
+!!!Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - uses code from obsproc_dump_post.v2.0.0
+    - uses code from obsproc_shared/bufr_avgdata.v1.0.0
+    - uses code from obsproc_shared/bufr_remorest.v1.0.0
+    - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (only used with GDAS)
+    - ????
     - no other changes
 
 
  Preimplementation Testing Requirements:
  ---------------------------------------
-   - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP.
+   - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP,
+     JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST,
+     JCDAS_DUMP_POST, JGDAS_DUMP_POST and JGFS_DUMP_POST
    - This is part of the parallel-production test of the OBSPROC Phase 2
      bundle.
 
 
  Dissemination:
  --------------
-   - The main user of this output is the CDAS, GDAS and GFS models.
+   - The main users of this output are the CDAS, GDAS and GFS networks.
    - No change in dissemination.
    - No change in archival on HPSS.
 
@@ -178,8 +190,8 @@ files:
    obsproc_dump_monitor.v1.2.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
    obsproc_rtma.v2.0.0, obsproc_urma.v2.0.0, obsproc_dump.v3.1.0,
    obsproc_dump_post.v2.0.0, obsproc_prep.v3.0.0, obsproc_prep_post.v2.0.0,
-   obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0 and
-   obsproc_shared/bufr_avgdata.v1.0.0.
+   obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0,
+   obsproc_shared/bufr_avgdata.v1.0.0 and obsproc_shared/bufr_dumplist.v1.0.0.
 
    This must also be implemented simultaneously with or immediately after the
    w3emc_v2.2.0 implementation.
