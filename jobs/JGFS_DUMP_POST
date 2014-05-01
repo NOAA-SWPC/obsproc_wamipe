@@ -119,12 +119,12 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-###################################################################
+##############################################################################
 # SENDCOM  - Copy files to /com directory
 # SENDECF  - Flag Events on ECFLOW
 # SENDDBN  - Alert output file to TOC
-# SENDSDM  - Send files to SDM printer (used by bufr_datacount.sh)
-###################################################################
+# SENDSDM  - Send files to SDM (via email and/or printer in bufr_datacount.sh)
+##############################################################################
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
