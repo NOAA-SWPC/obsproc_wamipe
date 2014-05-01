@@ -280,11 +280,10 @@ fi
 # VARIABLES THAT CONTROL PROCESSING OF INDIVIDUAL PROGRAMS
 # --------------------------------------------------------
 
-export PREPDATA=${PREPDATA:-NO}
-                      # Execute programs PREPOBS_MPCOPYBUFR, PREPOBS_PREPDATA,
-                      # PREPOBS_LISTHEADERS and PREPOBS_MONOPREPBUFR if YES
-                      #   SHOULD ALWAYS BE SET TO "NO"
-                      #   Instead, feed the file below into the Q.C. codes
+export PREPDATA=NO    # DO NOT
+                      # execute programs PREPOBS_MPCOPYBUFR, PREPOBS_PREPDATA,
+                      # PREPOBS_LISTHEADERS and PREPOBS_MONOPREPBUFR
+                      # (instead, feed the file below into the Q.C. codes)
 
 export PREPBUFR_IN=${PREPBUFR_IN:-$COMIN/${RUN}.${cycle}.prepbufr_pre-qc}
 
@@ -303,8 +302,7 @@ export network_getges=${network_getges:-cdas}
 #       (if job fails in one of these programs, set offending program
 #       to NO and resubmit to "work-around" problem)
 
-export SYNDATA=${SYNDATA:-NO}    # Execute program SYNDAT_SYNDATA   if YES
-                                 #   SHOULD ALWAYS BE SET TO "NO"
+export SYNDATA=NO    # NEVER execute program SYNDAT_SYNDATA
 
 export PREVENTS=${PREVENTS:-YES} # Execute program PREPOBS_PREVENTS if YES
 
@@ -313,8 +311,6 @@ export PREPACQC=${PREPACQC:-YES} # Execute PREPACQC script processing if YES
                                             #  if YES
    export PROCESS_ACPF=${PROCESS_ACPF:-NO} # Execute program PREPOBS_PREPACPF
                                             #  if YES
-                                 #   SHOULD ALWAYS BE SET TO "NO" (profiles
-                                 #    are not generated in CDAS)
 
 export PROFCQC=${PROFCQC:-NO}    # Execute program PREPOBS_PROFCQC  if YES
                                  #   SHOULD ALWAYS BE SET TO "NO"

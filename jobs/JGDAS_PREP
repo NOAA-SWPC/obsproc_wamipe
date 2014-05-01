@@ -271,9 +271,6 @@ export PREPACQC=${PREPACQC:-YES} # Execute PREPACQC script processing if YES
                                             #  if YES
    export PROCESS_ACPF=${PROCESS_ACPF:-NO}  # Execute program PREPOBS_PREPACPF
                                             #  if YES
-                                            #  SHOULD ALWAYS BE SET TO "NO"
-                                            #   (profiles are not generated in
-                                            #    GDAS)
 
 export PROFCQC=${PROFCQC:-YES}   # Execute program PREPOBS_PROFCQC  if YES
 
