@@ -162,8 +162,8 @@ files:
 !!!Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
     - uses code from obsproc_dump_post.v2.0.0
     - uses code from obsproc_shared/bufr_avgdata.v1.0.0
-    - uses code from obsproc_shared/bufr_remorest.v1.0.0
     - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (only used with GDAS)
+    - uses code from obsproc_shared/bufr_remorest.v1.0.0
     - ????
     - no other changes
 
@@ -190,8 +190,8 @@ files:
    obsproc_dump_monitor.v1.2.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
    obsproc_rtma.v2.0.0, obsproc_urma.v2.0.0, obsproc_dump.v3.1.0,
    obsproc_dump_post.v2.0.0, obsproc_prep.v3.0.0, obsproc_prep_post.v2.0.0,
-   obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0,
-   obsproc_shared/bufr_avgdata.v1.0.0 and obsproc_shared/bufr_dumplist.v1.0.0.
+   obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0 and
+   obsproc_shared/bufr_avgdata.v1.0.0.
 
    This must also be implemented simultaneously with or immediately after the
    w3emc_v2.2.0 implementation.
