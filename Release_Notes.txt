@@ -162,7 +162,8 @@ files:
 !!!Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
     - uses code from obsproc_dump_post.v2.0.0
     - uses code from obsproc_shared/bufr_avgdata.v1.0.0
-    - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (only used with GDAS)
+    - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (only used with GDAS
+      and GFS networks)
     - uses code from obsproc_shared/bufr_remorest.v1.0.0
     - ????
     - no other changes
