@@ -133,7 +133,7 @@ if [[ ${USER} == nwprod ]]; then
     export SENDSDM=YES
   else
     export SENDDBN=NO
-    export SENDSDM=YES
+    export SENDSDM=NO
   fi
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
