@@ -349,7 +349,7 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 [ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
- $obsproc_shared_bufr_dumplist_ver" >> \
+$obsproc_shared_bufr_dumplist_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 
 #

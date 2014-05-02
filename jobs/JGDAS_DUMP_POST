@@ -317,15 +317,15 @@ $obsproc_dump_post_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
 [ -n "$obsproc_shared_bufr_remorest_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
- $obsproc_shared_bufr_remorest_ver" >> \
+$obsproc_shared_bufr_remorest_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
 [ -n "$obsproc_shared_bufr_avgdata_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is \
- $obsproc_shared_bufr_avgdata_ver" >> \
+$obsproc_shared_bufr_avgdata_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
 [ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
- $obsproc_shared_bufr_dumplist_ver" >> \
+$obsproc_shared_bufr_dumplist_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
 
 if [ "${CLEANUP:-YES}" = YES ]; then
