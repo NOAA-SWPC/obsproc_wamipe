@@ -96,23 +96,19 @@ export pgmout="OUTPUT.${pid}"
 # SENDCOM      - Copy files to /com directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-# SENDDBN_GB2  - Alert output GRIB2 file to TOC
 ################################################
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
   if [[ ${envir} == prod ]]; then
     export SENDDBN=YES
-    export SENDDBN_GB2=YES
   else
     export SENDDBN=NO
-    export SENDDBN_GB2=NO
   fi
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
   export SENDDBN=NO
-  export SENDDBN_GB2=NO
 fi
 
 ##########################
