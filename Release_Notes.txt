@@ -253,7 +253,7 @@ files:
 
  Dissemination:
  --------------
-   - The main user of this output is the CDAS, GDAS and GFS models.
+   - The main users of this output are the CDAS, GDAS and GFS networks.
    - No change in dissemination.
    - No change in archival on HPSS.
 
@@ -401,7 +401,7 @@ files:
 
  Dissemination:
  --------------
-   - The main user of this output is the CDAS, GDAS and GFS models.
+   - The main users of this output are the CDAS, GDAS and GFS networks.
    - No change in dissemination.
    - No change in archival on HPSS.
 
