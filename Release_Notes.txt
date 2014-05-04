@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.0.0 --> released ??? ?, 2014
+obsproc_global release 2.0.0 --> released May 5, 2014
 
 files:
  *obsproc_global/fix/prepobs_errtable.cdas
@@ -53,6 +53,7 @@ files:
                temporary directory root in these job scripts. This can now be
                different for different development groups.
    JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Initial population into vertical structure.
     - Changed all "date" commands to "date -u" since WCOSS should always
       present date in UTC.
     - Obtains obsproc_global and obsproc_prep version numbers via imported
@@ -68,9 +69,9 @@ files:
     - Exports new environment variable $HOMEobsproc_network which points to
       directory path for network-specific prep subdirectories under version
       control (in production this is normally
-      /nwprod/obsproc_global.$obsproc_nam_ver).  Replaces /nw${envir} in order
-      to to files in scripts, parm and fix directories moved from horizontal to
-      vertical directory structure.
+      /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir} in
+      order to point to files in scripts, parm and fix directories moved from
+      horizontal to vertical directory structure.
    JGDAS_PREP, JGFS_PREP:
     - Export environment variable $errPREPDATA_limit as "4" at all center hour
       (cycle) times. Before, it was set to default of "0" at all center hour
@@ -81,28 +82,112 @@ files:
                The modern GSI can run ok if these data are not available for
                some unexpected reason.
    JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
- !!!- ?????  -- plus updates for these new job scripts below (where needed)
+    - Initial population into vertical structure.
+    - Changed all "date" commands to "date -u" since WCOSS should always
+      present date in UTC.
+    - Obtains obsproc_global, obsproc_prep_post and
+      obsproc_shared/bufr_remorest version numbers via imported environment
+      variables $obsproc_global_ver, $obsproc_prep_post_ver and
+      $obsproc_shared_bufr_remorest_ver, resp.  These are defined in the
+      upstream ecflow script.
+    - Full environmental equivalence.  Streamlined, allows for more
+      generalization (e.g., for checkout runs).
+    - Exports new environment variable $HOMEobsproc_prep_post which points to
+      directory path for generic prep_post subdirectories under version control
+      (in production this is normally
+      /nwprod/obsproc_prep_post.$obsproc_prep_post_ver).  Replaces /nw${envir}
+      in order to point to files in scripts directory moved from horizontal to
+      vertical directory structure.
+    - Exports new environment variable $HOMEobsproc_network which points to
+      directory path for network-specific subdirectories under version control
+      (in production this is normally
+      /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir}.
+    - Exports new environment variable $HOMEobsproc_shared_bufr_remorest which
+      points to directory path for generic shared bufr_remorest subdirectories
+      under version control (in production this is normally
+      /nwprod/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver).
+      Replaces /nw${envir} in order to point to files in exec and ush
+      directories moved from horizontal to vertical directory structure.
+   JCDAS_PREP1_POST:
+    - Added more robust logic to select PDY, where this is based on cycle time
+      to avoid any possibility of obtaining a PDY late by 1 day due to a delay
+      in the production run. Added environmental equvalence for cases when
+      checkout wrapper script exports variable "PDY" into this script.  All of
+      this updated logic matches that currently found in other CDAS job
+      scripts.
    JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
- !!!- ?????  -- plus updates for these new job scripts below (where needed)
+    - Initial population into vertical structure.
+    - Changed all "date" commands to "date -u" since WCOSS should always
+      present date in UTC.
+    - Obtains obsproc_global, obsproc_dump_post and
+      obsproc_shared/bufr_remorest version numbers via imported environment
+      variables $obsproc_global_ver, $obsproc_dump_post_ver and
+      $obsproc_shared_bufr_remorest_ver, resp.  These are defined in the
+      upstream ecflow script.
+    - Full environmental equivalence.  Streamlined, allows for more
+      generalization (e.g., for checkout runs).
+    - Exports new environment variable $HOMEobsproc_dump_post which points to
+      directory path for generic dump_post subdirectories under version control
+      (in production this is normally
+      /nwprod/obsproc_dump_post.$obsproc_dump_post_ver).  Replaces /nw${envir}
+      in order to point to files in scripts, exec and (in GDAS and GFS networks
+      only) ush directories moved from horizontal to vertical directory
+      structure.
+    - Exports new environment variable $HOMEobsproc_network which points to
+      directory path for network-specific subdirectories under version control
+      (in production this is normally
+      /nwprod/obsproc_global.$obsproc_global_ver).  Replaces /nw${envir}.
+    - Exports new environment variable $HOMEobsproc_shared_bufr_remorest which
+      points to directory path for generic shared bufr_remorest subdirectories
+      under version control (in production this is normally
+      /nwprod/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver).
+      Replaces /nw${envir} in order to point to files in exec and ush
+      directories moved from horizontal to vertical directory structure.
+    JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - Obtains obsproc_shared/bufr_dumplist version number via imported
+      environment variable $obsproc_shared_bufr_dumplist_ver.  This is defined
+      in the upstream ecflow script.
+    - Exports new environment variable $HOMEobsproc_shared_bufr_dumplist which
+      points to directory path for generic shared bufr_dumplist subdirectories
+      under version control (in production this is normally
+      /nwprod/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver).
+      Replaces /nw${envir} in order to point to files in fix directory moved
+      from horizontal to vertical directory structure.
+   JGDAS_DUMP_POST:
+    - Obtains obsproc_shared/bufr_avgdata version number via imported
+      environment variable $obsproc_shared_bufr_avgdata_ver.  This is defined
+      in the upstream ecflow script.
+    - Exports new environment variable $HOMEobsproc_shared_bufr_avgdata which
+      points to directory path for generic shared bufr_avgdata subdirectories
+      under version control (in production this is normally
+      /nwprod/obsproc_shared/bufr_avgdata.${obsproc_shared_bufr_avgdata_ver).
+      Replaces /nw${envir} in order to point to files in exec and ush
+      directories moved from horizontal to vertical directory structure.
+   JCDAS_DUMP, JCDAS_PREP2_POST, JCDAS_DUMP_POST:
+    - Added environmental equvalence for cases when checkout wrapper script
+      exports variable "PDY" into this script.
 
  Model script changes:
    exglobal_makeprepbufr.sh.ecf:
+    - Initial population into vertical structure.
     - Modified to change path to prepobs_makeprepbufr.sh from $ushscript to
-      $ushscript_prep (part of vertical structure transition).
+      $ushscript_prep as obsproc_prep package has been populated into vertical
+      structure.
+   exglobal_dump.sh.ecf:
     - No longer attempts to dump OSCAT data.
       BENEFIT: This is a waste of time now that the instrument has died
                (2/20/14).
-   exglobal_dump.sh.ecf:
     - Minor syntax changes to reduce unncecssary error msgs (and other cleanup).
 
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_errtable.global, prepobs_oiqc.oberrs,
    prepobs_oiqc.oberrs.cdas:
-    - No changes (but added here for first time).
+    - No changes (initial population into vertical structure).
 
  Parm file changes:
    prepobs_prepdata.cdas.parm, prepobs_prepdata.gdas.parm,
    prepobs_prepdata.gfs.parm:
+    - Initial population into vertical structure.
     - Removed comments related to version number, implementation date, and/or
       history. No longer needed now that these are in subversion.
     - New 12'th surface type (representing Coast Guard data) added to array
@@ -112,60 +197,86 @@ files:
     - New switch NPKRPT (12*FALSE) to control processing of surface obs with
       missing pressure information (FALSE here means these will continue to be
       discarded).
-   prepobs_cqcbufr.cdas.parm, prepobs_cqcbufr.gdas.parm,
-   prepobs_cqcbufr.gfs.parm, prepobs_prepacqc.cdas.parm,
-   prepobs_prepacqc.gdas.parm, prepobs_prepacqc.gfs.parm,
    prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
-   prepobs_prepssmi.gfs.parm, prepobs_prevents.cdas.parm,
-   prepobs_profcqc.gdas.parm, prepobs_profcqc.gfs.parm,
-   syndat_syndata.gdas.parm, syndat_syndata.gfs.parm:
+   prepobs_prepssmi.gfs.parm:
     - Removed comments related to version number, implementation date, and/or
       history. No longer needed now that these are in subversion. Otherwise,
       no changes to contents.
+   prepobs_cqcbufr.cdas.parm, prepobs_cqcbufr.gdas.parm,
+   prepobs_cqcbufr.gfs.parm, prepobs_prepacqc.cdas.parm,
+   prepobs_prepacqc.gdas.parm, prepobs_prepacqc.gfs.parm,
+   prepobs_prevents.cdas.parm, prepobs_profcqc.gdas.parm,
+   prepobs_profcqc.gfs.parm:
+    - Initial population into vertical structure.
+    - Removed comments related to version number, implementation date, and/or
+      history. No longer needed now that these are in subversion. Otherwise,
+      no changes to contents.
+   syndat_syndata.gdas.parm, syndat_syndata.gfs.parm:
+    - No changes (initial population into vertical structure).
 
 
  Output changes:
  ---------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Satellite zenith angle (degrees) encoded into PREPBUFR file (mnemonic
+      "SAZA") for all satwnd types.
+    - Surface marine reports will now encode pmsl ob and qc (PMO and PMQ) in
+      PREPBUFR file if pmsl is reported.
+    - SFCSHP reports with calm winds and non-missing background u- or v-
+      component wind .ge. 5 m/sec are flagged with Q.M. 8 in PREPBUFR file.
     - Coast Guard surface marine mass and wind data will now be processed as
       part of report type 180/280 (when pressure information is available) in
       PREPBUFR file. 
+    - Surface reports with incomplete wind information will now be retained
+      and encoded into the PREPBUFR file.
+   Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - Printing format changed slightly in some dump listing files in /com to
+      squeeze more information on a line.
+    - Satellite zenith angle (degrees) added to satwnd dump listing files in
+      /com.
+    - Coast Guard tide gauge reports added to sfcshp dump listing files in
+      /com.
+    - MAP profilers with more than 102 levels will now get all levels listed
+      in /com (CDAS only, other networks do not dump MAP profilers).
 
 
  Compute Resource Information:
  -----------------------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
-    - the CDAS, GDAS, and GFS "prepbufr" files will now be approximately
+    - the CDAS, GDAS, and GFS PREPBUFR files will now be approximately
       1.02 times (102%) as large and  as before since they will now include
       Coast Guard surface marine data and additional surface reports with 
       incomplete wind information that had previously been discarded.
-        CDAS: space used by all prepbufr files increases from ~ 130 MBytes/day
+      Also increased a bit as a result of other additions (see output changes
+      above).
+        CDAS: space used by all PREPBUFR files increases from ~ 130 MBytes/day
               to ~ 133 MBytes/day
-        GDAS: space used by all prepbufr files increases from ~ 200 MBytes/day
+        GDAS: space used by all PREPBUFR files increases from ~ 200 MBytes/day
               to ~ 204 MBytes/day
-        GFS:  space used by all prepbufr files increases from ~ 180 MBytes/day
+        GFS:  space used by all PREPBUFR files increases from ~ 180 MBytes/day
               to ~ 184 MBytes/day
     - no wallclock run time change: CDAS
     - 58 second increase in wallclock run time: GDAS
     - 54 second increase in wallclock run time: GFS
     - uses code from obsproc_prep.v3.0.0
     - no other changes
-!!!JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
+   Jobs JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
     - uses code from obsproc_prep_post.v2.0.0
     - uses code from obsproc_shared/bufr_remorest.v1.0.0
-    - ????
     - no other changes
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - uses code from obsproc_dump.v3.1.0 (updated from obsproc_dump.v3.0.0)
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
-!!!Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+   Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - slight increase in size of satwnd, sfcshp and proflr dump listing files
+      as a result of changes noted above in output changes
+    - slight increase in size of non-restricted sfcshp dump and dump listing
+      files as a result of changes noted above in output changes
     - uses code from obsproc_dump_post.v2.0.0
-    - uses code from obsproc_shared/bufr_avgdata.v1.0.0
-    - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (only used with GDAS
-      and GFS networks)
     - uses code from obsproc_shared/bufr_remorest.v1.0.0
-    - ????
+    - uses code from obsproc_shared/bufr_avgdata.v1.0.0 (GDAS only)
+    - uses code from obsproc_shared/bufr_dumplist.v1.0.0 (GDAS and GFS only)
     - no other changes
 
 
@@ -194,12 +305,9 @@ files:
    obsproc_satingest.v2.2.0, obsproc_shared/bufr_remorest.v1.0.0 and
    obsproc_shared/bufr_avgdata.v1.0.0.
 
-   This must also be implemented simultaneously with or immediately after the
-   w3emc_v2.2.0 implementation.
-
-!!!Please check out file obsproc_global.ver from  
-!!!https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/LATEST_GREATEST 
-!!!and copy to /nwprod/versions, replacing like-named file.
+   Please check out file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140505_OBSPROC-fy14q2_phase2/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
@@ -272,6 +380,8 @@ files:
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Feb 8, 2014
+
+Initial population of vertical structure.
 
 files:
  *obsproc_global/jobs/JCDAS_DUMP
