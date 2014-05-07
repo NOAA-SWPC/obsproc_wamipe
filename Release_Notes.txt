@@ -229,6 +229,8 @@ files:
       PREPBUFR file. 
     - Surface reports with incomplete wind information will now be retained
       and encoded into the PREPBUFR file.
+    - Report type 183 now stores moisture quality mark no lower than 3
+      (suspect).
    Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
     - Printing format changed slightly in some dump listing files in /com to
       squeeze more information on a line.
