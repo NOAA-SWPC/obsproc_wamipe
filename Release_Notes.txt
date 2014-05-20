@@ -258,8 +258,8 @@ files:
         GFS:  space used by all PREPBUFR files increases from ~ 180 MBytes/day
               to ~ 184 MBytes/day
     - no wallclock run time change: CDAS
-    - 58 second increase in wallclock run time: GDAS
-    - 54 second increase in wallclock run time: GFS
+    - no wallclock run time change: GDAS
+    - no wallclock run time change: GFS
     - uses code from obsproc_prep.v3.0.0
     - no other changes
    Jobs JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
