@@ -66,7 +66,11 @@ export tmmark=tm00
 ###############################
 host=$(hostname -s)
 if [[ ${USER} == nwprod ]]; then
-  DATAROOT=/tmpnwprd
+  if [[ ${envir} == prod ]]; then
+    DATAROOT=/tmpnwprd1
+  else
+    DATAROOT=/tmpnwprd2
+  fi
 else
   DATAROOT=${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
   TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
