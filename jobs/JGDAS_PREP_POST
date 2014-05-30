@@ -114,13 +114,16 @@ if [[ ${USER} == nwprod ]]; then
   export SENDECF=YES
   if [[ ${envir} == prod ]]; then
     export SENDDBN=YES
+    export SENDWEB=YES
   else
     export SENDDBN=NO
+    export SENDWEB=NO
   fi
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
   export SENDDBN=NO
+  export SENDWEB=NO
 fi
 
 ##########################
