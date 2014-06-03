@@ -183,7 +183,7 @@ export EXECutil=${EXECutil:-/nwprod/util/exec} # Needed for
 
 # Below needed for util ush gdas_summary.sh which is executed by
 #  exprep_post.sh.ecf; also needed for util ush's gdas_countstat.sh and
-#  satelite_summary.sh which are executed by gdas_summary.sh (only when
+#  satellite_summary.sh which are executed by gdas_summary.sh (only when
 #  SENDWEB=YES) - these scripts should be updated to set this
 export UTILfix=${UTILfix:-/nwprod/util/fix}
 
