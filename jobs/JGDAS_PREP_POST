@@ -104,11 +104,12 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-################################################
+##############################################
 # SENDCOM      - Copy files to /com directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-################################################
+# SENDWEB      - Alert output file to WWW
+##############################################
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
@@ -174,7 +175,16 @@ export ushscript=${ushscript:-/nwprod/ush}
 export utilscript=${utilscript:-/nwprod/util/ush}
 export utilparm=${utilparm:-/nwprod/util/parm}
 export utilexec=${utilexec:-/nwprod/util/exec}
-export EXECutil=${EXECutil:-/nwprod/util/exec}
+
+# Below needed for util ush gdas_summary.sh which is executed by
+#  exprep_post.sh.ecf (only when SENDWEB=YES) - this script should be updated
+#  to use $utilexec instead of $EXECutil
+export EXECutil=${EXECutil:-/nwprod/util/exec} # Needed for 
+
+# Below needed for util ush gdas_summary.sh which is executed by
+#  exprep_post.sh.ecf; also needed for util ush's gdas_countstat.sh and
+#  satelite_summary.sh which are executed by gdas_summary.sh (only when
+#  SENDWEB=YES) - these scripts should be updated to set this
 export UTILfix=${UTILfix:-/nwprod/util/fix}
 
 ################################################################
