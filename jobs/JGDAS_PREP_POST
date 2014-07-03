@@ -165,10 +165,6 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 # Paths for non-obsproc items
 # ---------------------------
 
-# Used by $PROCESS_SATELLITE_COUNTS when it is YES
-# ------------------------------------------------
-export ushscript=${ushscript:-/nwprod/ush}
-
 ###########################
 # Set up the UTILITY paths
 ###########################
@@ -227,10 +223,6 @@ if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
   mkdir -m 775 -p $DATCOM
   mkdir -m 775 -p $SATCOM
 
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=/com
-
 else
   export COMIN_ROOT=${COMIN_ROOT:-/com}
   export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
@@ -258,9 +250,6 @@ else
   mkdir -m 775 -p $DATCOM
   mkdir -m 775 -p $SATCOM
 
-# The following are used by $PROCESS_SATELLITE_COUNTS when it is YES
-# -------------------------------------------------------------------
-  export GETGES_COM=${GETGES_COM:-$COMIN_ROOT}
 fi
 
 #########################################################
@@ -280,10 +269,6 @@ if [ $cyc != 18 ]; then  # only done in 18z GDAS runs
 else
    export PROCESS_ALL_REPORT_COUNTS=${PROCESS_ALL_REPORT_COUNTS:-YES}
 fi
-
-# This currently will FAIL if it runs - leave it as default of NO
-# ---------------------------------------------------------------
-export PROCESS_SATELLITE_COUNTS=${PROCESS_SATELLITE_COUNTS:-NO}
 
 env
 

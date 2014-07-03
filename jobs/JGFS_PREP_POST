@@ -210,7 +210,6 @@ fi
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
 export PROCESS_TIMETWINS=NO  # can never run here
 export PROCESS_ALL_REPORT_COUNTS=NO  # can never run here
-export PROCESS_SATELLITE_COUNTS=NO  # can never run here
 
 env
 
