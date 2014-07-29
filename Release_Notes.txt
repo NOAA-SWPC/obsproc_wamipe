@@ -13,6 +13,117 @@ files:
       /nwprod/ush/global_satcount.sh is obsolete.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.0.1 --> released July 23, 2014
+
+files:
+  obsproc_global/fix/prepobs_errtable.cdas
+  obsproc_global/fix/prepobs_errtable.global
+  obsproc_global/fix/prepobs_oiqc.oberrs
+  obsproc_global/fix/prepobs_oiqc.oberrs.cdas
+  obsproc_global/jobs/JCDAS_DUMP
+  obsproc_global/jobs/JCDAS_DUMP_POST
+ *obsproc_global/jobs/JCDAS_PREP1
+  obsproc_global/jobs/JCDAS_PREP1_POST
+ *obsproc_global/jobs/JCDAS_PREP2
+  obsproc_global/jobs/JCDAS_PREP2_POST
+  obsproc_global/jobs/JGDAS_DUMP
+  obsproc_global/jobs/JGDAS_DUMP_POST
+ *obsproc_global/jobs/JGDAS_PREP
+  obsproc_global/jobs/JGDAS_PREP_POST
+  obsproc_global/jobs/JGFS_DUMP
+  obsproc_global/jobs/JGFS_DUMP_POST
+ *obsproc_global/jobs/JGFS_PREP
+  obsproc_global/jobs/JGFS_PREP_POST
+  obsproc_global/parm/prepobs_cqcbufr.cdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+  obsproc_global/parm/prepobs_prepacqc.cdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gfs.parm
+  obsproc_global/parm/prepobs_prepdata.cdas.parm
+  obsproc_global/parm/prepobs_prepdata.gdas.parm
+  obsproc_global/parm/prepobs_prepdata.gfs.parm
+  obsproc_global/parm/prepobs_prepssmi.cdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gfs.parm
+  obsproc_global/parm/prepobs_prevents.cdas.parm
+  obsproc_global/parm/prepobs_profcqc.gdas.parm
+  obsproc_global/parm/prepobs_profcqc.gfs.parm
+  obsproc_global/parm/syndat_syndata.gdas.parm
+  obsproc_global/parm/syndat_syndata.gfs.parm
+  obsproc_global/scripts/exglobal_dump.sh.ecf
+  obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( * - changed)
+
+
+ JOB script changes:
+   JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - Environment variable DICTPREP now defaults to new vertical structure
+      directory path location for metar.tbl dictionary
+      (/nwprod/decoders/decod_shared/dictionaries, rather than
+      /nwprod/dictionaries which will be removed in September 2014).
+
+
+ Output changes:
+ ---------------
+   No changes.
+
+
+ Compute Resource Information:
+ -----------------------------
+   Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - program prepobs_prepacqc now uses more memory due to an increase in
+      array parameters "maxflt" and "max_reps" (see Release_Notes.txt for
+      obsproc_prep.v3.1.0):
+         previous: The maximum resident set size (KB) = 863576
+         now:      The maximum resident set size (KB) = 1025360
+    - no wallclock run time change: CDAS
+    - no wallclock run time change: GDAS
+    - no wallclock run time change: GFS
+    - uses code from obsproc_prep.v3.1.0 (updated from obsproc_prep.v3.0.0)
+    - no other changes
+   Jobs JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
+    - continues to use code from obsproc_prep_post.v2.0.0
+    - continues to use code from obsproc_shared/bufr_remorest.v1.0.0
+    - no changes
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - continues to use code from obsproc_dump.v3.1.0
+    - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
+    - no changes
+   Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - continues to use code from obsproc_dump_post.v2.0.0
+    - continues to use code from obsproc_shared/bufr_remorest.v1.0.0
+    - continues to use code from obsproc_shared/bufr_avgdata.v1.0.0 (GDAS only)
+    - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0 (GDAS and
+      GFS only)
+    - no changes
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP and JGFS_PREP.
+   - This is an accelerated change.
+
+
+ Dissemination:
+ --------------
+   - The main users of this output are the CDAS, GDAS and GFS networks.
+   - No change in dissemination.
+   - No change in archival on HPSS.
+
+
+ Special Instructions:
+ ---------------------
+   This must be implemented simultaneously with the implementations of
+   obsproc_nam.v2.0.2, obsproc_rap.v2.0.1, obsproc_rtma.v2.0.1,
+   obsproc_urma.v2.0.1 and obsproc_prep.v3.1.0.
+
+   Please check out file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140722_OBSPROC-more_robust_prepacqc/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.0 --> released May 5, 2014
 
 files:

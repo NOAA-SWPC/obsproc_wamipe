@@ -169,7 +169,7 @@ export PARMSYND=${PARMSYND:-${HOMEobsproc_network}/parm}
 # DICTPREP is directory path to metar.tbl dictionary used in
 #  prepobs_prepacqc.sh if PREPOBS_PREPACPF is executed
 # ----------------------------------------------------------
-export DICTPREP=${DICTPREP:-/nwprod/dictionaries}
+export DICTPREP=${DICTPREP:-/nwprod/decoders/decod_shared/dictionaries}
 
 ###########################
 # Set up the UTILITY paths
