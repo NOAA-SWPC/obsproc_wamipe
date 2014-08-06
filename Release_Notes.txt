@@ -13,7 +13,7 @@ files:
       /nwprod/ush/global_satcount.sh is obsolete.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.0.1 --> released July 23, 2014
+obsproc_global release 2.0.1 --> released July 23, 2014, updated August 5, 2014
 
 files:
   obsproc_global/fix/prepobs_errtable.cdas
@@ -103,7 +103,6 @@ files:
  Preimplementation Testing Requirements:
  ---------------------------------------
    - Test production jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP and JGFS_PREP.
-   - This is an accelerated change.
 
 
  Dissemination:
@@ -116,8 +115,9 @@ files:
  Special Instructions:
  ---------------------
    This must be implemented simultaneously with the implementations of
-   obsproc_nam.v2.0.2, obsproc_rap.v2.0.1, obsproc_rtma.v2.0.1,
-   obsproc_urma.v2.0.1 and obsproc_prep.v3.1.0.
+   obsproc_nam.v2.0.1, obsproc_rap.v2.0.1, obsproc_rtma.v2.0.1,
+   obsproc_urma.v2.0.1 and obsproc_prep.v3.1.0, and simultaneously with the
+   implementation of the FY14Q3 NAM Upgrade bundle (v3.1.0).
 
    Please check out file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140722_OBSPROC-more_robust_prepacqc/obsproc_global.ver
