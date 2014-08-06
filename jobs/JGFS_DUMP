@@ -173,9 +173,8 @@ export EXECWAVE=${EXECWAVE:-$HOMEobsproc_dump/exec}
 export PARMWAVE=${PARMWAVE:-$HOMEobsproc_network/parm}
 export FIXWAVE=${FIXWAVE:-$HOMEobsproc_dump/fix}
 
-# directory paths to SSMI, TRMM & WindSAT dump re-processing executed in
-#  bufr_dump_obs
-# ----------------------------------------------------------------------
+# directory paths to SSMI & WindSAT dump re-processing executed in bufr_dump_obs
+# ------------------------------------------------------------------------------
 export EXECbufr=${EXECbufr:-$HOMEobsproc_dump/exec}
 export PARMbufr=${PARMbufr:-$HOMEobsproc_network/parm}
 export FIXbufr=${FIXbufr:-$HOMEobsproc_dump/fix}

@@ -1,16 +1,73 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release X.Y.Z --> released 
+obsproc_global release 2.1.0 --> released ??? ?, ????
 
 files:
+  obsproc_global/fix/prepobs_errtable.cdas
+  obsproc_global/fix/prepobs_errtable.global
+  obsproc_global/fix/prepobs_oiqc.oberrs
+  obsproc_global/fix/prepobs_oiqc.oberrs.cdas
+ *obsproc_global/jobs/JCDAS_DUMP
+  obsproc_global/jobs/JCDAS_DUMP_POST
+  obsproc_global/jobs/JCDAS_PREP1
  *obsproc_global/jobs/JCDAS_PREP1_POST
+  obsproc_global/jobs/JCDAS_PREP2
  *obsproc_global/jobs/JCDAS_PREP2_POST
+ *obsproc_global/jobs/JGDAS_DUMP
+  obsproc_global/jobs/JGDAS_DUMP_POST
+  obsproc_global/jobs/JGDAS_PREP
  *obsproc_global/jobs/JGDAS_PREP_POST
+ *obsproc_global/jobs/JGFS_DUMP
+  obsproc_global/jobs/JGFS_DUMP_POST
+ *obsproc_global/jobs/JGFS_PREP
  *obsproc_global/jobs/JGFS_PREP_POST
+  obsproc_global/parm/prepobs_cqcbufr.cdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+  obsproc_global/parm/prepobs_prepacqc.cdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gfs.parm
+  obsproc_global/parm/prepobs_prepdata.cdas.parm
+  obsproc_global/parm/prepobs_prepdata.gdas.parm
+  obsproc_global/parm/prepobs_prepdata.gfs.parm
+  obsproc_global/parm/prepobs_prepssmi.cdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gfs.parm
+  obsproc_global/parm/prepobs_prevents.cdas.parm
+  obsproc_global/parm/prepobs_profcqc.gdas.parm
+  obsproc_global/parm/prepobs_profcqc.gfs.parm
+  obsproc_global/parm/syndat_syndata.gdas.parm
+  obsproc_global/parm/syndat_syndata.gfs.parm
+ *obsproc_global/scripts/exglobal_dump.sh.ecf
+  obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( * - changed)
 
  JOB script changes:
    JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
     - All references to PROCESS_SATELLITE_COUNTS removed since
       /nwprod/ush/global_satcount.sh is obsolete.
+
+   JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - Remove reference to TRMM in comment
+
+  Model script changes:
+   exglobal_dump.sh.ecf:
+    - No longer attempts to dump TRMM data.  Ingest will be turned off also as 
+      these data are no longer assimilated and satellite is nearing end of life.
+
+ Compute Resource Information:
+ -----------------------------
+   (add assessment when all changes are in place)
+
+ Dissemination:
+ --------------
+   The following will no longer be alerted for cyc=00,06,12,18:
+     gfs.t${cyc}z.trmm.tm00.bufr_d
+     gfs.t${cyc}z.sptrmm.tm00.bufr_d
+     gdas.t${cyc}z.trmm.tm00.bufr_d
+     gdas.t${cyc}z.sptrmm.tm00.bufr_d
+
+#### more to follow ###
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.1 --> released July 23, 2014, updated August 5, 2014

@@ -43,7 +43,7 @@ set +u
 #               nexrad (cdas only)
 #
 # Dump group #7 (non-pb, TIME_TRIM = OFF) =
-#               omi ssmisu trmm sevcsr bathy tesac trkob atms cris mls
+#               omi ssmisu sevcsr bathy tesac trkob atms cris mls
 #
 # Dump group #8 (pb, TIME_TRIM = default = ON) =
 #               satwnd
@@ -1182,7 +1182,6 @@ export DUMP_NUMBER=7
 #--------------------------------------------------------------------------
 # Dump # 7 : OMI:    1 subtype(s)
 #            SSMISU: 1 subtype(s)
-#            TRMM:   1 subtype(s) (if present in past 10 days of tanks)
 #            SEVCSR: 1 subtype(s)
 #            BATHY:  1 subtype(s)
 #            TESAC:  1 subtype(s)
@@ -1191,22 +1190,12 @@ export DUMP_NUMBER=7
 #            CRIS:   1 subtype(s) (if present in past 10 days of tanks)
 #            MLS:    1 subtype(s) (if present in past 10 days of tanks)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 10 
+#            TOTAL NUMBER OF SUBTYPES = 9 
 #
 #=========================================================================
 
 DTIM_latest_omi=${DTIM_latest_omi:-"+2.99"}
 DTIM_latest_ssmisu=${DTIM_latest_ssmisu:-"+2.99"}
-#-----------------------------------------------
-# check for trmm tank presence in past 10 days
-trmm=""
-err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh trmm
-err_check_tanks=$?
-if [ $err_check_tanks -eq 0 ];then
-   trmm=trmm
-   DTIM_latest_trmm=${DTIM_latest_trmm:-"+2.99"}
-fi
 #-----------------------------------------------
 DTIM_latest_sevcsr=${DTIM_latest_sevcsr:-"+2.99"}
 DTIM_latest_bathy=${DTIM_latest_bathy:-"+2.99"}
@@ -1246,7 +1235,7 @@ fi
 
 TIME_TRIM=off
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 omi ssmisu $trmm sevcsr \
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 omi ssmisu sevcsr \
  bathy tesac trkob $atms $cris $mls
 
 error7=$?
@@ -1258,12 +1247,6 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}omi.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ssmisu $job \
        ${COMSP}ssmisu.tm00.bufr_d
-      if [ "$trmm" = trmm ];then
-         $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_trmm $job \
-          ${COMSP}trmm.tm00.bufr_d
-         $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sptrmm $job \
-          ${COMSP}sptrmm.tm00.bufr_d
-      fi
 
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sevcsr $job \
        ${COMSP}sevcsr.tm00.bufr_d
