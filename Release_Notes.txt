@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.1.0 --> released ??? ?, ????
+obsproc_global release X.Y.Z --> released ??? ?, ????
 
 files:
   obsproc_global/fix/prepobs_errtable.cdas
@@ -9,15 +9,126 @@ files:
  *obsproc_global/jobs/JCDAS_DUMP
   obsproc_global/jobs/JCDAS_DUMP_POST
   obsproc_global/jobs/JCDAS_PREP1
- *obsproc_global/jobs/JCDAS_PREP1_POST
+  obsproc_global/jobs/JCDAS_PREP1_POST
   obsproc_global/jobs/JCDAS_PREP2
- *obsproc_global/jobs/JCDAS_PREP2_POST
+  obsproc_global/jobs/JCDAS_PREP2_POST
  *obsproc_global/jobs/JGDAS_DUMP
   obsproc_global/jobs/JGDAS_DUMP_POST
   obsproc_global/jobs/JGDAS_PREP
- *obsproc_global/jobs/JGDAS_PREP_POST
+  obsproc_global/jobs/JGDAS_PREP_POST
  *obsproc_global/jobs/JGFS_DUMP
   obsproc_global/jobs/JGFS_DUMP_POST
+  obsproc_global/jobs/JGFS_PREP
+  obsproc_global/jobs/JGFS_PREP_POST
+  obsproc_global/parm/prepobs_cqcbufr.cdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+  obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+  obsproc_global/parm/prepobs_prepacqc.cdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gdas.parm
+  obsproc_global/parm/prepobs_prepacqc.gfs.parm
+  obsproc_global/parm/prepobs_prepdata.cdas.parm
+  obsproc_global/parm/prepobs_prepdata.gdas.parm
+  obsproc_global/parm/prepobs_prepdata.gfs.parm
+  obsproc_global/parm/prepobs_prepssmi.cdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gdas.parm
+  obsproc_global/parm/prepobs_prepssmi.gfs.parm
+  obsproc_global/parm/prepobs_prevents.cdas.parm
+  obsproc_global/parm/prepobs_profcqc.gdas.parm
+  obsproc_global/parm/prepobs_profcqc.gfs.parm
+  obsproc_global/parm/syndat_syndata.gdas.parm
+  obsproc_global/parm/syndat_syndata.gfs.parm
+ *obsproc_global/scripts/exglobal_dump.sh.ecf
+  obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( * - changed)
+
+ JOB script changes:
+   JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - Remove reference to TRMM in comments.
+
+  Model script changes:
+   exglobal_dump.sh.ecf:
+    - No longer dumps TRMM data.  (These data are not assimilated. Ingest will
+      soon be discontinued as the satellite is nearing end of life.)
+
+
+ Output changes:
+ ---------------
+   Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - Dump files "trmm" and "sptrmm" will no longer be present in
+      /com/[cdas][gfs]prod/... directories.
+    - "TRMM" will no longer appear in GDAS and GFS RTDM count graphics.
+
+
+ Compute Resource Information:
+ -----------------------------
+   No change in requested resources in the job cards.
+   No change to memory usage.
+   Negligible change in disk space and run time.
+
+
+ Shared Software:
+ ----------------
+    - JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+         obsproc_dump.v3.2.0
+    - JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+         obsproc_prep.v3.2.0
+    - JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_dump_post.v2.0.0
+    - JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
+         obsproc_prep_post.v2.0.1
+    - JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_dumplist.v1.0.0
+    - JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST,
+      JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_remorest.v1.0.0
+    - JGDAS_DUMP_POST:
+         obsproc_shared/bufr_avgdata.v1.0.1
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP.
+
+
+ Dissemination:
+ --------------
+   - The main users of this output are the CDAS, GDAS and GFS networks.
+   - The following will no longer be alerted for cyc=00,06,12,18:
+       gfs.t${cyc}z.trmm.tm00.bufr_d
+       gfs.t${cyc}z.sptrmm.tm00.bufr_d
+       gdas.t${cyc}z.trmm.tm00.bufr_d
+       gdas.t${cyc}z.sptrmm.tm00.bufr_d
+   - No other changes in dissemination.
+   - No change in archival on HPSS outside of changes to /com noted previously.
+
+
+ Special Instructions:
+ ---------------------
+   Please check out file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/???????????????????????/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.0.2 --> released Sep 30, 2014
+
+files:
+  obsproc_global/fix/prepobs_errtable.cdas
+  obsproc_global/fix/prepobs_errtable.global
+  obsproc_global/fix/prepobs_oiqc.oberrs
+  obsproc_global/fix/prepobs_oiqc.oberrs.cdas
+ *obsproc_global/jobs/JCDAS_DUMP
+ *obsproc_global/jobs/JCDAS_DUMP_POST
+ *obsproc_global/jobs/JCDAS_PREP1
+ *obsproc_global/jobs/JCDAS_PREP1_POST
+ *obsproc_global/jobs/JCDAS_PREP2
+ *obsproc_global/jobs/JCDAS_PREP2_POST
+ *obsproc_global/jobs/JGDAS_DUMP
+ *obsproc_global/jobs/JGDAS_DUMP_POST
+ *obsproc_global/jobs/JGDAS_PREP
+ *obsproc_global/jobs/JGDAS_PREP_POST
+ *obsproc_global/jobs/JGFS_DUMP
+ *obsproc_global/jobs/JGFS_DUMP_POST
  *obsproc_global/jobs/JGFS_PREP
  *obsproc_global/jobs/JGFS_PREP_POST
   obsproc_global/parm/prepobs_cqcbufr.cdas.parm
@@ -46,31 +157,118 @@ files:
    JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
     - All references to PROCESS_SATELLITE_COUNTS removed since
       /nwprod/ush/global_satcount.sh is obsolete.
-
+   JCDAS_DUMP_POST, JCDAS_PREP1, JCDAS_PREP1_POST, JCDAS_PREP2,
+   JCDAS_PREP2_POST, JGDAS_DUMP_POST, JGDAS_PREP, JGDAS_PREP_POST,
+   JGFS_DUMP_POST, JGFS_PREP, JGFS_PREP_POST:
+    - Remove unnecessary setting of environment variable TMPDIR (not
+      referenced in any child scripts).
    JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
-    - Remove reference to TRMM in comment
+    - Updated comment explaining reason for hardwire of environment variable
+      TMPDIR.
 
   Model script changes:
    exglobal_dump.sh.ecf:
-    - No longer attempts to dump TRMM data.  Ingest will be turned off also as 
-      these data are no longer assimilated and satellite is nearing end of life.
+    - Removed the dumping of AMSR-E data ("amsre"), AMSU-B data ("1bamub",
+      "esamub") and HIRS-3 data ("1bhrs3").
+      BENEFIT: These data are no longer processed.  The only dumps being
+               produced are "esamub", but these contain all missing btemps.
+
+
+ Output changes:
+ ---------------
+   JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+    - As a result of update to obsproc_prep.v3.2.0:
+       - DFQ now encoded in PREPBUFR file in some cases for surface data.
+       - WQM will not be encoded in PREPBUFR file if UOB and VOB are missing
+         for surface data.
+       - DFP now encoded in PREPBUFR file in some cases for surface data.
+       - DFR now encoded in PREPBUFR file in some cases for surface data.
+       - SYNDATA bogus winds will no longer be missing in some situations where
+         they are expected to be generated due to previous, but now corrected,
+         cases which had caused abnormal termination of SYNDAT_SYNDATA.
+   Job JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+    - The small dump file "esamub" (containing no usable data) will no longer
+      be present in /com/[cdas][gfs]/prod/... directories.
+    - "ESAMUB" will no longer appear in GDAS and GFS RTDM count graphics.
+   Job JGDAS_DUMP_POST (18z cycle run only)::
+    - As a result of update to obsproc_shared/bufr_avgdata.v1.0.1:
+       - The obcount_30day directories (/com/arch/prod/obcount_30day/$model,
+         for model=gfs,gdas,nam) will now retain 32 days worth of files instead
+         of 30 days. Despite retaining 32 days of files, averages will continue
+         to be constructed from only the past 30 days.
+   No other changes.
+
 
  Compute Resource Information:
  -----------------------------
-   (add assessment when all changes are in place)
+   - No change in requested resources in the job cards.
+   - Minor changes to memory usage (see "Shared Software" below).
+   - Negligible change in disk space and run time.
+
+
+ Shared Software:
+ ----------------
+    - JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
+         obsproc_dump.v3.2.0  (updated from v3.1.0)
+    - JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
+         obsproc_prep.v3.2.0  (updated from v3.1.0)
+           - program syndat_syndata now uses more memory due to an increase in
+             array parameters "ldxdim" and "ndatmx":
+                previous: The maximum resident set size (KB) = 911252
+                now:      The maximum resident set size (KB) = 913268
+    - JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_dump_post.v2.0.0
+    - JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
+         obsproc_prep_post.v2.0.1  (updated from v2.0.0)
+    - JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_dumplist.v1.0.0
+    - JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST,
+      JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_remorest.v1.0.0
+    - JGDAS_DUMP_POST:
+         obsproc_shared/bufr_avgdata.v1.0.1  (updated from v1.0.0)
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JCDAS_DUMP, JCDAS_DUMP_POST, JCDAS_PREP1,
+     JCDAS_PREP1_POST, JCDAS_PREP2, JCDAS_PREP2_POST, JGDAS_DUMP,
+     JGDAS_DUMP_POST, JGDAS_PREP, JGDAS_PREP_POST, JGFS_DUMP, JGFS_DUMP_POST,
+     JGFS_PREP and JGFS_PREP_POST as part of the parallel-production test of
+     the OBSPROC FY14Q4 bundle.
 
  Dissemination:
  --------------
-   The following will no longer be alerted for cyc=00,06,12,18:
-     gfs.t${cyc}z.trmm.tm00.bufr_d
-     gfs.t${cyc}z.sptrmm.tm00.bufr_d
-     gdas.t${cyc}z.trmm.tm00.bufr_d
-     gdas.t${cyc}z.sptrmm.tm00.bufr_d
+   - The main users of this output are the CDAS, GDAS and GFS networks.
+   - The following will no longer be alerted for cyc=00,06,12,18:
+       gfs.t${cyc}z.esamub.tm00.bufr_d
+       gdas1.t${cyc}z.esamub.tm00.bufr_d
+       gdas1.t${cyc}z.esamub.tm00.bufr_d.unblok
+       cdas.t${cyc}z.esamub.tm00.bufr_d.unblok
+   - No other changes in dissemination.
+   - No change in archival on HPSS outside of changes to /com noted previously.
 
-#### more to follow ###
+
+ Special Instructions:
+ ---------------------
+   This must be implemented simultaneously with the implementations of:
+      v1.2.1 of obsproc_dump_monitor,
+      v2.0.2 of obsproc_nam, obsproc_rap, obsproc_rtma, obsproc_urma,
+      v2.3.0 of obsproc_satingest,
+      v3.2.0 of obsproc_dump, obsproc_prep,
+      v2.0.1 of obsproc_prep_post,
+      v1.0.0 of obsproc_dump_alert, radar_reflectivity_mosaic,
+      v1.0.0 of radar_reflectivity_ref2grb,
+      v1.0.1 of obsproc_shared/bufr_avgdata,
+
+   Please check out file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140914_OBSPROC-fy14q4/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
+
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.0.1 --> released July 23, 2014, updated August 5, 2014
+obsproc_global release 2.0.1 --> released Jul 23, 2014, updated Aug 5, 2014
+                             --> implemented Aug 12, 2014
 
 files:
   obsproc_global/fix/prepobs_errtable.cdas
@@ -130,15 +328,14 @@ files:
  Compute Resource Information:
  -----------------------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
-    - program prepobs_prepacqc now uses more memory due to an increase in
-      array parameters "maxflt" and "max_reps" (see Release_Notes.txt for
-      obsproc_prep.v3.1.0):
-         previous: The maximum resident set size (KB) = 863576
-         now:      The maximum resident set size (KB) = 1025360
+    - uses code from obsproc_prep.v3.1.0 (updated from obsproc_prep.v3.0.0)
+       - program prepobs_prepacqc now uses more memory due to an increase in
+         array parameters "maxflt" and "max_reps":
+            previous: The maximum resident set size (KB) = 863576
+            now:      The maximum resident set size (KB) = 1025360
     - no wallclock run time change: CDAS
     - no wallclock run time change: GDAS
     - no wallclock run time change: GFS
-    - uses code from obsproc_prep.v3.1.0 (updated from obsproc_prep.v3.0.0)
     - no other changes
    Jobs JCDAS_PREP1_POST, JCDAS_PREP2_POST, JGDAS_PREP_POST, JGFS_PREP_POST:
     - continues to use code from obsproc_prep_post.v2.0.0
@@ -182,6 +379,7 @@ files:
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.0 --> released May 5, 2014
+                             --> implemented Jun 24, 2014
 
 files:
  *obsproc_global/fix/prepobs_errtable.cdas
@@ -400,28 +598,30 @@ files:
  Output changes:
  ---------------
    Jobs JCDAS_PREP1, JCDAS_PREP2, JGDAS_PREP, JGFS_PREP:
-    - Satellite zenith angle (degrees) encoded into PREPBUFR file (mnemonic
-      "SAZA") for all satwnd types.
-    - Surface marine reports will now encode pmsl ob and qc (PMO and PMQ) in
-      PREPBUFR file if pmsl is reported.
-    - SFCSHP reports with calm winds and non-missing background u- or v-
-      component wind .ge. 5 m/sec are flagged with Q.M. 8 in PREPBUFR file.
-    - Coast Guard surface marine mass and wind data will now be processed as
-      part of report type 180/280 (when pressure information is available) in
-      PREPBUFR file. 
-    - Surface reports with incomplete wind information will now be retained
-      and encoded into the PREPBUFR file.
-    - Report type 183 now stores moisture quality mark no lower than 3
-      (suspect).
+    - As a result of update to obsproc_prep.v3.0.0:
+       - Satellite zenith angle (degrees) encoded into PREPBUFR file (mnemonic
+         "SAZA") for all satwnd types.
+       - Surface marine reports will now encode pmsl ob and qc (PMO and PMQ) in
+         PREPBUFR file if pmsl is reported.
+       - SFCSHP reports with calm winds and non-missing background u- or v-
+         component wind .ge. 5 m/sec are flagged with Q.M. 8 in PREPBUFR file.
+       - Coast Guard surface marine mass and wind data will now be processed as
+         part of report type 180/280 (when pressure information is available)
+         in PREPBUFR file.
+       - Surface reports with incomplete wind information will now be retained
+         and encoded into the PREPBUFR file.
+       - Report type 183 now stores moisture quality mark no lower than 3
+         (suspect).
    Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
-    - Printing format changed slightly in some dump listing files in /com to
-      squeeze more information on a line.
-    - Satellite zenith angle (degrees) added to satwnd dump listing files in
-      /com.
-    - Coast Guard tide gauge reports added to sfcshp dump listing files in
-      /com.
-    - MAP profilers with more than 102 levels will now get all levels listed
-      in /com (CDAS only, other networks do not dump MAP profilers).
+    - As a result of update to obsproc_dump_post.v2.0.0:
+       - Printing format changed slightly in some dump listing files in /com to
+         squeeze more information on a line.
+       - Satellite zenith angle (degrees) added to satwnd dump listing files in
+         /com/[cdas][gfs]/prod/... directories.
+       - MAP profilers with more than 102 levels will now get all levels listed
+         in /com/[cdas][gfs]/prod/... directories
+       - Coast Guard tide gauge reports added to sfcshp dump listing files in
+         /com/[cdas][gfs]/prod/... directories.
 
 
  Compute Resource Information:
@@ -450,6 +650,7 @@ files:
     - no other changes
    Jobs JCDAS_DUMP, JGDAS_DUMP, JGFS_DUMP:
     - uses code from obsproc_dump.v3.1.0 (updated from obsproc_dump.v3.0.0)
+       - changes in bufr_edtbfr here slightly increase its memory usage
     - continues to use code from obsproc_shared/bufr_dumplist.v1.0.0
     - no other changes
    Jobs JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
@@ -495,6 +696,7 @@ files:
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
+                             --> implemented May 6, 2014
 
 files:
   obsproc_global/jobs/JCDAS_DUMP
@@ -564,6 +766,7 @@ files:
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Feb 8, 2014
+                             --> implemented Apr 8, 2014
 
 Initial population of vertical structure.
 
@@ -657,6 +860,9 @@ files:
       RUN= gfs. --> NO, OSCAT DIED!!
     - "ascatw" dump files will now contain scatterometer winds from METOP-B (as
       well as from METOP-A from before).
+    - As a result of update to obsproc_dump.v3.0.0:
+       - If there are zero aircraft reports, processing will not seg fault in
+         BUFR_DUPAIR.
    Job JCDAS_DUMP:
     - Users in the "rstprod" group will now be able to read restricted dump
       files in the /com/arkv directory.

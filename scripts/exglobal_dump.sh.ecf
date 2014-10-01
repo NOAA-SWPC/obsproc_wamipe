@@ -5,6 +5,8 @@ echo "                       data dump processing"
 echo "--------------------------------------------------------------------"
 echo "History: Jan 18 2000 - Original script."
 echo "         May 16 2007 - Added DBNet alerts for GFS products."
+echo "            Apr 2014 - Pick up grib files for planned GFS upgrade."
+echo "            Oct 2014 - Remove attempts to dump obsolete sources."
 ###########################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas1 RUN 
@@ -22,8 +24,8 @@ set +u
 # JOB_NUMBER not present indicates dump BOTH prepbufr and non-prepbufr data.
 # -----------------------------------------------------------------------------
 # Dump group #1 (non-pb, TIME_TRIM = OFF) =
-#               1bamua 1bamub 1bhrs3 1bhrs4 1bmhs amsre radwnd* osbuv8
-#               mtiasi avcsam avcspm esamua esamub eshrs3 esmhs goesfv
+#               1bamua 1bhrs4 1bmhs radwnd* osbuv8
+#               mtiasi avcsam avcspm esamua eshrs3 esmhs goesfv
 #               airsev gome gpsro lgycld* lghtng*
 #                   * - for CDAS only
 #
@@ -484,17 +486,13 @@ export DUMP_NUMBER=1
 #--------------------------------------------------------------------------
 # GFS and GDAS:
 # Dump # 1 : 1BAMUA: 1 subtype(s)
-#            1BAMUB: 1 subtype(s) (if present in past 10 days of tanks)
-#            1BHRS3: 1 subtype(s) (if present in past 10 days of tanks)
 #            1BHRS4: 1 subtype(s)
 #            1BMHS:  1 subtype(s)
-#            AMSRE:  1 subtype(s) (if present in past 10 days of tanks)
 #            OSBUV8: 1 subtype(s)
 #            MTIASI: 1 subtype(s)
 #            AVCSAM: 1 subtype(s)
 #            AVCSPM: 1 subtype(s)
 #            ESAMUA: 1 subtype(s)
-#            ESAMUB: 1 subtype(s)
 #            ESHRS3: 1 subtype(s)
 #            ESMHS:  1 subtype(s)
 #            GOESFV: 1 subtype(s)
@@ -502,23 +500,19 @@ export DUMP_NUMBER=1
 #            GOME:   1 subtype(s)
 #            GPSRO:  1 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 18
+#            TOTAL NUMBER OF SUBTYPES = 14
 #
 #--------------------------------------------------------------------------
 # CDAS:
 # Dump # 1 : 1BAMUA: 1 subtype(s)
-#            1BAMUB: 1 subtype(s) (if present in past 10 days of tanks)
-#            1BHRS3: 1 subtype(s) (if present in past 10 days of tanks)
 #            1BHRS4: 1 subtype(s)
 #            1BMHS:  1 subtype(s)
-#            AMSRE:  1 subtype(s) (if present in past 10 days of tanks)
 #            RADWND: 2 subtype(s)
 #            OSBUV8: 1 subtype(s)
 #            MTIASI: 1 subtype(s)
 #            AVCSAM: 1 subtype(s)
 #            AVCSPM: 1 subtype(s)
 #            ESAMUA: 1 subtype(s)
-#            ESAMUB: 1 subtype(s)
 #            ESHRS3: 1 subtype(s)
 #            ESMHS:  1 subtype(s)
 #            GOESFV: 1 subtype(s)
@@ -528,7 +522,7 @@ export DUMP_NUMBER=1
 #            LGYCLD: 1 subtype(s)
 #            LGHTNG: 2 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 23
+#            TOTAL NUMBER OF SUBTYPES = 19
 #
 #=========================================================================
 
@@ -547,46 +541,13 @@ if [ "$NET" = 'cdas' ]; then
 fi
 
 DTIM_latest_1bamua=${DTIM_latest_1bamua:-"+2.99"}
-#-----------------------------------------------
-# check for 1bamub tank presence in past 10 days
-n1bamub=""
-err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh 1bamub
-err_check_tanks=$?
-if [ $err_check_tanks -eq 0 ];then
-   n1bamub=1bamub
-   DTIM_latest_1bamub=${DTIM_latest_1bamub:-"+2.99"}
-fi
-#-----------------------------------------------
-# check for 1bhrs3 tank presence in past 10 days
-n1bhrs3=""
-err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh 1bhrs3
-err_check_tanks=$?
-if [ $err_check_tanks -eq 0 ];then
-   n1bhrs3=1bhrs3
-   DTIM_latest_1bhrs3=${DTIM_latest_1bhrs3:-"+2.99"}
-fi
-#-----------------------------------------------
 DTIM_latest_1bhrs4=${DTIM_latest_1bhrs4:-"+2.99"}
 DTIM_latest_1bmhs=${DTIM_latest_1bmhs:-"+2.99"}
-#-----------------------------------------------
-# check for amsre tank presence in past 10 days
-amsre=""
-err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh amsre
-err_check_tanks=$?
-if [ $err_check_tanks -eq 0 ];then
-   amsre=amsre
-   DTIM_latest_amsre=${DTIM_latest_amsre:-"+2.99"}
-fi
-#-----------------------------------------------
 DTIM_latest_osbuv8=${DTIM_latest_osbuv8:-"+2.99"}
 DTIM_latest_mtiasi=${DTIM_latest_mtiasi:-"+2.99"}
 DTIM_latest_avcsam=${DTIM_latest_avcsam:-"+2.99"}
 DTIM_latest_avcspm=${DTIM_latest_avcspm:-"+2.99"}
 DTIM_latest_esamua=${DTIM_latest_esamua:-"+2.99"}
-DTIM_latest_esamub=${DTIM_latest_esamub:-"+2.99"}
 DTIM_latest_eshrs3=${DTIM_latest_eshrs3:-"+2.99"}
 DTIM_latest_esmhs=${DTIM_latest_esmhs:-"+2.99"}
 DTIM_latest_goesfv=${DTIM_latest_goesfv:-"+2.99"}
@@ -596,8 +557,8 @@ DTIM_latest_gpsro=${DTIM_latest_gpsro:-"+2.99"}
 
 TIME_TRIM=off
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 1bamua $n1bamub $n1bhrs3 \
- 1bhrs4 1bmhs $amsre $radwnd osbuv8 mtiasi avcsam avcspm esamua esamub \
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 1bamua \
+ 1bhrs4 1bmhs $radwnd osbuv8 mtiasi avcsam avcspm esamua \
  eshrs3 esmhs goesfv airsev gome gpsro $lgycld $lghtng
 
 error1=$?
@@ -607,22 +568,10 @@ if [ "$SENDDBN" = "YES" ]; then
    if [ "$NET" = 'gdas' -o "$NET" = 'gfs' ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bamua $job \
        ${COMSP}1bamua.tm00.bufr_d
-      if [ "$n1bamub" = 1bamub ];then
-         $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bamub $job \
-          ${COMSP}1bamub.tm00.bufr_d
-      fi
-      if [ "$n1bhrs3" = 1bhrs3 ];then
-         $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bhrs3 $job \
-          ${COMSP}1bhrs3.tm00.bufr_d
-      fi
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bhrs4 $job \
        ${COMSP}1bhrs4.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bmhs $job \
        ${COMSP}1bmhs.tm00.bufr_d
-      if [ "$amsre" = amsre ];then
-         $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_amsre $job \
-          ${COMSP}amsre.tm00.bufr_d
-      fi
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_osbuv8 $job \
        ${COMSP}osbuv8.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_mtiasi $job \
@@ -633,8 +582,6 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}avcspm.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esamua $job \
        ${COMSP}esamua.tm00.bufr_d
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esamub $job \
-       ${COMSP}esamub.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_eshrs3 $job \
        ${COMSP}eshrs3.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esmhs $job \

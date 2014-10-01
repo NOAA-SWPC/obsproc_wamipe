@@ -86,9 +86,6 @@ if [[ ${USER} == nwprod ]]; then
   fi
 else
   DATAROOT=${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
-  TMPDIR=$DATAROOT  # On WCOSS TMPDIR is reset to a temporary LSF
-                    #  directory when jobs are submitted, set it
-                    #  to $DATAROOT so its under the user's control
 fi
 export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
 rm -rf $DATA
