@@ -97,8 +97,10 @@ files:
    - The following will no longer be alerted for cyc=00,06,12,18:
        gfs.t${cyc}z.trmm.tm00.bufr_d
        gfs.t${cyc}z.sptrmm.tm00.bufr_d
-       gdas.t${cyc}z.trmm.tm00.bufr_d
-       gdas.t${cyc}z.sptrmm.tm00.bufr_d
+       gdas1.t${cyc}z.trmm.tm00.bufr_d
+       gdas1.t${cyc}z.sptrmm.tm00.bufr_d
+       gdas1.t${cyc}z.trmm.tm00.bufr_d.unblok
+       gdas1.t${cyc}z.sptrmm.tm00.bufr_d.unblok
    - No other changes in dissemination.
    - No change in archival on HPSS outside of changes to /com noted previously.
 
