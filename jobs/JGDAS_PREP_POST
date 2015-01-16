@@ -110,13 +110,11 @@ export pgmout="OUTPUT.${pid}"
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
-  if [[ ${envir} == prod ]]; then
-    export SENDDBN=YES
-    export SENDWEB=YES
-  else
-    export SENDDBN=NO
-    export SENDWEB=NO
+  if [[ ${envir} != prod ]]; then
+     export DBNROOT=/nwprod/spa_util/fakedbn
   fi
+  export SENDDBN=YES
+  export SENDWEB=YES  #post to ncorzdm for gdas counts
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
@@ -209,7 +207,7 @@ if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
 # The following are used by $PROCESS_TIMETWINS when it is YES
 # -----------------------------------------------------------
   export COMINGFS=/com/${NET}/${envir}/${NET}.${PDY}
-  export COMIN1=/com/${NET}/${envir}/${model}.
+  export COMIN1=${COMIN1:-/com/${NET}/${envir}/${model}.}
 
 # The following are used by $PROCESS_ALL_REPORT_COUNTS when it is YES
 # -------------------------------------------------------------------

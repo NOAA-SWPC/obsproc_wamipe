@@ -129,13 +129,13 @@ export pgmout="OUTPUT.${pid}"
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
-  if [[ ${envir} == prod ]]; then
-    export SENDDBN=YES
-    export SENDSDM=YES
-  else
-    export SENDDBN=NO
+  if [[ ${envir} != prod ]]; then
+    export DBNROOT=/nwprod/spa_util/fakedbn
     export SENDSDM=NO
+  else
+    export SENDSDM=YES
   fi
+  export SENDDBN=YES
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO

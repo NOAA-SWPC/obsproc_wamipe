@@ -1,4 +1,4 @@
-###########################################################################
+############################################################################
 echo "--------------------------------------------------------------------"
 echo "exglobal_dump.sh.ecf - Global (GDAS, GFS, CDAS) network"
 echo "                       data dump processing"
@@ -7,7 +7,12 @@ echo "History: Jan 18 2000 - Original script."
 echo "         May 16 2007 - Added DBNet alerts for GFS products."
 echo "            Apr 2014 - Pick up grib files for planned GFS upgrade."
 echo "            Oct 2014 - Remove attempts to dump obsolete sources."
-###########################################################################
+echo "            Nov 2014 - Use parallel scripting to process dump groups." 
+echo "                       Widen hourly satwnd dump window for GFS/GDAS."
+echo "                       Add new satwnd subtypes for GFS & GDAS."
+echo "                       GFS/GDAS continue if surface file unavailable."
+echo "                       Remove DBNet alerts for old surface files."
+############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas1 RUN 
 #       (was gfs - NET remains gfs for gfs RUN)
@@ -15,6 +20,17 @@ echo "            Oct 2014 - Remove attempts to dump obsolete sources."
 
 set -xau
 
+# function to highlight an echoed msg with surrounding hashed separator lines.
+   echo_hashed_msg () {
+     set +x
+     msg=$*
+     echo -e "\n ${msg//?/#}"
+     echo " ${msg}"
+     echo -e " ${msg//?/#}\n"
+     set -x
+   }
+# end of function setup
+#
 # set some variables if they have not already been set
 
 set +u
@@ -25,8 +41,8 @@ set +u
 # -----------------------------------------------------------------------------
 # Dump group #1 (non-pb, TIME_TRIM = OFF) =
 #               1bamua 1bhrs4 1bmhs radwnd* osbuv8
-#               mtiasi avcsam avcspm esamua eshrs3 esmhs goesfv
-#               airsev gome gpsro lgycld* lghtng*
+#               mtiasi avcsam avcspm esamua eshrs3 esmhs
+#               airsev gome lgycld* lghtng*
 #                   * - for CDAS only
 #
 # Dump group #2 (pb, TIME_TRIM = OFF) =
@@ -45,7 +61,7 @@ set +u
 #               nexrad (cdas only)
 #
 # Dump group #7 (non-pb, TIME_TRIM = OFF) =
-#               omi ssmisu sevcsr bathy tesac trkob atms cris mls
+#               omi ssmisu sevcsr bathy tesac trkob atms cris mls goesfv gpsro
 #
 # Dump group #8 (pb, TIME_TRIM = default = ON) =
 #               satwnd
@@ -155,6 +171,8 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
 ########################################################
 ########################################################
+## The following *required* for CDAS only 
+# 
 #  copy snogrb (0.5 deg) from $TANK_GRIBFLDS
 #  copy snogrb_t574      from $TANK_GRIBFLDS
 #  copy engicegrb        from $COM_ENGICE
@@ -178,13 +196,18 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       set +x
       echo " "
       echo " #####################################################"
-      echo " cannot locate 0.5 degree snow grib file - fatal error"
+      echo " cannot locate 0.5 degree snow grib file"
       echo " #####################################################"
       echo " "
       set -x
-      msg="**CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE --> EXIT DATA DUMP"
-      $DATA/postmsg "$jlogfile" "$msg"
-      $DATA/err_exit
+      if [ "$NET" = 'cdas' ];then 
+         msg="***FATAL ERROR: CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE."
+         $DATA/postmsg "$jlogfile" "$msg"
+         $DATA/err_exit
+      else
+         msg="***WARNING: CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE.  Not critical."
+         $DATA/postmsg "$jlogfile" "$msg"
+      fi
    fi
 
    snogrb_t574=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.t574.grb
@@ -202,13 +225,18 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       set +x
       echo " "
       echo " ###############################################"
-      echo " cannot locate T574 snow grib file - fatal error"
+      echo " cannot locate T574 snow grib file"
       echo " ###############################################"
       echo " "
       set -x
-      msg="**CANNOT LOCATE T574 SNOW GRIB FILE --> EXIT DATA DUMP"
-      $DATA/postmsg "$jlogfile" "$msg"
-      $DATA/err_exit
+      if [ "$NET" = 'cdas' ];then 
+         msg="***FATAL ERROR: CANNOT LOCATE T574 SNOW GRIB FILE."
+         $DATA/postmsg "$jlogfile" "$msg"
+         $DATA/err_exit
+      else
+         msg="***WARNING: CANNOT LOCATE T574 SNOW GRIB FILE.  Not critical."
+         $DATA/postmsg "$jlogfile" "$msg"
+      fi
    fi
 
    engicegrb=${COM_ENGICE}.$PDY/engice.t00z.grb
@@ -226,13 +254,18 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       set +x
       echo " "
       echo " ############################################"
-      echo " cannot locate engice grib file - fatal error"
+      echo " cannot locate engice grib file"
       echo " ############################################"
       echo " "
       set -x
-      msg="**CANNOT LOCATE ENGICE GRIB FILE --> EXIT DATA DUMP"
-      $DATA/postmsg "$jlogfile" "$msg"
-      $DATA/err_exit
+      if [ "$NET" = 'cdas' ];then 
+         msg="***FATAL ERROR: CANNOT LOCATE ENGICE GRIB FILE."
+         $DATA/postmsg "$jlogfile" "$msg"
+         $DATA/err_exit
+      else
+         msg="***WARNING: CANNOT LOCATE LOW RES ENGICE GRIB FILE.  Not critical."
+         $DATA/postmsg "$jlogfile" "$msg"
+      fi
    fi
 
    sstgrb=${COM_SSTOI}.$PDY/sstoi_grb
@@ -240,85 +273,60 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $sstgrb ]; then
       cp $sstgrb ${COMSP}sstgrb
-      msg="todays sst grib file located and copied to /com"
+      msg="todays lowres sst grib file located and copied to /com"
       $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $sstold ]; then
       cp $sstold ${COMSP}sstgrb
-      msg="**todays sst grib file not located - copy 1-day old file"
+      msg="**todays lowres sst grib file not located - copy 1-day old file"
       $DATA/postmsg "$jlogfile" "$msg"
    else
       set +x
       echo " "
       echo " #########################################"
-      echo " cannot locate sst grib file - fatal error"
+      echo " cannot locate lowres sst grib file"
       echo " #########################################"
       echo " "
       set -x
-      msg="**CANNOT LOCATE SST GRIB FILE --> EXIT DATA DUMP"
-      $DATA/postmsg "$jlogfile" "$msg"
-      $DATA/err_exit
-   fi
-
-   rm errfile
-   $EXGRBIX/grbindex ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
-   errindx=$?
-   [ "$errindx" -ne '0' ] && cat errfile
-   rm errfile
-
-   if [ "$SENDDBN" = "YES" ]; then
-      if [ "$NET" = 'gfs' ]; then
-         $DBNROOT/bin/dbn_alert MODEL GFS_MSC_sstgrb $job \
-          ${COMSP}sstgrb
-         $DBNROOT/bin/dbn_alert MODEL GFS_MSC_icegrb $job \
-          ${COMSP}engicegrb
-         $DBNROOT/bin/dbn_alert MODEL GFS_MSC_snogrb $job \
-          ${COMSP}snogrb
+      if [ "$NET" = 'cdas' ];then 
+         msg="***FATAL ERROR: CANNOT LOCATE SST GRIB FILE."
+         $DATA/postmsg "$jlogfile" "$msg"
+         $DATA/err_exit
+      else
+         msg="***WARNING: CANNOT LOCATE LOW RES SST GRIB FILE.  Not critical."
+         $DATA/postmsg "$jlogfile" "$msg"
       fi
    fi
 
+   if [ -s ${COMSP}sstgrb ]; then
+     rm errfile
+     $EXGRBIX/grbindex ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
+     errindx=$?
+     [ "$errindx" -ne '0' ] && cat errfile
+     rm errfile
+   else
+      echo_hashed_msg "cannot create grib index since sst file does not exist"
+   fi
+
+#  The following may no longer be needed, but leave them in place for now.
+#  Print msg in the rare case the grib2 files cannot be created.
    if [ "$NET" = 'gdas' ]; then
-      $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}engicegrb ${COMSP}engicegrb.grib2
-      $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
-      $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
-      $EXGRBIX/wgrib2 ${COMSP}engicegrb.grib2 -s > ${COMSP}engicegrb.grib2.idx
-      $EXGRBIX/wgrib2 ${COMSP}sstgrb.grib2 -s > ${COMSP}sstgrb.grib2.idx
-      $EXGRBIX/wgrib2 ${COMSP}snogrb.grib2 -s > ${COMSP}snogrb.grib2.idx
-      if [ "$SENDDBN" = "YES" ]; then
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_snogrb $job \
-          ${COMSP}snogrb
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_snogrb_t574 $job \
-          ${COMSP}snogrb_t574
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_sstgrb $job \
-          ${COMSP}sstgrb
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_icegrb $job \
-          ${COMSP}engicegrb
+      if [ -s ${COMSP}engicegrb ]; then
+        $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}engicegrb ${COMSP}engicegrb.grib2
+      else
+        echo_hashed_msg "Skip engicegrb.grib2 since grib1 file does not exist"
       fi
-      if [ "$SENDDBN_GB2" = "YES" ]; then
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_icegrb_GB2 $job \
-          ${COMSP}engicegrb.grib2
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_icegrb_GB2_WIDX $job \
-          ${COMSP}engicegrb.grib2.idx
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_sstgrb_GB2 $job \
-          ${COMSP}sstgrb.grib2
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_sstgrb_GB2_WIDX $job \
-          ${COMSP}sstgrb.grib2.idx
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_snogrb_GB2 $job \
-          ${COMSP}snogrb.grib2
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_MSC_snogrb_GB2_WIDX $job \
-          ${COMSP}snogrb.grib2.idx
+      if [ -s ${COMSP}sstgrb ]; then
+         $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
+      else
+         echo_hashed_msg "Skip sstgrb.grib2 since grib1 file does not exist"
+      fi
+      if [ -s ${COMSP}snogrb ]; then
+          $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
+      else
+        echo_hashed_msg "Skip snogrb.grib2 since grib1 file does not exist"
       fi
    fi
 
-# function to highlight an echoed msg with surrounding hashed separator lines.
-   echo_hashed_msg () {
-     set +x
-     msg=$*
-     echo -e "\n ${msg//?/#}"
-     echo " ${msg}"
-     echo -e " ${msg//?/#}\n"
-     set -x
-   }
-# end of function setup
 
 #  Following for GFS and GDAS only
    if [ "$model" == gdas -o "$model" == gfs ]; then
@@ -352,12 +360,12 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
            grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
            target_filename=$gribfile.grb
            ndaysback=1;
-           ndaysback_warn=99;;
+           ndaysback_warn=1;;
          imssnow96.grb.grib2 )                     # IMS snow
            grib_source='$TANK_GRIBFLDS/$DDATE/wgrbbul';
            target_filename=imssnow96.grib2
            ndaysback=1;
-           ndaysback_warn=99;;
+           ndaysback_warn=1;;
          seaice.t00z.5min.grb )
            grib_source='${COM_ICE5MIN}.$DDATE';
            target_filename=seaice.5min.grb
@@ -422,7 +430,10 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
          $DATA/postmsg "$jlogfile" "$msg"
        fi    
      done
-  fi
+     if [ "$SENDECF" = "YES" ]; then
+       ecflow_client --event=release_sfcprep
+     fi
+  fi  # end of "GFS and GDAS only" if-block to pick up new surface fields
 
 #  endif loop $PROCESS_GRIBFLDS
 fi
@@ -495,12 +506,10 @@ export DUMP_NUMBER=1
 #            ESAMUA: 1 subtype(s)
 #            ESHRS3: 1 subtype(s)
 #            ESMHS:  1 subtype(s)
-#            GOESFV: 1 subtype(s)
 #            AIRSEV: 1 subtype(s)
 #            GOME:   1 subtype(s)
-#            GPSRO:  1 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 14
+#            TOTAL NUMBER OF SUBTYPES = 12
 #
 #--------------------------------------------------------------------------
 # CDAS:
@@ -515,14 +524,12 @@ export DUMP_NUMBER=1
 #            ESAMUA: 1 subtype(s)
 #            ESHRS3: 1 subtype(s)
 #            ESMHS:  1 subtype(s)
-#            GOESFV: 1 subtype(s)
 #            AIRSEV: 1 subtype(s)
 #            GOME:   1 subtype(s)
-#            GPSRO:  1 subtype(s)
 #            LGYCLD: 1 subtype(s)
 #            LGHTNG: 2 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 19
+#            TOTAL NUMBER OF SUBTYPES = 17
 #
 #=========================================================================
 
@@ -550,16 +557,14 @@ DTIM_latest_avcspm=${DTIM_latest_avcspm:-"+2.99"}
 DTIM_latest_esamua=${DTIM_latest_esamua:-"+2.99"}
 DTIM_latest_eshrs3=${DTIM_latest_eshrs3:-"+2.99"}
 DTIM_latest_esmhs=${DTIM_latest_esmhs:-"+2.99"}
-DTIM_latest_goesfv=${DTIM_latest_goesfv:-"+2.99"}
 DTIM_latest_airsev=${DTIM_latest_airsev:-"+2.99"}
 DTIM_latest_gome=${DTIM_latest_gome:-"+2.99"}
-DTIM_latest_gpsro=${DTIM_latest_gpsro:-"+2.99"}
 
 TIME_TRIM=off
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 1bamua \
  1bhrs4 1bmhs $radwnd osbuv8 mtiasi avcsam avcspm esamua \
- eshrs3 esmhs goesfv airsev gome gpsro $lgycld $lghtng
+ eshrs3 esmhs airsev gome $lgycld $lghtng
 
 error1=$?
 echo "$error1" > $DATA/error1
@@ -586,14 +591,10 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}eshrs3.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esmhs $job \
        ${COMSP}esmhs.tm00.bufr_d
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_goesfv $job \
-       ${COMSP}goesfv.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_airsev $job \
        ${COMSP}airsev.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gome $job \
        ${COMSP}gome.tm00.bufr_d
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsro $job \
-       ${COMSP}gpsro.tm00.bufr_d
    fi
 fi
 
@@ -1136,8 +1137,10 @@ export DUMP_NUMBER=7
 #            ATMS:   1 subtype(s) (if present in past 10 days of tanks)
 #            CRIS:   1 subtype(s) (if present in past 10 days of tanks)
 #            MLS:    1 subtype(s) (if present in past 10 days of tanks)
+#            GOESFV: 1 subtype(s)
+#            GPSRO:  1 subtype(s)
 #            ----------------------
-#            TOTAL NUMBER OF SUBTYPES = 9 
+#            TOTAL NUMBER OF SUBTYPES = 11
 #
 #=========================================================================
 
@@ -1148,6 +1151,9 @@ DTIM_latest_sevcsr=${DTIM_latest_sevcsr:-"+2.99"}
 DTIM_latest_bathy=${DTIM_latest_bathy:-"+2.99"}
 DTIM_latest_tesac=${DTIM_latest_tesac:-"+2.99"}
 DTIM_latest_trkob=${DTIM_latest_trkob:-"+2.99"}
+#-----------------------------------------------
+DTIM_latest_goesfv=${DTIM_latest_goesfv:-"+2.99"}
+DTIM_latest_gpsro=${DTIM_latest_gpsro:-"+2.99"}
 #-----------------------------------------------
 # check for atms tank presence in past 10 days
 atms=""
@@ -1183,7 +1189,7 @@ fi
 TIME_TRIM=off
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 omi ssmisu sevcsr \
- bathy tesac trkob $atms $cris $mls
+ bathy tesac trkob $atms $cris $mls goesfv gpsro 
 
 error7=$?
 echo "$error7" > $DATA/error7
@@ -1194,7 +1200,6 @@ if [ "$SENDDBN" = "YES" ]; then
        ${COMSP}omi.tm00.bufr_d
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ssmisu $job \
        ${COMSP}ssmisu.tm00.bufr_d
-
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sevcsr $job \
        ${COMSP}sevcsr.tm00.bufr_d
       if [ "$mls" = mls ];then
@@ -1218,6 +1223,10 @@ if [ "$SENDDBN" = "YES" ]; then
          $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_cris $job \
           ${COMSP}cris.tm00.bufr_d
       fi
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_goesfv $job \
+       ${COMSP}goesfv.tm00.bufr_d
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsro $job \
+       ${COMSP}gpsro.tm00.bufr_d
    fi
 fi
 
@@ -1256,26 +1265,52 @@ export DUMP_NUMBER=8
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
 #       EXCEPT: SATWND subtypes 005/010, 005/011 and 005/12 where
-#               it is -1.00 to -0.01 hours.
+#               it is -3.00 to +2.99 hours for GFS and GDAS
+#               and otherwise -1.00 to -0.01 hours (CDAS).
+#       EXCEPT: SATWND subtypes 005/019, 005/080 where
+#               it is -3.00 to +2.99 hours for GFS and GDAS 
+#               and otherwise -1.00 to -0.01 hours (CDAS, if dumped).
 #       EXCEPT: SATWND subtypes 005/064, 005/065, 005/066, 005/070,
 #               and 005/071 where it is -3.00 to +2.99 hours.
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP
 #
 #--------------------------------------------------------------------------
-# Dump # 8 : SATWND: 14 subtype(s)
+# Dump # 8 : SATWND: 14 or 16 subtype(s)
 #            ------------------------ 
-#            TOTAL NUMBER OF SUBTYPES = 14
+#            TOTAL NUMBER OF SUBTYPES = 14 (cdas) or 16 (gfs & gdas)
 #
 #=======================================================================
 
+# for gdas and gfs only, add new subtypes that may not yet be in bufr_dumplist
+if [ $model == gdas -o $model == gfs ]; then
+  ADD_satwnd="005019 005080"
+fi
+
 # satwnd types
 # ------------
-DTIM_earliest_005010=${DTIM_earliest_005010:-"-1.00"}
-DTIM_latest_005010=${DTIM_latest_005010:-"-0.01"}
-DTIM_earliest_005011=${DTIM_earliest_005011:-"-1.00"}
-DTIM_latest_005011=${DTIM_latest_005011:-"-0.01"}
-DTIM_earliest_005012=${DTIM_earliest_005012:-"-1.00"}
-DTIM_latest_005012=${DTIM_latest_005012:-"-0.01"}
+if [ $model == gdas -o $model == gfs ]; then
+  DTIM_earliest_005010=${DTIM_earliest_005010:-"-3.00"}
+  DTIM_latest_005010=${DTIM_latest_005010:-"+2.99"}
+  DTIM_earliest_005011=${DTIM_earliest_005011:-"-3.00"}
+  DTIM_latest_005011=${DTIM_latest_005011:-"+2.99"}
+  DTIM_earliest_005012=${DTIM_earliest_005012:-"-3.00"}
+  DTIM_latest_005012=${DTIM_latest_005012:-"+2.99"}
+  DTIM_earliest_005019=${DTIM_earliest_005019:-"-3.00"}
+  DTIM_latest_005019=${DTIM_latest_005019:-"+2.99"}
+  DTIM_earliest_005080=${DTIM_earliest_005080:-"-3.00"}
+  DTIM_latest_005080=${DTIM_latest_005080:-"+2.99"}
+else
+  DTIM_earliest_005010=${DTIM_earliest_005010:-"-1.00"}
+  DTIM_latest_005010=${DTIM_latest_005010:-"-0.01"}
+  DTIM_earliest_005011=${DTIM_earliest_005011:-"-1.00"}
+  DTIM_latest_005011=${DTIM_latest_005011:-"-0.01"}
+  DTIM_earliest_005012=${DTIM_earliest_005012:-"-1.00"}
+  DTIM_latest_005012=${DTIM_latest_005012:-"-0.01"}
+  DTIM_earliest_005019=${DTIM_earliest_005019:-"-1.00"}   # precautionary
+  DTIM_latest_005019=${DTIM_latest_005019:-"-0.01"}       # precautionary
+  DTIM_earliest_005080=${DTIM_earliest_005080:-"-1.00"}   # precautionary
+  DTIM_latest_005080=${DTIM_latest_005080:-"-0.01"}       # precautionary
+fi
 DTIM_earliest_005064=${DTIM_earliest_005064:-"-3.00"}
 DTIM_latest_005064=${DTIM_latest_005064:-"+2.99"}
 DTIM_earliest_005065=${DTIM_earliest_005065:-"-3.00"}
@@ -1370,17 +1405,59 @@ set -x
 
 #----------------------------------------------------------------
 
-[ $DUMP_group1 = YES ]  &&  thread_1 &
-[ $DUMP_group2 = YES ]  &&  thread_2 &
-[ $DUMP_group3 = YES ]  &&  thread_3 &
-[ $DUMP_group4 = YES ]  &&  thread_4 &
-[ $DUMP_group5 = YES ]  &&  thread_5 &
-[ $DUMP_group6 = YES ]  &&  thread_6 &
-[ $DUMP_group7 = YES ]  &&  thread_7 &
-[ $DUMP_group8 = YES ]  &&  thread_8 &
-[ $DUMP_group9 = YES ]  &&  thread_9 &
+set +u
+launcher=${launcher:-"cfp"}  # if not "cfp", background threads will be used.
+if [ "$launcher" = "cfp" -a -z "$LSB_HOSTS" ]; then
+   set +x
+   echo
+   echo "You requested the cfp poe launcher but are not running under LSF!!"
+   echo "You must run under LSF to use cfp option.  Exiting..."
+   echo
+   set -x
+   exit 99
+fi
+set -u
 
-wait
+if [ "$launcher" = cfp ]; then
+   > $DATA/poe.cmdfile
+# To better take advantage of cfp, execute the longer running commands first.
+# Some reordering was done here based on recent sample runtimes.
+   [ $DUMP_group1 = YES ]  &&  echo thread_1 >> $DATA/poe.cmdfile
+   [ $DUMP_group5 = YES ]  &&  echo thread_5 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group7 = YES ]  &&  echo thread_7 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group6 = YES ]  &&  echo thread_6 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group8 = YES ]  &&  echo thread_8 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group2 = YES ]  &&  echo thread_2 >> $DATA/poe.cmdfile
+   [ $DUMP_group3 = YES ]  &&  echo thread_3 >> $DATA/poe.cmdfile
+   [ $DUMP_group4 = YES ]  &&  echo thread_4 >> $DATA/poe.cmdfile
+   [ $DUMP_group9 = YES ]  &&  echo thread_9 >> $DATA/poe.cmdfile
+
+   if [ -s $DATA/poe.cmdfile ]; then
+      module load cfp
+      export MP_CSS_INTERRUPT=yes
+      mpirun.lsf cfp $DATA/poe.cmdfile 2>&1
+      errpoe=$?
+      if [ $errpoe -ne 0 ]; then
+         $DATA/err_exit "***FATAL: EXIT STATUS $errpoe RUNNING POE COMMAND FILE"
+      fi
+   else
+      echo
+      echo "==> There are no tasks in POE Command File - POE not run"
+      echo
+   fi
+else
+   echo "Spawning background threads"
+   [ $DUMP_group1 = YES ]  &&  thread_1 &
+   [ $DUMP_group2 = YES ]  &&  thread_2 &
+   [ $DUMP_group3 = YES ]  &&  thread_3 &
+   [ $DUMP_group4 = YES ]  &&  thread_4 &
+   [ $DUMP_group5 = YES ]  &&  thread_5 &
+   [ $DUMP_group6 = YES ]  &&  thread_6 &
+   [ $DUMP_group7 = YES ]  &&  thread_7 &
+   [ $DUMP_group8 = YES ]  &&  thread_8 &
+   [ $DUMP_group9 = YES ]  &&  thread_9 &
+   wait
+fi
 
 cat $DATA/1.out $DATA/2.out $DATA/3.out $DATA/4.out $DATA/5.out $DATA/6.out $DATA/7.out $DATA/8.out $DATA/9.out
 

@@ -101,11 +101,10 @@ export pgmout="OUTPUT.${pid}"
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
   export SENDECF=YES
-  if [[ ${envir} == prod ]]; then
-    export SENDDBN=YES
-  else
-    export SENDDBN=NO
+  if [[ ${envir} != prod ]]; then
+    export DBNROOT=/nwprod/spa_util/fakedbn
   fi
+  export SENDDBN=YES
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
@@ -219,28 +218,30 @@ fi
 # Specify variables specific to this execution of script
 #########################################################
 
-#  Set both POE to YES in order to run this job in a parallel environment
+#  Set POE *or* BACK to YES in order to run this job in a parallel environment
 
-export POE=YES
-##export BACK=YES  # set BACK to YES for an alternate method of running this
-                   #  job in a parallel environment (in this case POE must be
-                   #  NO)
+export POE=${POE:-YES}
+#export BACK=YES       # set BACK to YES (and POE to NO) for an alternate method
+                       #   of running part of this job in a parallel environment
+                       #   (If using obsproc_prep.v3.0.0, leave commented UNLESS 
+                       #   explicitly setting BACK=YES).
 
 #  NPROCS indicates the number of POE tasks to use
 #   (Applies only when POE=YES and PREPDATA=YES)
 
-#####export NPROCS=$(($(echo $LOADL_PROCESSOR_LIST|wc -w)+0)) # applies to CCS
-export NPROCS=12 # on WCOSS this is currently hardwired to 12
+export NPROCS=${NPROCS=$(($(echo $LSB_HOSTS|wc -w)+0))}
 
 #  NSPLIT indicates the number of parts into which the PREPDATA
 #         processing will will be split in order to run in parallel
 #         for computational efficiency (either under poe tasks when
 #         POE=YES or in background threads when BACK=YES)
 #   (Applies only when either POE=YES or BACK=YES, and PREPDATA=YES)
-#   (if POE=YES, must be .le. $NPROCS)
+#   A value less than or equal to NPROCS is recommended for POE, 
+#   and may be required depending on poe launcher used.
+#   Consider the size of the backgrounds fields if using threads. 
+#   (At T1534 resolution, only four fit on a WCOSS compute node).
 
-#####export NSPLIT=$NPROCS  # applies to CCS
-export NSPLIT=12
+export NSPLIT=${NSPLIT:-3}
 
 #  BUFRLIST indicates the list of BUFR data dump file names to process
 
@@ -275,7 +276,7 @@ export CQCVAD=${CQCVAD:-YES}     # Execute program PREPOBS_CQCVAD   if YES
 
 export CQCBUFR=${CQCBUFR:-YES}   # Execute program PREPOBS_CQCBUFR  if YES
 
-export OIQCBUFR=${OIQCBUFR:-YES} # Execute program PREPOBS_OIQCBUFR if YES
+export OIQCBUFR=${OIQCBUFR:-NO} # Execute program PREPOBS_OIQCBUFR if YES
 
 
 #  -- If any of these are switched to NO it will affect the success of
