@@ -221,10 +221,9 @@ fi
 #  Set POE *or* BACK to YES in order to run this job in a parallel environment
 
 export POE=${POE:-YES}
-#export BACK=YES       # set BACK to YES (and POE to NO) for an alternate method
-                       #   of running part of this job in a parallel environment
-                       #   (If using obsproc_prep.v3.0.0, leave commented UNLESS 
-                       #   explicitly setting BACK=YES).
+##export BACK=YES  # set BACK to YES for an alternate method of running this
+                   #  job in a parallel environment (in this case POE must be
+                   #  NO)
 
 #  NPROCS indicates the number of POE tasks to use
 #   (Applies only when POE=YES and PREPDATA=YES)
