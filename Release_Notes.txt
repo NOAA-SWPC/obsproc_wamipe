@@ -1,4 +1,125 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.1.1 --> released ??? ??, 201?
+                             --> implemented ??? ??, 201?
+
+files:
+   obsproc_global/fix/prepobs_errtable.global
+   obsproc_global/fix/prepobs_oiqc.oberrs
+   obsproc_global/jobs/JGDAS_DUMP
+   obsproc_global/jobs/JGDAS_DUMP_POST
+   obsproc_global/jobs/JGDAS_PREP
+   obsproc_global/jobs/JGDAS_PREP_POST
+   obsproc_global/jobs/JGFS_DUMP
+   obsproc_global/jobs/JGFS_DUMP_POST
+   obsproc_global/jobs/JGFS_PREP
+   obsproc_global/jobs/JGFS_PREP_POST
+   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+ M obsproc_global/parm/prepobs_prepacqc.gdas.parm
+ M obsproc_global/parm/prepobs_prepacqc.gfs.parm
+   obsproc_global/parm/prepobs_prepdata.gdas.parm
+   obsproc_global/parm/prepobs_prepdata.gfs.parm
+   obsproc_global/parm/prepobs_prepssmi.gdas.parm
+   obsproc_global/parm/prepobs_prepssmi.gfs.parm
+   obsproc_global/parm/prepobs_profcqc.gdas.parm
+   obsproc_global/parm/prepobs_profcqc.gfs.parm
+   obsproc_global/parm/syndat_syndata.gdas.parm
+   obsproc_global/parm/syndat_syndata.gfs.parm
+   obsproc_global/scripts/exglobal_dump.sh.ecf
+   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( M - modified)
+
+
+ Parm file changes:
+   prepacqc.gdas.parm, prepacqc.gfs.parm:
+    - Changed logical namelist switch "l_doprofiles" from FALSE to TRUE.
+    - Changed logical namelist switch "l_prof1lvl" from FALSE to TRUE.
+    - Added two new local namelist switches:
+         "l_mandlvl" set to FALSE
+         "tsplines"  set to TRUE
+    BENEFIT: Program PREPOBS_PREPACQC will now generate merged aircraft
+             profiles of ascending and descending flights and encode them into
+             an output PREPBUFR-like file containing only aircraft data
+             (l_doprofiles=.T.).  This profile calculation will not interpolate
+             obs data to mandatory levels (l_mandlvl=.F.).  Output PREPBUFR-
+             like file will also include merged single-level aircraft reports
+             not part of any profile (l_prof1lvl=.T.). In the profiles, the
+             vertical velocity rate is calculated using Jim Purser's tension-
+             spline interpolation utility (tsplines=.T.).  This output
+             PREPBUFR-like file will be used by the GSI to obtain aircraft bias
+             corrections.  (See Release_Notes.txt for obsproc_prep.v3.5.0 for
+             more information on the benefits of using  tension-splines to
+             obtain vertical velocity rate.  The GSI changes to use aircraft
+             bias are slated for implementation in Q1FY16.)
+
+
+ Output changes:
+ ---------------
+   Jobs JGDAS_PREP, JGFS_PREP:
+    - Two new files will be generated in /com:
+       /com/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.prepbufr.acft_profiles
+       (PREPBUFR-like file containing merged aircraft profiles and single-level
+        reports not in profiles).
+       /com/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.acqc_merged.prof_sorted
+       (text listing the contents in above file).
+
+
+ Compute Resource Information:
+ -----------------------------
+   Jobs JGDAS_PREP, JGFS_PREP:
+    - No change in requested resources in the job cards.
+    - ~25 second increase in wallclock run time
+
+
+ Disk Space Changes:
+ -------------------
+  /com/gfs/prod/gfs.   - Increase ~53 Mb per day
+  /com/gfs/prod/gdas.  - Increase ~56 Mb per day
+
+
+ Shared Software:
+ ----------------
+    - JGDAS_DUMP, JGFS_DUMP:
+         obsproc_dump.v3.2.0
+    - JGDAS_PREP, JGFS_PREP:
+         obsproc_prep.v3.5.0  (updated from v3.3.0)
+    - JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_dump_post.v2.0.0
+    - JGDAS_PREP_POST, JGFS_PREP_POST:
+         obsproc_prep_post.v2.0.1
+    - JGDAS_DUMP, JGFS_DUMP, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_dumplist.v1.0.0
+    - JGDAS_PREP_POST, JGFS_PREP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
+         obsproc_shared/bufr_remorest.v1.0.0
+    - JGDAS_DUMP_POST:
+         obsproc_shared/bufr_avgdata.v1.0.1
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test production jobs JGDAS_PREP and JGFS_PREP.
+
+
+ Dissemination:
+ --------------
+   - The main users of this output are the GDAS and GFS networks.
+   - No changes in dissemination.
+   - No change in archival on HPSS.
+
+
+ Special Instructions:
+ ---------------------
+   This must be implemented simultaneously with the implementation of
+   v3.5.0 of obsproc_prep.
+
+   Please check out file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20??????_OBSPROC-??????/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
 obsproc_global release X.Y.Z --> released ??? ??, 2015
                              --> implemented ??? ??, 2015
 
@@ -423,6 +544,7 @@ files:
      JGDAS_DUMP_POST, JGDAS_PREP, JGDAS_PREP_POST, JGFS_DUMP, JGFS_DUMP_POST,
      JGFS_PREP and JGFS_PREP_POST as part of the parallel-production test of
      the OBSPROC FY14Q4 bundle.
+
 
  Dissemination:
  --------------

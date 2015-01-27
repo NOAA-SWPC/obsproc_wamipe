@@ -3,9 +3,12 @@
   trad = 3.0, 
   l_otw = .true., 
   l_nhonly = .false., 
-  l_doprofiles = .false.,
+  l_doprofiles = .true.,
   l_allev_pf = .false.,
-  l_prof1lvl  = .false.
+  l_prof1lvl = .true.,
+  l_mandlvl = .false.,
+  tsplines = .true.
+
  /
 
   Cards for PREPACQC
