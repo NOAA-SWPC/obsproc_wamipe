@@ -14,6 +14,11 @@ echo "                       Remove DBNet alerts for old surface files.     "
 echo "         Dec  3 2014 - CDAS network, split off into its own script    "
 echo "                       excdas_dump.sh.ecf.  This script now tailored  "
 echo "                       exclusively to GDAS and GFS.                   "
+echo "         Feb  2 2015 - Dump window for new satwnd type NC005090 set   "
+echo "                       to 3.00 to +2.99 hours about center dump time. "
+echo "                       Removed ADD_satwnd=\"005019 005080\" since       "
+echo "                       types are now part of "satwnd" dump group      "
+echo "                       mnemonic in bufr_dumplist.                     "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas1 RUN 
@@ -1182,23 +1187,17 @@ export DUMP_NUMBER=8
 #=======================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
-#       EXCEPT: SATWND subtypes 005/010, 005/011 and 005/12 where
+#       EXCEPT: SATWND subtypes 005/010, 005/011, 005/12, 005/019, 005/064,
+#               005/065, 005/066, 005/070, 005/071, 005/080 and 005/090 where
 #               it is -3.00 to +2.99 hours.
-#       EXCEPT: SATWND subtypes 005/019, 005/080 where
-#               it is -3.00 to +2.99 hours.
-#       EXCEPT: SATWND subtypes 005/064, 005/065, 005/066, 005/070,
-#               and 005/071 where it is -3.00 to +2.99 hours.
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP
 #
 #--------------------------------------------------------------------------
-# Dump # 8 : SATWND: 16 subtype(s)
+# Dump # 8 : SATWND: 17 subtype(s)
 #            --------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 16
+#            TOTAL NUMBER OF SUBTYPES = 17
 #
 #=======================================================================
-
-# add new subtypes that may not yet be in bufr_dumplist
-ADD_satwnd="005019 005080"
 
 # satwnd types
 # ------------
@@ -1210,8 +1209,6 @@ DTIM_earliest_005012=${DTIM_earliest_005012:-"-3.00"}
 DTIM_latest_005012=${DTIM_latest_005012:-"+2.99"}
 DTIM_earliest_005019=${DTIM_earliest_005019:-"-3.00"}
 DTIM_latest_005019=${DTIM_latest_005019:-"+2.99"}
-DTIM_earliest_005080=${DTIM_earliest_005080:-"-3.00"}
-DTIM_latest_005080=${DTIM_latest_005080:-"+2.99"}
 DTIM_earliest_005064=${DTIM_earliest_005064:-"-3.00"}
 DTIM_latest_005064=${DTIM_latest_005064:-"+2.99"}
 DTIM_earliest_005065=${DTIM_earliest_005065:-"-3.00"}
@@ -1222,6 +1219,10 @@ DTIM_earliest_005070=${DTIM_earliest_005070:-"-3.00"}
 DTIM_latest_005070=${DTIM_latest_005070:-"+2.99"}
 DTIM_earliest_005071=${DTIM_earliest_005071:-"-3.00"}
 DTIM_latest_005071=${DTIM_latest_005071:-"+2.99"}
+DTIM_earliest_005080=${DTIM_earliest_005080:-"-3.00"}
+DTIM_latest_005080=${DTIM_latest_005080:-"+2.99"}
+DTIM_earliest_005090=${DTIM_earliest_005090:-"-3.00"}
+DTIM_latest_005090=${DTIM_latest_005090:-"+2.99"}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 1.5 1 satwnd
 error8=$?

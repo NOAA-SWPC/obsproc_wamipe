@@ -28,8 +28,8 @@ files:
  M obsproc_global/parm/prepobs_prepacqc.gdas.parm
  M obsproc_global/parm/prepobs_prepacqc.gfs.parm
  D obsproc_global/parm/prepobs_prepdata.cdas.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
+ M obsproc_global/parm/prepobs_prepdata.gdas.parm
+ M obsproc_global/parm/prepobs_prepdata.gfs.parm
  D obsproc_global/parm/prepobs_prepssmi.cdas.parm
    obsproc_global/parm/prepobs_prepssmi.gdas.parm
    obsproc_global/parm/prepobs_prepssmi.gfs.parm
@@ -61,6 +61,12 @@ files:
       excdas_dump.sh.ecf and excdas_makeprepbufr.sh.ecf created in new
       obsproc.cdas.v2.0.3 directory which was implemented prior to
       obsproc_global.v2.1.0.
+   exglobal_dump.sh.ecf:
+    - Dump window for new satwnd type NC005090 (POES VIIRS) set to -3.00 to
+      +2.99 hours about center dump time.
+      BENEFIT: These will be tested in the GSI upgrade in the next quarter.
+    - Removed ADD_satwnd="005019 005080" since these types are now part of
+      the "satwnd" dump group.
 
  Fixed file changes:
    prepobs_errtable.cdas, prepobs_oiqc.oberrs.cdas:
@@ -89,6 +95,8 @@ files:
              more information on the benefits of using  tension-splines to
              obtain vertical velocity rate.  The GSI changes to use aircraft
              bias are slated for implementation in Q1FY16.)
+   prepobs_prepdata.gdas.parm, prepobs_prepdata.gfs.parm:
+    - Minor comment changes.
    prepobs_cqcbufr.cdas.parm, prepobs_prepacqc.cdas.parm,
    prepobs_prepdata.cdas.parm, prepobs_prepssmi.cdas.parm,
    prepobs_prevents.cdas.parm:
@@ -106,35 +114,60 @@ files:
         reports not in profiles).
        /com/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.acqc_merged.prof_sorted
        (text listing the contents in above file).
+    - As a result of update to obsproc_prep.v3.5.0:
+       - The stdout from prepobs_prepdata run will no longer contain a
+         diagnostic "invalid producer/sat combination" for every "satwnd" report
+         originating from tank NC005080 (POES AVHRR/IR/LW).
+   Jobs JGDAS_DUMP, JGFS_DUMP:
+    - As a result of update to obsproc_dump.v3.2.1:
+       - GOES IR/SW wind reports in "satwnd" dumps will have proper RPID
+         values.
+    - As a result of update to obsproc_shared/bufr_dumplist.v1.2.0:
+       - "INFVR" (POES VIIRS/IR/LW) will now appear in GFS and GDAS RTDM count
+         graphics.
+       - The "satwnd" dump files will contain POES VIIRS/IR/LW winds.
+   Jobs JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - As a result of update to obsproc_dump_post.v2.0.1:
+       - The "satwnd" dump listings for GOES IR/SW will contain the correct
+         quality information.
 
 
  Compute Resource Information:
  -----------------------------
    Jobs JGDAS_PREP, JGFS_PREP:
     - No change in requested resources in the job cards.
-    - ~25 second increase in wallclock run time
+    - No change to memory usage.
+    - ~25 second increase in wallclock run time.
+   Jobs JGDAS_DUMP, JGFS_DUMP:
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - A couple of seconds increase in wallclock run time.
+   All other jobs:
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - No change in wallclock run time.
 
 
  Disk Space Changes:
  -------------------
-  /com/gfs/prod/gfs.   - Increase ~53 Mb per day
-  /com/gfs/prod/gdas.  - Increase ~56 Mb per day
+   /com/gfs/prod/gfs.   - Increase ~70 Mb per day
+   /com/gfs/prod/gdas.  - Increase ~87 Mb per day
 
 
  Shared Software (with 1 or more jobs):
  --------------------------------------
-    - obsproc_dump.v3.2.0
+    - obsproc_dump.v3.2.1 (updated from v3.2.0)
     - obsproc_prep.v3.5.0   (updated from v3.3.0)
-    - obsproc_dump_post.v2.0.0
+    - obsproc_dump_post.v2.0.1 (updated from v2.0.0)
     - obsproc_prep_post.v2.0.1
-    - obsproc_shared/bufr_dumplist.v1.0.0
+    - obsproc_shared/bufr_dumplist.v1.2.0 (updated from v1.1.0)
     - obsproc_shared/bufr_remorest.v1.0.0
     - obsproc_shared/bufr_avgdata.v1.0.1
 
 
  Preimplementation Testing Requirements:
  ---------------------------------------
-   - Test production jobs JGDAS_PREP and JGFS_PREP.
+   - Test all eight production jobs.
 
 
  Dissemination:
@@ -146,11 +179,23 @@ files:
 
  Special Instructions:
  ---------------------
-   This must be implemented simultaneously with the implementation of
-   v3.5.0 of obsproc_prep.
+   This must be implemented either simultaneously with or after the
+   implementation of:
+      v2.4.2 of obsproc_satingest.
+   This must be implemented simultaneously with the implementations of:
+      v2.0.4 of obsproc_cdas,
+      v3.2.1 of obsproc_dump,
+      v1.2.2 of obsproc_dump_monitor,
+      v2.0.1 of obsproc_dump_post,
+      v2.0.3 of obsproc_nam,
+      v3.5.0 of obsproc_prep,
+      v2.0.3 of obsproc_rap,
+ ???? v2.0.4 of obsproc_rtma,
+ ???? v2.0.4 of obsproc_urma,
+      v1.2.0 of obsproc_shared/bufr_dumplist.
 
    Please export file
-   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20??????_OBSPROC-??????/obsproc_global.ver
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/2015????_OBSPROC-fy15q2/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -427,7 +472,7 @@ files:
     - Updated comment explaining reason for hardwire of environment variable
       TMPDIR.
 
-  Model script changes:
+ Model script changes:
    exglobal_dump.sh.ecf:
     - Removed the dumping of AMSR-E data ("amsre"), AMSU-B data ("1bamub",
       "esamub") and HIRS-3 data ("1bhrs3").
@@ -1084,7 +1129,6 @@ files:
       window of -3.00 to +2.99 hours relative to cycle time for the CDAS, GDAS
       and GFS.
       BENEFIT: GFS/GDAS parallel runs are now looking at these data.
-               Monitoring (RTDM) System graphics.
       N O T I C E:  By the time this was implemented, OSCAT data were no longer
                     available.  The instrument stopped working on 2/20/14 and
                     was declared as "Dead" on 4/3/14.
