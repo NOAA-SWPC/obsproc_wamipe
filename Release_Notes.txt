@@ -136,7 +136,11 @@ files:
  -----------------------------
    Jobs JGDAS_PREP, JGFS_PREP:
     - No change in requested resources in the job cards.
-    - No change to memory usage.
+    - program prepobs_prepacqc now uses more memory due to an increase in
+      array parameter "max_reps":
+            previous: The maximum resident set size (KB) = 1024368
+            now:      The maximum resident set size (KB) = 1366072
+    - No other changes to memory usage.
     - ~25 second increase in wallclock run time.
    Jobs JGDAS_DUMP, JGFS_DUMP:
     - No change in requested resources in the job cards.
