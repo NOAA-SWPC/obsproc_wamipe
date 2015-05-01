@@ -105,7 +105,7 @@ export pgmout="OUTPUT.${pid}"
 # SENDCOM      - Copy files to /com directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-# SENDWEB      - Alert output file to WWW
+# SENDWEB      - Post content to WWW server
 ##############################################
 if [[ ${USER} == nwprod ]]; then
   export SENDCOM=YES
@@ -114,12 +114,12 @@ if [[ ${USER} == nwprod ]]; then
      export DBNROOT=/nwprod/spa_util/fakedbn
   fi
   export SENDDBN=YES
-  export SENDWEB=YES  #post to ncorzdm for gdas counts
+  export SENDWEB=YES  # post gdas counts to ncorzdm
 else  # developer
   export SENDCOM=${SENDCOM:-YES}
   export SENDECF=NO
   export SENDDBN=NO
-  export SENDWEB=NO
+  export SENDWEB=${SENDWEB:-NO}  # if YES, post gdas counts to dev server
 fi
 
 ##########################
@@ -143,6 +143,15 @@ export HOMEobsproc_prep_post=${HOMEobsproc_prep_post:\
 export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
 -$HOMEobsproc_prep_post/scripts}
 
+export USHobsproc_prep_post=${USHobsproc_prep_post:\
+-$HOMEobsproc_prep_post/ush}
+
+export FIXobsproc_prep_post=${FIXobsproc_prep_post:\
+-$HOMEobsproc_prep_post/fix}
+
+export EXECobsproc_prep_post=${EXECobsproc_prep_post:\
+-$HOMEobsproc_prep_post/exec}
+
 # --------------------------------------------
 # Paths for obsproc_shared_bufr_remorest items
 # --------------------------------------------
@@ -156,27 +165,12 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-# ---------------------------
-# Paths for non-obsproc items
-# ---------------------------
-
 ###########################
 # Set up the UTILITY paths
 ###########################
 export utilscript=${utilscript:-/nwprod/util/ush}
 export utilparm=${utilparm:-/nwprod/util/parm}
 export utilexec=${utilexec:-/nwprod/util/exec}
-
-# Below needed for util ush gdas_summary.sh which is executed by
-#  exprep_post.sh.ecf (only when SENDWEB=YES) - this script should be updated
-#  to use $utilexec instead of $EXECutil
-export EXECutil=${EXECutil:-/nwprod/util/exec} # Needed for 
-
-# Below needed for util ush gdas_summary.sh which is executed by
-#  exprep_post.sh.ecf; also needed for util ush's gdas_countstat.sh and
-#  satellite_summary.sh which are executed by gdas_summary.sh (only when
-#  SENDWEB=YES) - these scripts should be updated to set this
-export UTILfix=${UTILfix:-/nwprod/util/fix}
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -264,6 +258,10 @@ if [ $cyc != 18 ]; then  # only done in 18z GDAS runs
 else
    export PROCESS_ALL_REPORT_COUNTS=${PROCESS_ALL_REPORT_COUNTS:-YES}
 fi
+
+# REBUILD_MAINPAGE is only referenced if PROCESS_ALL_REPORT_COUNTS is YES
+# -----------------------------------------------------------------------
+export REBUILD_MAINPAGE=${REBUILD_MAINPAGE:-NO}
 
 env
 

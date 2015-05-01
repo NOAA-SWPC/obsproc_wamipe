@@ -1,6 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.1.1 --> released ??? ??, 201?
-                             --> implemented ??? ??, 201?
+obsproc_global release 2.1.1 --> released May 1, 2015
+                             --> implemented ??? ??, 2015
 
 files:
  D obsproc_global/fix/prepobs_errtable.cdas
@@ -16,7 +16,7 @@ files:
    obsproc_global/jobs/JGDAS_DUMP
    obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
-   obsproc_global/jobs/JGDAS_PREP_POST
+ M obsproc_global/jobs/JGDAS_PREP_POST
    obsproc_global/jobs/JGFS_DUMP
    obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
@@ -48,6 +48,11 @@ files:
  JOB script changes:
    JGDAS_PREP, JGFS_PREP:
     - Minor comment changes.
+   JGDAS_PREP_POST:
+     - Added variables to point to gdas counts software in obsproc_prep_post.
+     - Removed EXECutil and UTILfix which are no longer needed.
+     - Allow developer to import SENDWEB setting (default is NO).
+     - Added variable used to trigger rebuild of gdas counts main page.
    JCDAS_DUMP, JCDAS_DUMP_POST, JCDAS_PREP1, JCDAS_PREP1_POST, JCDAS_PREP2,
    JCDAS_PREP2_POST:
     - Removed. All of the CDAS related files were copied from
@@ -118,6 +123,10 @@ files:
        - The stdout from prepobs_prepdata run will no longer contain a
          diagnostic "invalid producer/sat combination" for every "satwnd" report
          originating from tank NC005080 (POES AVHRR/IR/LW).
+       - Valid TSP values will be encoded into PREPBUFR file for reports in
+         message type AIRCAR.
+       - Marine reports previously, incorrectly deemed over land and flagged
+         will now be deemed over water and be available for assimilation.
    Jobs JGDAS_DUMP, JGFS_DUMP:
     - As a result of update to obsproc_dump.v3.2.1:
        - GOES IR/SW wind reports in "satwnd" dumps will have proper RPID
@@ -130,6 +139,13 @@ files:
     - As a result of update to obsproc_dump_post.v2.0.1:
        - The "satwnd" dump listings for GOES IR/SW will contain the correct
          quality information.
+   Jobs JGDAS_PREP_POST:
+    - As a result of update to obsproc_prep_post.v2.1.0:
+       - The counts for COSMIC GPS RO data will now be properly placed in new
+         monthly tables under:
+           http://www.nco.ncep.noaa.gov/pmb/nwprod/gdas/
+         and overall content sent to this web site is improved. There is also a
+         reduced risk of corruption of the layout of that site's main page.
 
 
  Compute Resource Information:
@@ -163,8 +179,8 @@ files:
     - obsproc_dump.v3.2.1 (updated from v3.2.0)
     - obsproc_prep.v3.5.0   (updated from v3.3.0)
     - obsproc_dump_post.v2.0.1 (updated from v2.0.0)
-    - obsproc_prep_post.v2.0.1
-    - obsproc_shared/bufr_dumplist.v1.2.0 (updated from v1.1.0)
+    - obsproc_prep_post.v2.1.0 (updated from v2.0.1)
+    - obsproc_shared/bufr_dumplist.v1.2.0 (updated from v1.0.0)
     - obsproc_shared/bufr_remorest.v1.0.0
     - obsproc_shared/bufr_avgdata.v1.0.1
 
@@ -185,7 +201,7 @@ files:
  ---------------------
    This must be implemented either simultaneously with or after the
    implementation of:
-      v2.4.2 of obsproc_satingest.
+      v2.5.1 of obsproc_satingest.
    This must be implemented simultaneously with the implementations of:
       v2.0.4 of obsproc_cdas,
       v3.2.1 of obsproc_dump,
@@ -193,13 +209,15 @@ files:
       v2.0.1 of obsproc_dump_post,
       v2.0.3 of obsproc_nam,
       v3.5.0 of obsproc_prep,
+      v2.1.0 of obsproc_prep_post,
       v2.0.3 of obsproc_rap,
- ???? v2.0.4 of obsproc_rtma,
- ???? v2.0.4 of obsproc_urma,
+      v2.0.4 of obsproc_rtma,
+      v2.0.4 of obsproc_urma,
+      v1.1.0 of radar_reflectivity_ref2grb,
       v1.2.0 of obsproc_shared/bufr_dumplist.
 
    Please export file
-   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/2015????_OBSPROC-fy15q2/obsproc_global.ver
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20150501_OBSPROC-fy15q2/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
