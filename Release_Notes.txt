@@ -1,10 +1,10 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.1.1 --> released May 1, 2015
+obsproc_global release 2.1.1 --> released May 1, 2015, updated Jul 12, 2015
                              --> implemented ??? ??, 2015
 
 files:
  D obsproc_global/fix/prepobs_errtable.cdas
-   obsproc_global/fix/prepobs_errtable.global
+ M obsproc_global/fix/prepobs_errtable.global
    obsproc_global/fix/prepobs_oiqc.oberrs
  D obsproc_global/fix/prepobs_oiqc.oberrs.cdas
  D obsproc_global/jobs/JCDAS_DUMP
@@ -74,6 +74,9 @@ files:
       the "satwnd" dump group.
 
  Fixed file changes:
+   prepobs_errtable.global:
+    - Add moisture errors for ob type 133 (AIRCAR) and wind errors for ob types
+      244 (AVHRR/POES IR SATWND) and 260 (VIIRS/POES IR SATWND)
    prepobs_errtable.cdas, prepobs_oiqc.oberrs.cdas:
     - Removed. All of the CDAS related files were copied from
       obsproc_global.v2.0.2 and updated in the new obsproc.cdas.v2.0.3
