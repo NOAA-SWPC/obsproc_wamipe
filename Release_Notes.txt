@@ -1,6 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.1.1 --> released May 1, 2015, updated Jul 12, 2015
-                             --> implemented ??? ??, 2015
+                             --> implemented Aug 10, 2015
 
 files:
  D obsproc_global/fix/prepobs_errtable.cdas
@@ -76,7 +76,7 @@ files:
  Fixed file changes:
    prepobs_errtable.global:
     - Add moisture errors for ob type 133 (AIRCAR) and wind errors for ob types
-      244 (AVHRR/POES IR SATWND) and 260 (VIIRS/POES IR SATWND)
+      244 (AVHRR/POES IR SATWND) and 260 (VIIRS/POES IR SATWND).
    prepobs_errtable.cdas, prepobs_oiqc.oberrs.cdas:
     - Removed. All of the CDAS related files were copied from
       obsproc_global.v2.0.2 and updated in the new obsproc.cdas.v2.0.3
@@ -126,7 +126,7 @@ files:
        - The stdout from prepobs_prepdata run will no longer contain a
          diagnostic "invalid producer/sat combination" for every "satwnd" report
          originating from tank NC005080 (POES AVHRR/IR/LW).
-       - Valid TSP values will be encoded into PREPBUFR file for reports in
+       - Valid TSB values will be encoded into PREPBUFR file for reports in
          message type AIRCAR.
        - Marine reports previously, incorrectly deemed over land and flagged
          will now be deemed over water and be available for assimilation.
@@ -182,7 +182,7 @@ files:
     - obsproc_dump.v3.2.1 (updated from v3.2.0)
     - obsproc_prep.v3.5.0   (updated from v3.3.0)
     - obsproc_dump_post.v2.0.1 (updated from v2.0.0)
-    - obsproc_prep_post.v2.1.0 (updated from v2.0.1)
+    - obsproc_prep_post.v2.1.0 (updated from v2.0.2)
     - obsproc_shared/bufr_dumplist.v1.2.0 (updated from v1.0.0)
     - obsproc_shared/bufr_remorest.v1.0.0
     - obsproc_shared/bufr_avgdata.v1.0.1
@@ -191,6 +191,15 @@ files:
  Preimplementation Testing Requirements:
  ---------------------------------------
    - Test all eight production jobs.
+      - In particular, test 18Z JGDAS_PREP_POST since it invokes the gdas counts
+        changes in obsproc_prep_post.v2.1.0.
+        Exact details depend on the timing of the test run. Try:
+          export PDY=$(date -d yesterday +%Y%m%d)
+          export monsummary_dat=$PDY
+          export SATCOM_monsum_base=/com/gfs/prod
+          export DATCOM_monsum_base=/com/arch/prod
+          export REBUILD_MAINPAGE=YES
+        Contact ObsProc Team for assistance.
 
 
  Dissemination:
@@ -202,6 +211,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v5.0.0.
    This must be implemented either simultaneously with or after the
    implementation of:
       v2.6.0 of obsproc_satingest.
@@ -222,6 +232,20 @@ files:
    Please export file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20150501_OBSPROC-fy15q2/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
+   (lowest sub-directory later renamed to 20150501_OBSPROC.v5.0.0)
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.1.0 --> released Jun 30, 2015
+                             --> implemented Jun 30, 2015
+
+ only change:
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_prep_post.v2.0.2 (updated from v2.0.1)
+
+
+(Note: NCO/PMB did not update the version number here)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.1.0 --> released Aug 10, 2014, updated Nov 04, 2014
@@ -412,6 +436,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v4.2.0.
    - This update must not be implemented until gsi.v5.0.0 (or later) is used 
      for jgfs_analysis and jgdas_analysis_high.
    - Modify ecFlow event name in exglobal_dump.sh.ecf as appropriate to release 
@@ -582,6 +607,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v4.0.0.
    This must be implemented simultaneously with the implementations of:
       v1.2.1 of obsproc_dump_monitor,
       v2.0.2 of obsproc_nam, obsproc_rap, obsproc_rtma, obsproc_urma,
@@ -595,7 +621,7 @@ files:
    Please export file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140914_OBSPROC-fy14q4/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
-
+   (lowest sub-directory later renamed to 20140914_OBSPROC.v4.0.0)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.1 --> released Jul 23, 2014, updated Aug 5, 2014
@@ -699,6 +725,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v3.1.0.
    This must be implemented simultaneously with the implementations of
    obsproc_nam.v2.0.1, obsproc_rap.v2.0.1, obsproc_rtma.v2.0.1,
    obsproc_urma.v2.0.1 and obsproc_prep.v3.1.0, and simultaneously with the
@@ -707,6 +734,7 @@ files:
    Please export file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140722_OBSPROC-more_robust_prepacqc/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
+   (lowest sub-directory later renamed to 20140722_OBSPROC.v3.1.0)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.0 --> released May 5, 2014
@@ -900,7 +928,7 @@ files:
    prepobs_prepdata.gfs.parm:
     - Initial population into vertical structure.
     - Removed comments related to version number, implementation date, and/or
-      history. No longer needed now that these are in subversion.
+      history. No longer needed now that these files are in subversion.
     - New 12'th surface type (representing Coast Guard data) added to array
       JSURFW (=0). 
       BENEFIT: Coast Guard data that report pressure information will be
@@ -911,8 +939,8 @@ files:
    prepobs_prepssmi.cdas.parm, prepobs_prepssmi.gdas.parm,
    prepobs_prepssmi.gfs.parm:
     - Removed comments related to version number, implementation date, and/or
-      history. No longer needed now that these are in subversion. Otherwise,
-      no changes to contents.
+      history. No longer needed now that these files are in subversion.
+      Otherwise, no changes to contents.
    prepobs_cqcbufr.cdas.parm, prepobs_cqcbufr.gdas.parm,
    prepobs_cqcbufr.gfs.parm, prepobs_prepacqc.cdas.parm,
    prepobs_prepacqc.gdas.parm, prepobs_prepacqc.gfs.parm,
@@ -920,8 +948,8 @@ files:
    prepobs_profcqc.gfs.parm:
     - Initial population into vertical structure.
     - Removed comments related to version number, implementation date, and/or
-      history. No longer needed now that these are in subversion. Otherwise,
-      no changes to contents.
+      history. No longer needed now that these files are in subversion.
+      Otherwise, no changes to contents.
    syndat_syndata.gdas.parm, syndat_syndata.gfs.parm:
     - No changes (initial population into vertical structure).
 
@@ -1014,6 +1042,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v3.0.0.
    This must be implemented simultaneously with the implementations of
    obsproc_dump_monitor.v1.2.0, obsproc_nam.v2.0.0, obsproc_rap.v2.0.0,
    obsproc_rtma.v2.0.0, obsproc_urma.v2.0.0, obsproc_dump.v3.1.0,
@@ -1024,6 +1053,7 @@ files:
    Please export file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140505_OBSPROC-fy14q2_phase2/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
+   (lowest sub-directory later renamed to 20140505_OBSPROC.v3.0.0)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
@@ -1085,6 +1115,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v2.0.0.
    This must be implemented at EXACTLY the same time as NESDIS' promotion of
    the hourly GOES satellite winds to their production server, and
    simultaneously with the implementations of obsproc_dump_monitor.v1.1.0,
@@ -1094,6 +1125,7 @@ files:
    Please copy new file
    /meso/save/Dennis.Keyser/HOME/versions/HOURLY_WINDS/obsproc_global.ver
    to /nwprod/versions, replacing like-named file.
+   (file location later became https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140209_OBSPROC.v2.0.0)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.0.0 --> released Feb 8, 2014
@@ -1238,6 +1270,7 @@ files:
 
  Special Instructions:
  ---------------------
+   This is part of OBSPROC.v1.0.0.
    This must be implemented simultaneously with the implementations of
    obsproc_dump_monitor.v1.0.0, obsproc_dump.v3.0.0, obsproc_nam.v1.0.0,
    obsproc_rap.v1.0.0, obsproc_rtma.v1.1.0, obsproc_urma.v1.1.0,
@@ -1250,5 +1283,6 @@ files:
    Please copy new file
    /meso/save/Dennis.Keyser/HOME/versions/obsproc_global.ver to
    /nwprod/versions.
+   (file location later became https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20140208_OBSPROC.v1.0.0)
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
