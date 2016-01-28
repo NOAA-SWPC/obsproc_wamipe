@@ -1,4 +1,135 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.2.0 --> released Jan 27, 2016
+                             --> implemented ??? ??, ????
+
+files:
+ M obsproc_global/fix/prepobs_errtable.global
+   obsproc_global/fix/prepobs_oiqc.oberrs
+ M obsproc_global/jobs/JGDAS_DUMP
+ M obsproc_global/jobs/JGDAS_DUMP_POST
+ M obsproc_global/jobs/JGDAS_PREP
+ M obsproc_global/jobs/JGDAS_PREP_POST
+ M obsproc_global/jobs/JGFS_DUMP
+ M obsproc_global/jobs/JGFS_DUMP_POST
+ M obsproc_global/jobs/JGFS_PREP
+ M obsproc_global/jobs/JGFS_PREP_POST
+   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+   obsproc_global/parm/prepobs_prepacqc.gdas.parm
+   obsproc_global/parm/prepobs_prepacqc.gfs.parm
+   obsproc_global/parm/prepobs_prepdata.gdas.parm
+   obsproc_global/parm/prepobs_prepdata.gfs.parm
+   obsproc_global/parm/prepobs_prepssmi.gdas.parm
+   obsproc_global/parm/prepobs_prepssmi.gfs.parm
+   obsproc_global/parm/prepobs_profcqc.gdas.parm
+   obsproc_global/parm/prepobs_profcqc.gfs.parm
+   obsproc_global/parm/syndat_syndata.gdas.parm
+   obsproc_global/parm/syndat_syndata.gfs.parm
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( M - modified)
+
+
+ JOB script changes:
+   All JOB scripts:
+    - Use NCO-established variables to point to root directories for main
+      software components and input/output directories in order to run on
+      WCOSS Phase 1 or Phase 2.  (Some util* variables remain and point to
+      /nwprod/util as required by obsproc application scripts).
+    - Use NCO-established variables to point to prod and grib utilities.
+    - Removed direct paths to setup.sh and setpdy.sh utility scripts, depending
+      on versions added to PATH (presumably by prod_util module).
+    - Use new NCO standard variable KEEPDATA in place of CLEANUP to decide
+      whether to remove working directory at end of run.
+    - Removed NCO vs developer checks in places were we could rely on variables
+      set in ecflow environment for NCO runs. Modified remaining such wrappers
+      to check setting of NCO standard variable RUN_ENVIR in place of 
+      non-standard variables used previously.
+    - Revised logic that generates verion informational output at the start of
+      the job for cleaner script and output.
+   JGDAS_DUMP_POST and JGFS_DUMP_POST:
+    - Added entries for variable comin and comin_m1 to override default
+      settings in shared application script bufr_avgdata.sh.
+   JGDAS_PREP_POST:  
+    - Added entries for variables DATCOM_monsum_base and SATCOM_monsum_base to
+      override current default settings in application script gdas_summary.sh.
+
+ Model script changes:
+   exglobal_dump.sh.ecf:
+    - Use NCO standard variables to point to grib utilities.
+    - Rely on PATH to run finddate.sh utility script.
+   exglobal_makeprepbufr.sh.ecf:
+    - Replace hard path to ndate utility with NCO standard variable $NDATE.
+
+ Fixed file changes:
+   prepobs_errtable.global:
+    - Add uv wind ob errors for type 296 (RapidScat).
+      This change has no impact on current operational output.
+
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v3.2.1
+    - obsproc_prep.v3.5.0
+    - obsproc_dump_post.v2.0.1
+    - obsproc_prep_post.v2.1.0
+    - obsproc_shared/bufr_dumplist.v1.2.0
+    - obsproc_shared/bufr_remorest.v1.0.0
+    - obsproc_shared/bufr_avgdata.v1.0.1
+
+
+ Required modules:
+ -----------------
+  All jobs require:
+    prod_util (tested with v1.0.1)
+  JGDAS_DUMP and JGFS_DUMP require:
+    grib_util (tested with v1.0.1)
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all eight production jobs.
+   - This is part of the parallel test of the GFS Upgrade bundle (FY16Q3).
+
+
+ Dissemination:
+ --------------
+   - The main users of this output are the GDAS and GFS networks.
+   - No changes in dissemination.
+   - No change in archival on HPSS.
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v6.1.0.
+   It is expected that this will be implemented simultaneously with the
+   implementation of the FY16Q3 GFS Upgrade bundle.  However, it could
+   go in sooner.
+   - If implementing on WCOSS Phase 1 (prior to move of GFS to run on Phase 2),
+     please export the following for all jobs:
+       NWROOT=/nwprod
+       COMROOT=/com
+   - If implementing on WCOSS Phase 2 (with move of GFS to run on Phase 2),
+     first copy the following from /com to /com2:
+       /com/logs/alertlog/*gdas*
+       /com/logs/alertlog/*gfs*
+       /com/arch/prod/avgdata/*gdas*
+       /com/arch/prod/avgdata/*gfs*
+       /com/arch/prod/avgdata/*nam*
+       /com/arch/prod/obcount_30day/gdas
+       /com/arch/prod/obcount_30day/gfs
+       /com/arch/prod/obcount_30day/nam
+       /com/gfs/prod/satcounts/
+       /com/gfs/prod/satcounts_archive/
+       /com/arch/prod/data_counts.??????/
+       /com/arch/prod/index.shtml
+
+   Please export file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20160127_OBSPROC-v6.1.0/obsproc_global.ver
+   and copy to /nwprod/versions, replacing like-named file.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.1.1 --> released May 1, 2015, updated Jul 12, 2015
                              --> implemented Aug 10, 2015
 

@@ -46,12 +46,12 @@ if [ "$DO_QC" = 'YES' -a "$CQCBUFR" = 'YES' -a -n "$COM1" -a -n "$CQCC" ]; then
        export PRPI_m24=${COM1}${PDYm1}/${RUN}.${cycle}.prepbufr_pre-qc
       [ -s ${COM1}${PDYp1}/${RUN}.${cycle}.prepbufr_pre-qc ]  && \
        export PRPI_p24=${COM1}${PDYp1}/${RUN}.${cycle}.prepbufr_pre-qc
-      tdate10=`/nwprod/util/exec/ndate -12 $PDY$cyc`
+      tdate10=`$NDATE -12 $PDY$cyc`
       cyc_m12=`echo $tdate10|cut -c9-10`
       pdy_m12=`echo $tdate10|cut -c1-8`
       [ -s ${COM1}${pdy_m12}/${RUN}.t${cyc_m12}z.prepbufr_pre-qc ]  && \
        export PRPI_m12=${COM1}${pdy_m12}/${RUN}.t${cyc_m12}z.prepbufr_pre-qc
-      tdate10=`/nwprod/util/exec/ndate +12 $PDY$cyc`
+      tdate10=`$NDATE +12 $PDY$cyc`
       cyc_p12=`echo $tdate10|cut -c9-10`
       pdy_p12=`echo $tdate10|cut -c1-8`
       [ -s ${COM1}${pdy_p12}/${RUN}.t${cyc_p12}z.prepbufr_pre-qc ]  && \

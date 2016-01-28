@@ -270,7 +270,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s ${COMSP}sstgrb ]; then
       rm errfile
-      $EXGRBIX/grbindex ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
+      $GRBINDEX ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
       errindx=$?
       [ "$errindx" -ne '0' ] && cat errfile
       rm errfile
@@ -282,17 +282,17 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 #  Print msg in the rare case the grib2 files cannot be created.
    if [ "$NET" = 'gdas' ]; then
       if [ -s ${COMSP}engicegrb ]; then
-         $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}engicegrb ${COMSP}engicegrb.grib2
+         $CNVGRIB -g12 -p40 ${COMSP}engicegrb ${COMSP}engicegrb.grib2
       else
          echo_hashed_msg "Skip engicegrb.grib2 since grib1 file does not exist"
       fi
       if [ -s ${COMSP}sstgrb ]; then
-         $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
+         $CNVGRIB -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
       else
          echo_hashed_msg "Skip sstgrb.grib2 since grib1 file does not exist"
       fi
       if [ -s ${COMSP}snogrb ]; then
-         $EXGRBIX/cnvgrib -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
+         $CNVGRIB -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
       else
          echo_hashed_msg "Skip snogrb.grib2 since grib1 file does not exist"
       fi
@@ -363,7 +363,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       esac
 # set up string of dates to check
       if [ $ndaysback -gt 0 ];then
-         CHECK_DATES="$PDY $($utilscript/finddate.sh $PDY s-$ndaysback)"
+         CHECK_DATES="$PDY $(finddate.sh $PDY s-$ndaysback)"
       else
          CHECK_DATES=$PDY
       fi

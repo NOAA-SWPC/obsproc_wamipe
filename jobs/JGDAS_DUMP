@@ -1,28 +1,21 @@
 set -xa
 date -u
 
-if [ -n "$obsproc_global_ver" ]; then
-   set +x
-   echo
-   echo "Current OBSPROC_GLOBAL version is $obsproc_global_ver"
-   echo
-   set -x
-fi
-if [ -n "$obsproc_dump_ver" ]; then
-   set +x
-   echo
-   echo "OBSPROC_DUMP version used by this job is $obsproc_dump_ver"
-   echo
-   set -x
-fi
-if [ -n "$obsproc_shared_bufr_dumplist_ver" ]; then
-   set +x
-   echo
-   echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
-$obsproc_shared_bufr_dumplist_ver"
-   echo
-   set -x
-fi
+###############################
+# Print out version information
+###############################
+set +x
+echo
+echo "####################################################################"
+echo
+echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
+echo "OBSPROC_DUMP version used by this job is ${obsproc_dump_ver:-not set}"
+echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
+       "${obsproc_shared_bufr_dumplist_ver:-not set}"
+echo
+echo "####################################################################"
+echo
+set -x
 
 ###################################################################
 # Set DEBUG LEVEL - modifies info in execution trace prompt string
@@ -34,6 +27,7 @@ case $DEBUG_LEVEL in
                                             #  want to diff output from 2 runs)
   2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
   3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
   *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
 esac
 
@@ -45,6 +39,7 @@ echo
 echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
 echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
 echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
 echo
 set -x
 
@@ -65,35 +60,20 @@ export tmmark=tm00
 # Create new working directory
 ###############################
 host=$(hostname -s)
-if [[ ${USER} == nwprod ]]; then
-  if [[ ${envir} == prod ]]; then
-    DATAROOT=/tmpnwprd1
-  else
-    DATAROOT=/tmpnwprd2
-  fi
-else
-  DATAROOT=${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
-  TMPDIR=$DATAROOT  # In the event TMPDIR is reset to a temporary LSF
-                    #  directory when batch jobs are submitted, set it to
-                    #  $DATAROOT so ensure it remains under the user's control
-fi
 export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
+if [[ "$RUN_ENVIR" != nco ]]; then
+  TMPDIR=$DATAROOT  # In the event TMPDIR is reset to a temporary LSF
+                    #  directory when batch jobs are submitted, set it to
+                    #  $DATAROOT so ensure it remains under the user's control
+fi
 
 ######################################
 # Set job log file for postmsg output
 ######################################
-if [[ ${USER} == nwprod ]]; then
-  if [[ ${envir} == prod ]]; then
-    jlogfile=/com/logs/jlogfiles/jlogfile.${job}.$$
-  else
-    jlogfile=/com/logs/${envir}/jlogfile
-  fi
-else
-  jlogfile=${jlogfile:-${DATA}/jlogfile}
-fi
+jlogfile=${jlogfile:-${DATA}/jlogfile}
 
 ######################################
 # Determine Job Output Name on System
@@ -105,35 +85,24 @@ export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
 ################################################
-# SENDCOM      - Copy files to /com directory
+# SENDCOM      - Copy files to $COMOUT directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-# SENDDBN_GB2  - Alert output GRIB2 file to TOC
 ################################################
-if [[ ${USER} == nwprod ]]; then
-  export SENDCOM=YES
-  export SENDECF=YES
-  if [[ ${envir} != prod ]]; then
-    export DBNROOT=/nwprod/spa_util/fakedbn
-  fi
-  export SENDDBN=YES
-  export SENDDBN_GB2=YES
-else  # developer
-  export SENDCOM=${SENDCOM:-YES}
-  export SENDECF=NO
-  export SENDDBN=NO
-  export SENDDBN_GB2=NO
-fi
+export SENDCOM=${SENDCOM:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDDBN=${SENDDBN:-YES}
 
 ##########################
 # Specify Execution Areas
 ##########################
+NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
 # -------------------------------
 export HOMEobsproc_network=${HOMEobsproc_network:\
--/nw${envir}/obsproc_global.${obsproc_global_ver:?\
+-${NWROOT:?}/obsproc_global.${obsproc_global_ver:?\
 "###FATAL ERROR \"obsproc_global_ver\" is not set"}}
 
 export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:\
@@ -143,7 +112,7 @@ export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:\
 # Paths for obsproc_dump items
 # ----------------------------
 export HOMEobsproc_dump=${HOMEobsproc_dump:\
--/nw${envir}/obsproc_dump.${obsproc_dump_ver:?\
+-${NWROOTp1:?}/obsproc_dump.${obsproc_dump_ver:?\
 "###FATAL ERROR \"obsproc_dump_ver\" is not set"}}
 
 export USHobsproc_dump=${USHobsproc_dump:-$HOMEobsproc_dump/ush}
@@ -181,7 +150,7 @@ export FIXbufr=${FIXbufr:-$HOMEobsproc_dump/fix}
 # Paths for obsproc_shared_bufr_dumplist items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
--/nw${envir}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
+-${NWROOTp1:?}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_dumplist_ver\" is not set"}}
 
 export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
@@ -197,56 +166,50 @@ export DCOMROOT=${DCOMROOT:-/dcom}
 export TANK=${TANK:-${DCOMROOT}/us007003}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
-# --------------------------------------------------------------------------
-export COM_ENGICE=${COM_ENGICE:-/com/omb/prod/sice}
-export COM_ICE5MIN=${COM_ICE5MIN:-/com/omb/prod/sice}
-export COM_SSTOI=${COM_SSTOI:-/com/gfs/prod/sst}
-export COM_SSTRTG=${COM_SSTRTG:-/com/gfs/prod/sst}
+# -----------------------------------------------------------------------
+export COMROOTp1=${COMROOTp1:-/com}
+export COM_ENGICE=${COM_ENGICE:-$COMROOTp1/omb/prod/sice}
+export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp1/omb/prod/sice}
+export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
+export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp1/gfs/prod/sst}
 export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
 
-# directory path to grib file processing executed in model script and
-#  bufr_dump_obs
-# --------------------------------------------------------------------
-export EXGRBIX=${EXGRBIX:-/nwprod/util/exec}
+# directory path to grib file processing executed in bufr_dump_obs
+# ----------------------------------------------------------------
+export EXGRBIX=$(dirname $GRBINDEX)  # temporary until bufr_dump_obs updated
 
 ###########################
 # Set up the UTILITY paths
 ###########################
-export utilscript=${utilscript:-/nwprod/util/ush}
-export utilparm=${utilparm:-/nwprod/util/parm}
-export utilexec=${utilexec:-/nwprod/util/exec}
+export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
+export utilparm=${utilparm:-/nwprod/util/parm}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-if [[ ${USER} == nwprod ]]; then
-  sh $utilscript/setup.sh
-else
-  sh ${SETUP:-/nwprod/util/ush}/setup.sh
-fi
+setup.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-sh $utilscript/setpdy.sh
+setpdy.sh
 . $DATA/PDY
 
 #########################
 # Define COM directories
 #########################
-if [ "$LSB_UNIXGROUP_INT" = 'prod' ]; then
-  export COMIN=/com/${NET}/${envir}/${model}.${PDY}
-  export COMOUT=/com/${NET}/${envir}/${model}.${PDY}
+export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+if [[ "$RUN_ENVIR" == nco ]]; then
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN_ROOT=${COMIN_ROOT:-/com}
-  export COMIN=${COMIN:-${COMIN_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
-#  prevent job from writing into a non-unique directory (e.g.,
-#  /ptmp[p][d]1/$USER/com) that might already have a dump status file in it
-#  from a previous checkout run (this could mess up some logic downstream)
-# ----------------------------------------------------------------------------
+#  prevent job from writing into a non-unique directory that might already have
+#  output in it from a previous checkout run for the same cycle
+# -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
@@ -301,7 +264,7 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 $obsproc_shared_bufr_dumplist_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 
-if [ "${CLEANUP:-YES}" = YES ]; then
+if [ "$KEEPDATA" != YES ]; then
    cd $DATAROOT
    rm -rf $DATA
 fi
