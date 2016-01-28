@@ -125,9 +125,15 @@ files:
        /com/arch/prod/data_counts.??????/
        /com/arch/prod/index.shtml
 
+   If implementing on WCOSS Phase 1 (prior to move of GFS to run on Phase 2):
    Please export file
    https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20160127_OBSPROC-v6.1.0/obsproc_global.ver
    and copy to /nwprod/versions, replacing like-named file.
+
+   If implementing on WCOSS Phase 2 (with move of GFS to run on Phase 2):
+   Please export file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20160127_OBSPROC-v6.1.0/obsproc_global.ver
+   and copy to /nwprod2/versions (new file here).
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.1.1 --> released May 1, 2015, updated Jul 12, 2015
