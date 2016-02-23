@@ -1,15 +1,18 @@
 set -xa
 date -u
 
-###############################
+################################
 # Print out version information
-###############################
+################################
 set +x
 echo
 echo "####################################################################"
 echo
 echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_PREP version used by this job is ${obsproc_prep_ver:-not set}"
+echo
+echo
+      module list
 echo
 echo "####################################################################"
 echo
@@ -151,11 +154,13 @@ export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
+set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
 setup.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
+set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
 setpdy.sh
 . $DATA/PDY
 
@@ -178,6 +183,7 @@ else
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
+export GETGES_COM=${COMROOT:-/com}
 
 ##########################################
 # SETUP GFS PREPBUFR PROCESSING VARIABLES

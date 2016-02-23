@@ -46,33 +46,33 @@ set +u
 # JOB_NUMBER = 2 indicates the non-prepbufr dump job.
 # JOB_NUMBER not present indicates dump BOTH prepbufr and non-prepbufr data.
 # -----------------------------------------------------------------------------
-# Dump group #1 (non-pb, TIME_TRIM = OFF) =
+# Dump group #1 (non-pb, TIME_TRIM defaults to OFF) =
 #               1bamua 1bhrs4 1bmhs osbuv8 mtiasi avcsam avcspm esamua eshrs3
 #               esmhs airsev gome
 #
-# Dump group #2 (pb, TIME_TRIM = OFF) =
+# Dump group #2 (pb, TIME_TRIM defaults to OFF) =
 #               sfcshp atovs* adpsfc
 #                   * - for GDAS only
 #
-# Dump group #3 (pb, TIME_TRIM = OFF) =
+# Dump group #3 (pb, TIME_TRIM defaults to OFF) =
 #               adpupa gpsipw ascatt
 #
-# Dump group #4 (pb, TIME_TRIM = default = ON) =
+# Dump group #4 (pb, TIME_TRIM defaults to ON) =
 #               aircar aircft proflr vadwnd rassda
 #
-# Dump group #5 (pb, TIME_TRIM = OFF) =
+# Dump group #5 (pb, TIME_TRIM defaults to OFF) =
 #               msonet
 #
-# Dump group #6 (non-pb, TIME_TRIM = OFF) =
+# Dump group #6 (non-pb, TIME_TRIM defaults to OFF) =
 #               nexrad
 #
-# Dump group #7 (non-pb, TIME_TRIM = OFF) =
+# Dump group #7 (non-pb, TIME_TRIM defaults to OFF) =
 #               omi ssmisu sevcsr bathy tesac trkob atms cris mls goesfv gpsro
 #
-# Dump group #8 (pb, TIME_TRIM = default = ON) =
+# Dump group #8 (pb, TIME_TRIM defaults to ON) =
 #               satwnd
 #
-# Dump group #9 (non-pb, TIME_TRIM = default = ON) =
+# Dump group #9 (non-pb, TIME_TRIM defaults to ON) =
 #               geoimr
 #
 # Dump group #10 STATUS FILE
@@ -363,6 +363,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       esac
 # set up string of dates to check
       if [ $ndaysback -gt 0 ];then
+set +x; echo -e "\n---> path to finddate.sh below is: `which finddate.sh`"; set -x
          CHECK_DATES="$PDY $(finddate.sh $PDY s-$ndaysback)"
       else
          CHECK_DATES=$PDY
@@ -461,7 +462,7 @@ export DUMP_NUMBER=1
 #=========================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 1 : 1BAMUA: 1 subtype(s)
@@ -494,7 +495,7 @@ DTIM_latest_esmhs=${DTIM_latest_esmhs:-"+2.99"}
 DTIM_latest_airsev=${DTIM_latest_airsev:-"+2.99"}
 DTIM_latest_gome=${DTIM_latest_gome:-"+2.99"}
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM1:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 1bamua 1bhrs4 1bmhs osbuv8 \
  mtiasi avcsam avcspm esamua eshrs3 esmhs airsev gome
@@ -563,7 +564,7 @@ export DUMP_NUMBER=2
 #==========================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #   (3) GDAS GSI doesn't use ATOVS, but NASA/GSFC is pulling them off our
 #       server, also CDAS may be running special tests using data from GDAS
 #       cutoff time (ATOVS is not dumped in GFS)
@@ -614,7 +615,7 @@ if [ $err_check_tanks -eq 0 ];then
 fi
 #-----------------------------------------------
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM2:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc $wndsat
 error2=$?
@@ -670,7 +671,7 @@ export DUMP_NUMBER=3
 #====================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump #3:   ADPUPA: 6 subtype(s)
@@ -687,7 +688,7 @@ DTIM_latest_adpupa=${DTIM_latest_adpupa:-"+2.99"}
 DTIM_latest_gpsipw=${DTIM_latest_gpsipw:-"+2.99"}
 DTIM_latest_ascatt=${DTIM_latest_ascatt:-"+2.99"}
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM3:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 adpupa gpsipw ascatt
 error3=$?
@@ -765,7 +766,7 @@ export DUMP_NUMBER=4
 #       EXCEPT: AIRCFT where it is +/- 3.25 hours
 #               AIRCAR where it is +/- 3.25 hours
 #               PROFLR where it is -4.00 to +3.99 hours
-#   (2) TIME TRIMMING IS DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 4 : AIRCAR: 2 subtype(s)
@@ -802,6 +803,8 @@ DTIM_latest_proflr=${DTIM_latest_proflr:-"+3.99"}
 
 DTIM_latest_vadwnd=${DTIM_latest_vadwnd:-"+2.99"}
 DTIM_latest_rassda=${DTIM_latest_rassda:-"+2.99"}
+
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM4:-on}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 aircar aircft proflr vadwnd \
  rassda
@@ -855,7 +858,7 @@ export DUMP_NUMBER=5
 #===================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types 
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Currently not executed in GDAS or GFS:
@@ -867,7 +870,7 @@ export DUMP_NUMBER=5
 
 DTIM_latest_msonet=${DTIM_latest_msonet:-"+2.99"}
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM5:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 msonet
 error5=$?
@@ -907,7 +910,7 @@ export DUMP_NUMBER=6
 #===================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Currently not executed in GDAS or GFS:
@@ -919,7 +922,7 @@ export DUMP_NUMBER=6
 
 DTIM_latest_nexrad=${DTIM_latest_nexrad:-"+2.99"}
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM6:-off}}
 
 # NEXRAD tanks are hourly
 # Process only those hourly tanks w/i requested dump center cycle time window
@@ -1050,7 +1053,7 @@ export DUMP_NUMBER=7
 #=========================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
-#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 7 : OMI:    1 subtype(s)
@@ -1111,7 +1114,7 @@ if [ $err_check_tanks -eq 0 ];then
 fi
 #-----------------------------------------------
 
-TIME_TRIM=off
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM7:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 omi ssmisu sevcsr bathy \
  tesac trkob $atms $cris $mls goesfv gpsro 
@@ -1190,7 +1193,7 @@ export DUMP_NUMBER=8
 #       EXCEPT: SATWND subtypes 005/010, 005/011, 005/12, 005/019, 005/064,
 #               005/065, 005/066, 005/070, 005/071, 005/080 and 005/090 where
 #               it is -3.00 to +2.99 hours.
-#   (2) TIME TRIMMING IS DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 8 : SATWND: 17 subtype(s)
@@ -1223,6 +1226,8 @@ DTIM_earliest_005080=${DTIM_earliest_005080:-"-3.00"}
 DTIM_latest_005080=${DTIM_latest_005080:-"+2.99"}
 DTIM_earliest_005090=${DTIM_earliest_005090:-"-3.00"}
 DTIM_latest_005090=${DTIM_latest_005090:-"+2.99"}
+
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM8:-on}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 1.5 1 satwnd
 error8=$?
@@ -1268,7 +1273,7 @@ export DUMP_NUMBER=9
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is -3.00 to +2.99 hours on all types
 #       EXCEPT:  GEOIMR where it is -0.50 to +0.50 hour
-#   (2) TIME TRIMMING IS DONE IN THIS DUMP
+#   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 9 : GEOIMR: 1 subtype(s)
@@ -1279,6 +1284,8 @@ export DUMP_NUMBER=9
 
 DTIM_earliest_geoimr=${DTIM_earliest_geoimr:-"-0.50"}
 DTIM_latest_geoimr=${DTIM_latest_geoimr:-"+0.50"}
+
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM9:-on}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 geoimr
 error9=$?

@@ -1,9 +1,14 @@
 set -xa
 date -u
 
-###############################
+##################################
+# Load modules needed by this job
+##################################
+module load grib_util/v1.0.1
+
+################################
 # Print out version information
-###############################
+################################
 set +x
 echo
 echo "####################################################################"
@@ -12,6 +17,9 @@ echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_DUMP version used by this job is ${obsproc_dump_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
        "${obsproc_shared_bufr_dumplist_ver:-not set}"
+echo
+echo
+      module list
 echo
 echo "####################################################################"
 echo
@@ -68,6 +76,7 @@ if [[ "$RUN_ENVIR" != nco ]]; then
   TMPDIR=$DATAROOT  # In the event TMPDIR is reset to a temporary LSF
                     #  directory when batch jobs are submitted, set it to
                     #  $DATAROOT so ensure it remains under the user's control
+                    #  (normally needed only if child script dumpjb executed)
 fi
 
 ######################################
@@ -187,11 +196,13 @@ export utilparm=${utilparm:-/nwprod/util/parm}       # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
+set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
 setup.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
+set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
 setpdy.sh
 . $DATA/PDY
 

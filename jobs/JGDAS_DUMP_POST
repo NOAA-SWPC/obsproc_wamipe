@@ -1,9 +1,9 @@
 set -xa
 date -u
 
-###############################
+################################
 # Print out version information
-###############################
+################################
 set +x
 echo
 echo "####################################################################"
@@ -17,6 +17,9 @@ echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is" \
        "${obsproc_shared_bufr_avgdata_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
        "${obsproc_shared_bufr_dumplist_ver:-not set}"
+echo
+echo
+      module list
 echo
 echo "####################################################################"
 echo
@@ -171,11 +174,13 @@ export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
+set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
 setup.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
+set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
 setpdy.sh
 . $DATA/PDY
 

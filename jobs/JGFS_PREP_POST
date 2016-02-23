@@ -1,9 +1,9 @@
 set -xa
 date -u
 
-###############################
+################################
 # Print out version information
-###############################
+################################
 set +x
 echo
 echo "####################################################################"
@@ -13,6 +13,9 @@ echo "OBSPROC_PREP_POST version used by this job is" \
        "${obsproc_prep_post_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
        "${obsproc_shared_bufr_remorest_ver:-not set}"
+echo
+echo
+      module list
 echo
 echo "####################################################################"
 echo
@@ -127,17 +130,18 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 ###########################
 # Set up the UTILITY paths
 ###########################
-export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
 export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
+set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
 setup.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
+set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
 setpdy.sh
 . $DATA/PDY
 

@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.2.0 --> released Jan 27, 2016
+obsproc_global release 2.2.0 --> released Jan 27, 2016, updated Feb 23, 2015
                              --> implemented ??? ??, ????
 
 files:
@@ -38,8 +38,10 @@ files:
       WCOSS Phase 1 or Phase 2.  (Some util* variables remain and point to
       /nwprod/util as required by obsproc application scripts).
     - Use NCO-established variables to point to prod and grib utilities.
+    - Execute "module list" to echo "Currently Loaded Modulefiles" to stdout.
     - Removed direct paths to setup.sh and setpdy.sh utility scripts, depending
-      on versions added to PATH (presumably by prod_util module).
+      on versions added to PATH (presumably by prod_util module).  Echo full
+      path to these scripts to stdout.
     - Use new NCO standard variable KEEPDATA in place of CLEANUP to decide
       whether to remove working directory at end of run.
     - Removed NCO vs developer checks in places were we could rely on variables
@@ -48,17 +50,62 @@ files:
       non-standard variables used previously.
     - Revised logic that generates verion informational output at the start of
       the job for cleaner script and output.
+   JGDAS_DUMP and JGFS_DUMP:
+    - Load module grib_util/v1.0.1.
+      BENEFIT: Defines path now relied on to run utility programs cnvgrib and
+               grbindex in model script exglobal_dump.sh.ecf.
    JGDAS_DUMP_POST and JGFS_DUMP_POST:
     - Added entries for variable comin and comin_m1 to override default
       settings in shared application script bufr_avgdata.sh.
+   JGDAS_PREP and JGFS_PREP:
+    - Export GETGES_COM with default of /com but overridded with $COMROOT if it
+      is imported from ecflow script.
+      BENEFIT: Allows util ush script getges.sh to point to /com2 to obtain
+               first guess once GFS/GDAS (and this package) is moved to
+               Phase 2.  If this package were, for some reason, implemented
+               prior to GFS/GDAS move to Phase 2, getges.s would continue to
+               point to /com to obtain first guess.
    JGDAS_PREP_POST:  
-    - Added entries for variables DATCOM_monsum_base and SATCOM_monsum_base to
-      override current default settings in application script gdas_summary.sh.
+    - Load module util_shared/v1.0.2.
+      BENEFIT: Defines path now relied on to run month_name.sh utility script
+               in obsproc_prep_post v2.2.0 ush script gdas_summary.sh.
+    - Added variable PROCESS_MASTER_SHIP_STNLST to (when YES) run processing in
+      obsproc_prep_post (v2.2.0 and beyond) model script exprep_post.sh.ecf to
+      update the Master Ship Station List based on any information read from
+      the updated VOS ship list from NDBC. This defaults to (and thus is
+      exported as) YES in the 18z cycle run of this job and is hardwired to NO
+      is all other cycle runs. When set to YES, various directory paths needed
+      by this processing are set and exported.
+      BENEFIT: See changes to model script exprep_post.sh.ecf in Release Notes
+               for v2.2.0 of obsproc_prep_post.
+    - Existing variable PROCESS_ALL_REPORT_COUNTS is now hardwired to NO in all
+      cycle runs of this job except 18z.  Before, it defaulted to NO in these
+      cycle runs.
+      BENEFIT: The model script exprep_post.sh.ecf in obsproc_prep_post is
+               hardwired to not run this processing unless this is the 18z GDAS
+               run. It is not possible to override this and the job script will
+               now reflect this.
 
  Model script changes:
    exglobal_dump.sh.ecf:
     - Use NCO standard variables to point to grib utilities.
-    - Rely on PATH to run finddate.sh utility script.
+    - Rely on PATH to run finddate.sh utility script. Echo full path to this
+      script to stdout.
+    - Allow the variable TIME_TRIM for be imported as either "on" or "off"
+      (i.e., set in job script) and apply to all dump groups, overriding the
+      individual default values previously hardwired for each dump group. In
+      addition, if TIME_TRIM is not imported, allow new variables TIME_TRIM1,
+      TIME_TRIM2, etc. to be imported as either "on" or "off" (i.e., set in job
+      script) and apply to specific dump groups (e.g., TIME_TRIM1 applying to
+      dump group 1, TIME_TRIM6, applying to dump group 6, etc.), overriding the
+      default value(s) for TIME_TRIM previously hardwired for the applicable
+      dump group(s).
+      BENEFIT: Allows for more flexibility.  E.G., a case where a checkout GFS
+               or GDAS run uses a time window radius with some fraction of an
+               hour (e.g., -0.50 to +0.49) rather than -3.00 to +2.99 if
+               running in hourly cycles rather than in six-hour cycles.  Here
+               time trimming is needed for all dump groups, thus TIME_TRIM
+               could be set to "on" in the job script.
    exglobal_makeprepbufr.sh.ecf:
     - Replace hard path to ndate utility with NCO standard variable $NDATE.
 
@@ -68,12 +115,39 @@ files:
       This change has no impact on current operational output.
 
 
+ Output changes:
+ ---------------
+   Job JGDAS_PREP_POST (18z cycle run only):
+    - As a result of update to obsproc_prep_post.v2.2.0:
+       - Upon implementation, new files /com2/arch/prod/VOS/activeShiprev
+         (modified NDBC active ship list) and com2/arch/prod/VOS/ship_names
+         (Master Ship Station List) will be created and then subsequently
+         updated daily.
+
+
+ Compute Resource Information:
+ -----------------------------
+   Job JGDAS_PREP_POST (18z cycle run only):
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - ~10 second increase in wallclock run time.
+   All other jobs and cycles:
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - No change in wallclock run time.
+
+
+ Disk Space Changes:
+ -------------------
+   /com2/arch/prod        - Increase ~5 Mb per day (in new subdirectory VOS)
+
+
  Shared Software (with 1 or more jobs):
  --------------------------------------
     - obsproc_dump.v3.2.1
     - obsproc_prep.v3.5.0
     - obsproc_dump_post.v2.0.1
-    - obsproc_prep_post.v2.1.0
+    - obsproc_prep_post.v2.2.0 (updated from v2.1.0)
     - obsproc_shared/bufr_dumplist.v1.2.0
     - obsproc_shared/bufr_remorest.v1.0.0
     - obsproc_shared/bufr_avgdata.v1.0.1
@@ -82,9 +156,11 @@ files:
  Required modules:
  -----------------
   All jobs require:
-    prod_util (tested with v1.0.1)
+    prod_util (default version, loaded in ecflow script; tested with v1.0.1)
   JGDAS_DUMP and JGFS_DUMP require:
-    grib_util (tested with v1.0.1)
+    grib_util/v1.0.1 (loaded in job script)
+  JGDAS_PREP_POST requires:
+    util_shared/v1.0.2 (loaded in job script)
 
 
  Preimplementation Testing Requirements:
@@ -104,8 +180,11 @@ files:
  ---------------------
    This is part of OBSPROC.v6.1.0.
    It is expected that this will be implemented simultaneously with the
-   implementation of the FY16Q3 GFS Upgrade bundle.  However, it could
-   go in sooner.
+   implementation of the FY16Q3 GFS Upgrade bundle on Phase 2.  However, it
+   could go in sooner.  Please note, however, that this must be implemented on
+   Phase 2 simultaneously with the implementation of obsproc_dump_alert v1.1.0
+   on Phase 2.  In addition, it must be implemented simultaneously with the
+   implementation of obsproc_dump_post v2.2.0 on either Phase 1 or Phase 2.
    - If implementing on WCOSS Phase 1 (prior to move of GFS to run on Phase 2),
      please export the following for all jobs:
        NWROOT=/nwprod
@@ -683,7 +762,7 @@ files:
     - The small dump file "esamub" (containing no usable data) will no longer
       be present in /com/[cdas][gfs]/prod/... directories.
     - "ESAMUB" will no longer appear in GDAS and GFS RTDM count graphics.
-   Job JGDAS_DUMP_POST (18z cycle run only)::
+   Job JGDAS_DUMP_POST (18z cycle run only):
     - As a result of update to obsproc_shared/bufr_avgdata.v1.0.1:
        - The obcount_30day directories (/com/arch/prod/obcount_30day/$model,
          for model=gfs,gdas,nam) will now retain 32 days worth of files instead
