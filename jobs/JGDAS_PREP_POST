@@ -115,7 +115,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # Paths for obsproc_prep_post items
 # ---------------------------------
 export HOMEobsproc_prep_post=${HOMEobsproc_prep_post:\
--${NWROOTp1:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
+-${NWROOT:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
 "###FATAL ERROR \"obsproc_prep_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
