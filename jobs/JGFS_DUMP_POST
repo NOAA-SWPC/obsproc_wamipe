@@ -210,7 +210,7 @@ if [[ "$RUN_ENVIR" == nco ]]; then
   if [[ ${envir} == prod ]]; then
     ALERTL=${ALERTL:-${COMROOT:?}/logs/alertlog}
   else
-    ALERTL=${ALERTL:-${COMROOT:?}/${envir}/logs/alertlog}
+    ALERTL=${ALERTL:-${COMROOT:?}/logs/${envir}/alertlog}
   fi
 else # developer
   ALERTL=${ALERTL:-${DATA}/alertlog}
