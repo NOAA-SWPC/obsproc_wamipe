@@ -1,5 +1,7 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.2.0 --> released Jan 27, 2016, updated Feb 23, 2015
+obsproc_global release 2.2.0 --> released Jan 27, 2016, 
+                                 updated Feb 23, 2016,
+                                 updated Mar 30, 2016
                              --> implemented ??? ??, ????
 
 files:
@@ -39,9 +41,9 @@ files:
       /nwprod/util as required by obsproc application scripts).
     - Use NCO-established variables to point to prod and grib utilities.
     - Execute "module list" to echo "Currently Loaded Modulefiles" to stdout.
-    - Removed direct paths to setup.sh and setpdy.sh utility scripts, depending
-      on versions added to PATH (presumably by prod_util module).  Echo full
-      path to these scripts to stdout.
+    - Removed direct path to setpdy.sh utility script, relying on version
+      added to PATH (presumably by prod_util module).  Echo full path to this
+      script to stdout.
     - Use new NCO standard variable KEEPDATA in place of CLEANUP to decide
       whether to remove working directory at end of run.
     - Removed NCO vs developer checks in places were we could rely on variables
@@ -54,16 +56,20 @@ files:
     - Load module grib_util/v1.0.1.
       BENEFIT: Defines path now relied on to run utility programs cnvgrib and
                grbindex in model script exglobal_dump.sh.ecf.
-   JGDAS_DUMP_POST and JGFS_DUMP_POST:
+   JGDAS_DUMP_POST:
     - Added entries for variable comin and comin_m1 to override default
       settings in shared application script bufr_avgdata.sh.
+   JGFS_DUMP_POST:
+    - Modified to perform data count averaging during 18Z runs of this job.
+      New variables include comin and comin_m1 which override default settings
+      in shared application script bufr_avgdata.sh.
    JGDAS_PREP and JGFS_PREP:
-    - Export GETGES_COM with default of /com but overridded with $COMROOT if it
-      is imported from ecflow script.
+    - Export GETGES_COM with default of /com which is overridden by $COMROOT if
+      the latter is imported from ecflow script.
       BENEFIT: Allows util ush script getges.sh to point to /com2 to obtain
                first guess once GFS/GDAS (and this package) is moved to
                Phase 2.  If this package were, for some reason, implemented
-               prior to GFS/GDAS move to Phase 2, getges.s would continue to
+               prior to GFS/GDAS move to Phase 2, getges.sh would continue to
                point to /com to obtain first guess.
    JGDAS_PREP_POST:  
     - Load module util_shared/v1.0.2.
@@ -74,7 +80,7 @@ files:
       update the Master Ship Station List based on any information read from
       the updated VOS ship list from NDBC. This defaults to (and thus is
       exported as) YES in the 18z cycle run of this job and is hardwired to NO
-      is all other cycle runs. When set to YES, various directory paths needed
+      in all other cycle runs. When set to YES, various directory paths needed
       by this processing are set and exported.
       BENEFIT: See changes to model script exprep_post.sh.ecf in Release Notes
                for v2.2.0 of obsproc_prep_post.
@@ -120,9 +126,14 @@ files:
    Job JGDAS_PREP_POST (18z cycle run only):
     - As a result of update to obsproc_prep_post.v2.2.0:
        - Upon implementation, new files /com2/arch/prod/VOS/activeShiprev
-         (modified NDBC active ship list) and com2/arch/prod/VOS/ship_names
+         (modified NDBC active ship list) and /com2/arch/prod/VOS/ship_names
          (Master Ship Station List) will be created and then subsequently
          updated daily.
+   Jobs JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - As a result of update to obsproc_dump_post.v2.1.0, the following will be
+      done by JGFS_DUMP_POST rather than JGDAS_DUMP_POST:
+       - update files /com/arch/prod/avgdata/*gfs*
+       - update content of directory /com/arch/prod/obcount_30day/gfs
 
 
  Compute Resource Information:
@@ -146,7 +157,7 @@ files:
  --------------------------------------
     - obsproc_dump.v3.2.1
     - obsproc_prep.v3.5.0
-    - obsproc_dump_post.v2.0.1
+    - obsproc_dump_post.v2.1.0 (updated from v2.0.1)
     - obsproc_prep_post.v2.2.0 (updated from v2.1.0)
     - obsproc_shared/bufr_dumplist.v1.2.0
     - obsproc_shared/bufr_remorest.v1.0.0
@@ -156,7 +167,7 @@ files:
  Required modules:
  -----------------
   All jobs require:
-    prod_util (default version, loaded in ecflow script; tested with v1.0.1)
+    prod_util (expected to be loaded in advance; tested with v1.0.1)
   JGDAS_DUMP and JGFS_DUMP require:
     grib_util/v1.0.1 (loaded in job script)
   JGDAS_PREP_POST requires:
@@ -179,12 +190,15 @@ files:
  Special Instructions:
  ---------------------
    This is part of OBSPROC.v6.1.0.
-   It is expected that this will be implemented simultaneously with the
-   implementation of the FY16Q3 GFS Upgrade bundle on Phase 2.  However, it
-   could go in sooner.  Please note, however, that this must be implemented on
-   Phase 2 simultaneously with the implementation of obsproc_dump_alert v1.1.0
-   on Phase 2.  In addition, it must be implemented simultaneously with the
-   implementation of obsproc_dump_post v2.2.0 on either Phase 1 or Phase 2.
+   - It is expected that this will be implemented simultaneously with the
+     implementation of the FY16Q3 GFS Upgrade bundle on Phase 2.  However, it
+     could go in sooner.  Please note, however:
+     - This must be implemented on Phase 2 simultaneously with the 
+       implementation of obsproc_dump_alert v1.1.0 on Phase 2.  
+     - This must be implemented simultaneously with the implementation of 
+       obsproc_prep_post v2.2.0 on either Phase 1 or Phase 2.
+     - This must be implemented with obsproc_dump_post.v2.1.0 and
+       obsproc_nam.v2.1.0 (both of which should be installed on Phase 1).
    - If implementing on WCOSS Phase 1 (prior to move of GFS to run on Phase 2),
      please export the following for all jobs:
        NWROOT=/nwprod
@@ -193,16 +207,21 @@ files:
      first copy the following from /com to /com2:
        /com/logs/alertlog/*gdas*
        /com/logs/alertlog/*gfs*
+       /com/gfs/prod/satcounts/
+       /com/gfs/prod/satcounts_archive/
+       /com/arch/prod/data_counts.??????/
+       /com/arch/prod/index.shtml
+   - The move of RTDM files for all models to /com2 is expected to come at a
+     later date. When that time comes, copy the following from /com to /com2:
        /com/arch/prod/avgdata/*gdas*
        /com/arch/prod/avgdata/*gfs*
        /com/arch/prod/avgdata/*nam*
        /com/arch/prod/obcount_30day/gdas
        /com/arch/prod/obcount_30day/gfs
        /com/arch/prod/obcount_30day/nam
-       /com/gfs/prod/satcounts/
-       /com/gfs/prod/satcounts_archive/
-       /com/arch/prod/data_counts.??????/
-       /com/arch/prod/index.shtml
+     UNTIL THEN, temporarily add: 
+       export HOMEarch=/com/arch/${envir} 
+      to ecflow scripts for JGFS_DUMP_POST and JGDAS_DUMP_POST.
 
    If implementing on WCOSS Phase 1 (prior to move of GFS to run on Phase 2):
    Please export file

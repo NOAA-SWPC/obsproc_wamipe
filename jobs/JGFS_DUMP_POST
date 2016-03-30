@@ -1,12 +1,9 @@
 set -xa
 date -u
 
-##############################################################################
+################################
 # Print out version information
-# Note: Although OBSPROC_SHARED_BUFR_AVGDATA is linked to OBSPROC_GLOBAL in
-#       the DUMP_POST jobs, it is not used by the GFS network and is thus not
-#       referred to here.
-##############################################################################
+################################
 set +x
 echo
 echo "####################################################################"
@@ -16,6 +13,8 @@ echo "OBSPROC_DUMP_POST version used by this job is" \
        "${obsproc_dump_post_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
        "${obsproc_shared_bufr_remorest_ver:-not set}"
+echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is" \
+       "${obsproc_shared_bufr_avgdata_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
        "${obsproc_shared_bufr_dumplist_ver:-not set}"
 echo
@@ -74,9 +73,9 @@ rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
 
-####################################################
+######################################
 # Set job log file for postmsg output
-####################################################
+######################################
 jlogfile=${jlogfile:-${DATA}/jlogfile}
 
 ######################################
@@ -115,6 +114,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # ---------------------------------
 # Paths for obsproc_dump_post items
 # ---------------------------------
+export HOMEobsproc_dump_post=/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver}
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
 -${NWROOTp1:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
@@ -140,6 +140,19 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
+# -------------------------------------------
+# Paths for obsproc_shared_bufr_avgdata items
+# -------------------------------------------
+export HOMEobsproc_shared_bufr_avgdata=${HOMEobsproc_shared_bufr_avgdata:\
+-${NWROOTp1:?}/obsproc_shared/bufr_avgdata.${obsproc_shared_bufr_avgdata_ver:?\
+"###FATAL ERROR \"obsproc_shared_bufr_avgdata_ver\" is not set"}}
+
+export EXECobsproc_shared_bufr_avgdata=${EXECobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/exec}
+
+export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
+-$HOMEobsproc_shared_bufr_avgdata/ush}
+
 # --------------------------------------------
 # Paths for obsproc_shared_bufr_dumplist items
 # --------------------------------------------
@@ -162,8 +175,7 @@ export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
-setup.sh
+sh $utilscript/setup.sh                              # temporary
 
 ##########################################
 # Run setpdy and initialize PDY variables
@@ -176,6 +188,7 @@ setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
   export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
@@ -195,14 +208,29 @@ fi
 # comin and comin_m1 are paths to dump status files for bufr_avgdata.sh
 export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
 export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDYm1}}
- 
+
 # directory path to data count/alert processing executed in bufr_datacount.sh
+#  and data count averaging executed in model script and in bufr_avgdata.sh
 # ---------------------------------------------------------------------------
 export HOMEarch=${HOMEarch:-${COMROOT:?}/arch/${envir}}
 
 #  .. AVGDarch_IN is directory with 30-day avg files input to bufr_datacount.sh
 #     --------------------------------------------------------------------------
 export AVGDarch_IN=${AVGDarch_IN:-$HOMEarch/avgdata}
+
+#  .. AVGDarch_OUT is directory path for avg tables output by model script
+#     --------------------------------------------------------------------
+if [[ "$RUN_ENVIR" == nco ]]; then
+  export AVGDarch_OUT=$HOMEarch/avgdata
+else
+  export AVGDarch_OUT=${AVGDarch_OUT:-${DATA}/avgdata}
+  mkdir -p $AVGDarch_OUT
+fi
+
+#  .. OBCNTarch is directory path to write new status files to & read all status
+#     files from {can WRITE to this location only if COPY=YES (the default)}
+#     --------------------------------------------------------------------------
+export OBCNTarch=${OBCNTarch:-$HOMEarch/obcount_30day}
 
 #  .. ALERTL is directory for alert log files output by bufr_datacount.sh
 #     -------------------------------------------------------------------
@@ -229,7 +257,13 @@ export PROCESS_DATACOUNTS=${PROCESS_DATACOUNTS:-YES}
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
 export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
 export PROCESS_LISTERS=${PROCESS_LISTERS:-YES}
-export PROCESS_AVGTABLES=NO # Not processed in GFS run
+
+# Data count average tables are generated in the 18Z run only
+if [ "$cyc" = '18' ]; then
+   export PROCESS_AVGTABLES=${PROCESS_AVGTABLES:-YES}
+else
+   export PROCESS_AVGTABLES=${PROCESS_AVGTABLES:-NO}
+fi
 
 env
 
@@ -252,6 +286,10 @@ $obsproc_dump_post_ver" >> \
 [ -n "$obsproc_shared_bufr_remorest_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
 $obsproc_shared_bufr_remorest_ver" >> \
+ $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
+[ -n "$obsproc_shared_bufr_avgdata_ver" ]  &&  \
+ echo "OBSPROC_SHARED_BUFR_AVGDATA version used by this job is \
+$obsproc_shared_bufr_avgdata_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_post_run
 [ -n "$obsproc_shared_bufr_dumplist_ver" ]  &&  \
  echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \

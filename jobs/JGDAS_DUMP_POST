@@ -98,6 +98,7 @@ export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 export SENDSDM=${SENDSDM:-YES}
 [[ "$RUN_ENVIR" != nco ]] && export SENDSDM=NO  # developer
+[[ "$envir" != prod ]] && export SENDSDM=NO  # parallel , not send email to SDM
 
 ##########################
 # Specify Execution Areas
@@ -114,6 +115,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # ---------------------------------
 # Paths for obsproc_dump_post items
 # ---------------------------------
+export HOMEobsproc_dump_post=/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver}
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
 -${NWROOTp1:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
@@ -174,8 +176,7 @@ export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
-setup.sh
+sh $utilscript/setup.sh                              # temporary
 
 ##########################################
 # Run setpdy and initialize PDY variables

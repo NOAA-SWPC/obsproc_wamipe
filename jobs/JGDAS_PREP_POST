@@ -146,13 +146,13 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 ###########################
 # Set up the UTILITY paths
 ###########################
+export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
 export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
-setup.sh
+sh $utilscript/setup.sh                              # temporary
 
 ##########################################
 # Run setpdy and initialize PDY variables

@@ -197,8 +197,7 @@ export utilparm=${utilparm:-/nwprod/util/parm}       # temporary
 ################################################################
 # Run setup to initialize working directory and utility scripts
 ################################################################
-set +x; echo -e "\n---> path to setup.sh below is: `which setup.sh`"; set -x
-setup.sh
+sh $utilscript/setup.sh                              # temporary
 
 ##########################################
 # Run setpdy and initialize PDY variables
