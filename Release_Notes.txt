@@ -2,7 +2,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.2.0 --> released Jan 27, 2016, 
                                  updated Feb 23, 2016,
                                  updated Mar 30, 2016
-                             --> implemented ??? ??, ????
+                             --> implemented May 11, 2016
 
 files:
  M obsproc_global/fix/prepobs_errtable.global
@@ -189,7 +189,7 @@ files:
 
  Special Instructions:
  ---------------------
-   This is part of OBSPROC.v6.1.0.
+   This is part of OBSPROC.v6.1.0b.
    - It is expected that this will be implemented simultaneously with the
      implementation of the FY16Q3 GFS Upgrade bundle on Phase 2.  However, it
      could go in sooner.  Please note, however:
