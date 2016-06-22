@@ -1,4 +1,129 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.3.0 --> released ??? ??, 2016, 
+                             --> implemented ??? ??, ????
+
+files:
+   obsproc_global/fix/prepobs_errtable.global
+   obsproc_global/fix/prepobs_oiqc.oberrs
+ M obsproc_global/jobs/JGDAS_DUMP
+ M obsproc_global/jobs/JGDAS_DUMP_POST
+ M obsproc_global/jobs/JGDAS_PREP
+ M obsproc_global/jobs/JGDAS_PREP_POST
+ M obsproc_global/jobs/JGFS_DUMP
+ M obsproc_global/jobs/JGFS_DUMP_POST
+ M obsproc_global/jobs/JGFS_PREP
+ M obsproc_global/jobs/JGFS_PREP_POST
+   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
+   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
+   obsproc_global/parm/prepobs_prepacqc.gdas.parm
+   obsproc_global/parm/prepobs_prepacqc.gfs.parm
+   obsproc_global/parm/prepobs_prepdata.gdas.parm
+   obsproc_global/parm/prepobs_prepdata.gfs.parm
+   obsproc_global/parm/prepobs_prepssmi.gdas.parm
+   obsproc_global/parm/prepobs_prepssmi.gfs.parm
+   obsproc_global/parm/prepobs_profcqc.gdas.parm
+   obsproc_global/parm/prepobs_profcqc.gfs.parm
+   obsproc_global/parm/syndat_syndata.gdas.parm
+   obsproc_global/parm/syndat_syndata.gfs.parm
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+( M - modified)
+
+
+ JOB script changes:
+   JGDAS_DUMP, JGFS_DUMP:
+    - Points to latest version of obsproc_dump in Phase 2 vs. Phase 1 ($NWROOT
+      replaces $NWROOTp1, the transitional setting no longer needed). Also
+      removed setting of temporary variable EXGRBIX.
+    - Remove exported script variable $utilparm (which defaulted to
+      /nwprod/util/parm) as it is no longer required by any child scripts.
+   JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - Points to latest version of obsproc_dump_post in Phase 2 vs. Phase 1
+      ($NWROOT replaces $NWROOTp1).
+    - More flexible options for specifiying variables $AVGDarch_IN,
+      $AVGDarch_OUT and $ALERTL in developer runs.
+   JGDAS_PREP, JGFS_PREP:
+    - Load module util_shared/v1.0.4.
+      BENEFIT: Defines prepended path now relied on to run utility ush
+               getges.sh in ush script prepobs_makeprepbufr.sh.
+    - Remove exported script variable GETGES_COM (no longer needed due to
+      change just above).
+    - Points to latest version of obsproc_prep in Phase 2 vs. Phase 1 ($NWROOT
+      replaces $NWROOTp1, the transitional setting no longer needed).
+    - Remove exported script variable $utilexec (which defaulted to
+      /nwprod/util/exec) as it is no longer required by any child scripts.
+   JGDAS_PREP_POST:
+    - Load module util_shared/v1.0.4 rather than util_shared/v1.0.2.
+    - Split imported script variables into separate input and output
+      variable as follows:
+       - $SATCOM into $SATCOMIN and $SATCOMOUT_dir
+       - $DATCOM into $DATCOMIN and $DATCOMOUT_dir
+       - $ARCHCOM into $ARCHCOMIN and $ARCHCOMOUT
+       - $DATCOM1 into $DATCOM1_IN and $DATCOM1_OUT
+      these are all now tuned based on production vs. developer runs.
+      BENEFIT: Allows developer runs to specify a production input location and
+               a local output location.
+    - More flexible options for specifiying variables $VOSarch_IN and
+      $VOSarch_OUT in developer runs.
+   JGFS_PREP_POST:
+    - Remove exported script variable $utilexec (which defaulted to
+      /nwprod/util/exec) as it is no longer required by any child scripts.
+
+ Model script changes:
+   exglobal_dump.sh.ecf:
+    - Replaced "/com" with full file name path beginning with ${COMSP} in
+      messages posted to jlogfile when copying 0.5 degree snow grib file, T574
+      snow grib file, engice grib file and lowres sst grib file.
+      BENEFIT: Adds more information, generalizes now that prod i/o is /com2.
+
+
+ < incomplete >
+
+
+ Required modules:
+ -----------------
+  All jobs require:
+    prod_util (expected to be loaded in advance; tested with v1.0.4, the
+               default at the time)
+  JGDAS_DUMP and JGFS_DUMP require:
+    grib_util/v1.0.1 (loaded in job script)
+  JGDAS_PREP, JGFS_PREP and JGDAS_PREP_POST require:
+    util_shared/v1.0.4 (loaded in job script)
+
+
+ < incomplete >
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v?.?.?.
+   This must be implemented simultaneously with the implementations of:
+      v2.1.0 of obsproc_cdas,
+      v2.0.0 of obsproc_dump_monitor,
+      v2.2.0 of obsproc_dump_post,
+      v2.2.0 of obsproc_nam,
+      v3.7.0 of obsproc_prep,
+      v2.3.0 of obsproc_prep_post,
+      v2.2.0 of obsproc_rap,
+      v2.2.0 of obsproc_rtma,
+      v2.2.0 of obsproc_urma.
+   Eventually there will also be an implementation of obsproc_dump to go along
+   with this package but if this package (or any other in the combined group
+   above) is implemented before the update to obsproc_dump is ready (due to
+   some accelerated change, etc.) then DO NOT implement obsproc_dump currrently
+   at the head of the trunk.  Instead, stick with the current production
+   version of obsproc_dump by TEMPORARILY adding
+        export HOMEobsproc_dump=/nwprod/obsproc_dump.v3.2.1
+   to ecflow scripts for JGDAS_DUMP and JGFS_DUMP (and all of the other network
+   dump packages being implemented simulatneously with this package) so that
+   the Phase 1 obsproc_dump in production is used.
+
+
+ < incomplete >
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.2.0 --> released Jan 27, 2016, 
                                  updated Feb 23, 2016,
                                  updated Mar 30, 2016
@@ -50,12 +175,13 @@ files:
       set in ecflow environment for NCO runs. Modified remaining such wrappers
       to check setting of NCO standard variable RUN_ENVIR in place of 
       non-standard variables used previously.
-    - Revised logic that generates verion informational output at the start of
+    - Revised logic that generates version informational output at the start of
       the job for cleaner script and output.
    JGDAS_DUMP and JGFS_DUMP:
     - Load module grib_util/v1.0.1.
       BENEFIT: Defines path now relied on to run utility programs cnvgrib and
-               grbindex in model script exglobal_dump.sh.ecf.
+               grbindex in model script exglobal_dump.sh.ecf and grbindex in
+               ush script bufr_dump_obs.sh.
    JGDAS_DUMP_POST:
     - Added entries for variable comin and comin_m1 to override default
       settings in shared application script bufr_avgdata.sh.
@@ -106,7 +232,7 @@ files:
       dump group 1, TIME_TRIM6, applying to dump group 6, etc.), overriding the
       default value(s) for TIME_TRIM previously hardwired for the applicable
       dump group(s).
-      BENEFIT: Allows for more flexibility.  E.G., a case where a checkout GFS
+      BENEFIT: Allows for more flexibility.  E.G., a case where a developer GFS
                or GDAS run uses a time window radius with some fraction of an
                hour (e.g., -0.50 to +0.49) rather than -3.00 to +2.99 if
                running in hourly cycles rather than in six-hour cycles.  Here
@@ -213,12 +339,20 @@ files:
        /com/arch/prod/index.shtml
    - The move of RTDM files for all models to /com2 is expected to come at a
      later date. When that time comes, copy the following from /com to /com2:
+       /com/arch/prod/avgdata/*dump*
        /com/arch/prod/avgdata/*gdas*
        /com/arch/prod/avgdata/*gfs*
        /com/arch/prod/avgdata/*nam*
-       /com/arch/prod/obcount_30day/gdas
-       /com/arch/prod/obcount_30day/gfs
-       /com/arch/prod/obcount_30day/nam
+       /com/arch/prod/avgdata/*rap*
+       /com/arch/prod/avgdata/*rtma*
+       /com/arch/prod/avgdata/*urma*
+       /com/arch/prod/obcount_30day/dump/
+       /com/arch/prod/obcount_30day/gdas/
+       /com/arch/prod/obcount_30day/gfs/
+       /com/arch/prod/obcount_30day/nam/
+       /com/arch/prod/obcount_30day/rap/
+       /com/arch/prod/obcount_30day/rtma/
+       /com/arch/prod/obcount_30day/urma/
      UNTIL THEN, temporarily add: 
        export HOMEarch=/com/arch/${envir} 
       to ecflow scripts for JGFS_DUMP_POST and JGDAS_DUMP_POST.
@@ -1034,7 +1168,7 @@ files:
       environment variables $obsproc_global_ver and $obsproc_prep_ver, resp.
       These are defined in the upstream ecflow script.
     - Full environmental equivalence.  Streamlined, allows for more
-      generalization (e.g., for checkout runs).
+      generalization (e.g., for developer runs).
     - Exports new environment variable $HOMEobsproc_prep which points to
       directory path for generic prep subdirectories under version control
       (in production this is normally /nwprod/obsproc_prep.$obsproc_prep_ver).
@@ -1065,7 +1199,7 @@ files:
       $obsproc_shared_bufr_remorest_ver, resp.  These are defined in the
       upstream ecflow script.
     - Full environmental equivalence.  Streamlined, allows for more
-      generalization (e.g., for checkout runs).
+      generalization (e.g., for developer runs).
     - Exports new environment variable $HOMEobsproc_prep_post which points to
       directory path for generic prep_post subdirectories under version control
       (in production this is normally
@@ -1086,7 +1220,7 @@ files:
     - Added more robust logic to select PDY, where this is based on cycle time
       to avoid any possibility of obtaining a PDY late by 1 day due to a delay
       in the production run. Added environmental equvalence for cases when
-      checkout wrapper script exports variable "PDY" into this script.  All of
+      developer wrapper script exports variable "PDY" into this script.  All of
       this updated logic matches that currently found in other CDAS job
       scripts.
    JCDAS_DUMP_POST, JGDAS_DUMP_POST, JGFS_DUMP_POST:
@@ -1099,7 +1233,7 @@ files:
       $obsproc_shared_bufr_remorest_ver, resp.  These are defined in the
       upstream ecflow script.
     - Full environmental equivalence.  Streamlined, allows for more
-      generalization (e.g., for checkout runs).
+      generalization (e.g., for developer runs).
     - Exports new environment variable $HOMEobsproc_dump_post which points to
       directory path for generic dump_post subdirectories under version control
       (in production this is normally
@@ -1138,7 +1272,7 @@ files:
       Replaces /nw${envir} in order to point to files in exec and ush
       directories moved from horizontal to vertical directory structure.
    JCDAS_DUMP, JCDAS_PREP2_POST, JCDAS_DUMP_POST:
-    - Added environmental equvalence for cases when checkout wrapper script
+    - Added environmental equvalence for cases when developer wrapper script
       exports variable "PDY" into this script.
 
  Model script changes:
@@ -1389,7 +1523,7 @@ files:
       $obsproc_dump_ver and obsproc_shared_bufr_dumplist_ver, resp.
       These are defined in the upstream ecflow script.
     - Full environmental equivalence.  Streamlined, allows for more
-      generalization (e.g., for checkout runs).
+      generalization (e.g., for developer runs).
     - Exports new environment variable $HOMEobsproc_dump which points to
       directory path for generic dump subdirectories under version control
       (in production this is normally /nwprod/obsproc_dump.$obsproc_dump_ver).

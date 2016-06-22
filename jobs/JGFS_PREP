@@ -1,6 +1,12 @@
 set -xa
 date -u
 
+##################################
+# Load modules needed by this job
+##################################
+module load util_shared/v1.0.4 # (prepended path to util ush script getges.sh
+                               #  in ush script prepobs_makeprepbufr.sh)
+
 ################################
 # Print out version information
 ################################
@@ -80,11 +86,11 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-################################################
+#################################################
 # SENDCOM      - Copy files to $COMOUT directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-################################################
+#################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
@@ -92,7 +98,6 @@ export SENDDBN=${SENDDBN:-YES}
 ##########################
 # Specify Execution Areas
 ##########################
-NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
@@ -110,7 +115,7 @@ export FIXobsproc_global=${FIXobsproc_global:-$HOMEobsproc_network/fix}
 # Paths for obsproc_prep items
 # ----------------------------
 export HOMEobsproc_prep=${HOMEobsproc_prep:\
--${NWROOTp1:?}/obsproc_prep.${obsproc_prep_ver:?\
+-${NWROOT:?}/obsproc_prep.${obsproc_prep_ver:?\
 "###FATAL ERROR \"obsproc_prep_ver\" is not set"}}
 
 export USHobsproc_prep=${USHobsproc_prep:-$HOMEobsproc_prep/ush}
@@ -150,7 +155,6 @@ export DICTPREP=${DICTPREP:-/nwprod/decoders/decod_shared/dictionaries}
 # Set up the UTILITY paths
 ###########################
 export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -168,6 +172,7 @@ setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
   export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
@@ -183,7 +188,6 @@ else
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
-export GETGES_COM=${COMROOT:-/com}
 
 ##########################################
 # SETUP GFS PREPBUFR PROCESSING VARIABLES

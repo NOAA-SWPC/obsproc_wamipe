@@ -4,7 +4,8 @@ date -u
 ##################################
 # Load modules needed by this job
 ##################################
-module load util_shared/v1.0.2
+module load util_shared/v1.0.4 # (prepended path to util ush script
+                                # month_name.sh in ush script gdas_summary.sh)
 
 ################################
 # Print out version information
@@ -88,21 +89,25 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-##############################################
+#################################################
 # SENDCOM      - Copy files to $COMOUT directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
 # SENDWEB      - Post content to WWW server
-##############################################
+#################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 export SENDWEB=${SENDWEB:-YES}
 
+######################################################
+# Phase 1 --> Phase 2 --> Cray  Transitional Settings
+######################################################
+NWROOTp1=${NWROOTp1:-/nwprod}
+
 ##########################
 # Specify Execution Areas
 ##########################
-NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
@@ -147,7 +152,7 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 # Set up the UTILITY paths
 ###########################
 export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
+export utilexec=${utilexec:-/nwprod/util/exec}       # temporary, used by timetwins
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -165,6 +170,7 @@ setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
   export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
@@ -185,7 +191,6 @@ fi
 # -----------------------------------------------------------
 export COMINGFS=${COMINGFS:-${COMIN_ROOT:?}/${NET}/${envir}/${NET}.${PDY}}
 export COMIN1=${COMIN1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.}
-
 
 #########################################################
 # SETUP GDAS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
@@ -208,30 +213,45 @@ else
    export PROCESS_MASTER_SHIP_STNLST=${PROCESS_MASTER_SHIP_STNLST:-YES}
 fi
 if [ $PROCESS_ALL_REPORT_COUNTS == YES ]; then
+  export REBUILD_MAINPAGE=${REBUILD_MAINPAGE:-NO}
   MM=`echo $PDY | cut -c5-6`
   MONS=(null JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC)
   MON=${MONS[10#$MM]}   # get month string from array MONS.
   YYYYMM=`echo $PDY  | cut -c1-6`
-  export COMOUT_ROOT=${COMOUT_ROOT:-${COMROOT:?}}
-  export DATCOM=${DATCOM:-${COMOUT_ROOT}/arch/${envir}/data_counts.${YYYYMM}}
-  export SATCOM=${SATCOM:-${COMOUT_ROOT}/${NET}/${envir}/satcounts/${MON}}
-  mkdir -m 775 -p $DATCOM $SATCOM
-  export ARCHCOM=${ARCHCOM:-${COMOUT_ROOT}/${NET}/${envir}}
-  export DATCOM1=${DATCOM1:-${COMOUT_ROOT}/arch/${envir}}
-  export REBUILD_MAINPAGE=${REBUILD_MAINPAGE:-NO}
+  if [[ "$RUN_ENVIR" == nco ]]; then
+    export DATCOMIN=${COMIN_ROOT:?}/arch/${envir}
+    export SATCOMIN=${COMIN_ROOT:?}/${NET}/${envir}
+    export ARCHCOMIN=${COMIN_ROOT:?}/${NET}/${envir}
+    export DATCOM1_IN=${COMIN_ROOT:?}/arch/${envir}
+    export DATCOMOUT_dir=${COMROOT:?}/arch/${envir}/data_counts.${YYYYMM}
+    export SATCOMOUT_dir=${COMROOT:?}/${NET}/${envir}/satcounts/${MON}
+    export ARCHCOMOUT=${COMROOT:?}/${NET}/${envir}
+    export DATCOM1_OUT=${COMROOT:?}/arch/${envir}
+    mkdir -m 775 -p $DATCOMOUT_dir $SATCOMOUT_dir $ARCHCOMOUT $DATCOM1_OUT
+  else
+    export DATCOMIN=${DATCOMIN:-${COMIN_ROOT:?}/arch/${envir}}
+    export SATCOMIN=${SATCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}}
+    export ARCHCOMIN=${ARCHCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}}
+    export DATCOM1_IN=${DATCOM1_IN:-${COMIN_ROOT:?}/arch/${envir}}
+    export DATCOMOUT_dir=${DATCOMOUT_dir:-${COMOUT_ROOT:?}/arch/${envir}/data_counts.${YYYYMM}}
+    export SATCOMOUT_dir=${SATCOMOUT_dir:-${COMOUT_ROOT:?}/${NET}/${envir}/satcounts/${MON}}
+    export ARCHCOMOUT=${ARCHCOMOUT:-${COMOUT_ROOT:?}/${NET}/${envir}}
+    export DATCOM1_OUT=${DATCOM1_OUT:-${COMOUT_ROOT:?}/arch/${envir}}
+    mkdir -m 775 -p $DATCOMOUT_dir $SATCOMOUT_dir $ARCHCOMOUT $DATCOM1_OUT
+  fi
 fi 
 if [ $PROCESS_MASTER_SHIP_STNLST == YES ]; then
-  export COMOUT_ROOT=${COMOUT_ROOT:-${COMROOT:?}}
-  export HOMEarch=${HOMEarch:-${COMOUT_ROOT}/arch/${envir}}
-  export VOSarch_IN=${VOSarch_IN:-$HOMEarch/VOS}
-  if [[ "$RUN_ENVIR" == nco ]]; then
-    export VOSarch_OUT=$HOMEarch/VOS
-  else
-    export VOSarch_OUT=${VOSarch_OUT:-${DATA}/VOS}
-    mkdir -m 775 -p $VOSarch_OUT
-  fi
   export DCOMROOT=${DCOMROOT:-/dcom}
   export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/us007003/ndbc}
+  if [[ "$RUN_ENVIR" == nco ]]; then
+    export VOSarch_IN=${COMIN_ROOT:?}/arch/${envir}/VOS
+    export VOSarch_OUT=${COMROOT:?}/arch/${envir}/VOS
+    mkdir -m 755 $VOSarch_OUT
+  else
+    export VOSarch_IN=${VOSarch_IN:-${COMIN_ROOT:?}/arch/${envir}/VOS}
+    export VOSarch_OUT=${VOSarch_OUT:-${COMOUT_ROOT:?}/arch/${envir}/VOS}
+    mkdir -m 755 $VOSarch_OUT
+  fi
 fi 
 
 env

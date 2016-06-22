@@ -4,7 +4,8 @@ date -u
 ##################################
 # Load modules needed by this job
 ##################################
-module load grib_util/v1.0.1
+module load grib_util/v1.0.1 # ($GRBINDEX and $CNVGRIB in model script exglobal_dump.sh.ecf)
+                             # ($GRBINDEX in ush script bufr_dump_obs.sh)
 
 ################################
 # Print out version information
@@ -93,19 +94,24 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-################################################
+#################################################
 # SENDCOM      - Copy files to $COMOUT directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-################################################
+#################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 
+######################################################
+# Phase 1 --> Phase 2 --> Cray  Transitional Settings
+######################################################
+NWROOTp1=${NWROOTp1:-/nwprod}
+COMROOTp1=${COMROOTp1:-/com}
+
 ##########################
 # Specify Execution Areas
 ##########################
-NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
@@ -121,7 +127,7 @@ export SCRIPTSobsproc_global=${SCRIPTSobsproc_global:\
 # Paths for obsproc_dump items
 # ----------------------------
 export HOMEobsproc_dump=${HOMEobsproc_dump:\
--${NWROOTp1:?}/obsproc_dump.${obsproc_dump_ver:?\
+-${NWROOT:?}/obsproc_dump.${obsproc_dump_ver:?\
 "###FATAL ERROR \"obsproc_dump_ver\" is not set"}}
 
 export USHobsproc_dump=${USHobsproc_dump:-$HOMEobsproc_dump/ush}
@@ -176,23 +182,16 @@ export TANK=${TANK:-${DCOMROOT}/us007003}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
 # -----------------------------------------------------------------------
-export COMROOTp1=${COMROOTp1:-/com}
 export COM_ENGICE=${COM_ENGICE:-$COMROOTp1/omb/prod/sice}
 export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp1/omb/prod/sice}
 export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
 export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp1/gfs/prod/sst}
 export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
 
-# directory path to grib file processing executed in bufr_dump_obs
-# ----------------------------------------------------------------
-export EXGRBIX=$(dirname $GRBINDEX)  # temporary until bufr_dump_obs updated
-
-
 ###########################
 # Set up the UTILITY paths
 ###########################
 export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-export utilparm=${utilparm:-/nwprod/util/parm}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -210,6 +209,7 @@ setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
   export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}

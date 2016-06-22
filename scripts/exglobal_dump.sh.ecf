@@ -181,7 +181,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $snogrb ]; then
       cp $snogrb ${COMSP}snogrb
-      msg="todays 0.5 degree snow grib file located and copied to /com"
+      msg="todays 0.5 degree snow grib file located and copied to ${COMSP}snogrb"
       $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $snoold ]; then
       cp $snoold ${COMSP}snogrb
@@ -204,7 +204,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $snogrb_t574 ]; then
       cp $snogrb_t574 ${COMSP}snogrb_t574
-      msg="todays T574 snow grib file located and copied to /com"
+      msg="todays T574 snow grib file located and copied to ${COMSP}snogrb_t574"
       $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $snoold_t574 ]; then
       cp $snoold_t574 ${COMSP}snogrb_t574
@@ -227,7 +227,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $engicegrb ]; then
       cp $engicegrb ${COMSP}engicegrb
-      msg="todays engice grib file located and copied to /com"
+      msg="todays engice grib file located and copied to ${COMSP}engicegrb"
       $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $engiceold ]; then
       cp $engiceold ${COMSP}engicegrb
@@ -250,7 +250,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $sstgrb ]; then
       cp $sstgrb ${COMSP}sstgrb
-      msg="todays lowres sst grib file located and copied to /com"
+      msg="todays lowres sst grib file located and copied to ${COMSP}sstgrb"
       $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $sstold ]; then
       cp $sstold ${COMSP}sstgrb

@@ -87,22 +87,26 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-##############################################################################
+###############################################################################
 # SENDCOM  - Copy files to $COMOUT directory
 # SENDECF  - Flag Events on ECFLOW
 # SENDDBN  - Alert output file to TOC
 # SENDSDM  - Send files to SDM (via email and/or printer in bufr_datacount.sh)
-##############################################################################
+###############################################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 export SENDSDM=${SENDSDM:-YES}
-[[ "$RUN_ENVIR" != nco ]] && export SENDSDM=NO  # developer
+[[ "$envir" != prod ]] && export SENDSDM=NO  # parallel , not send email to SDM
+
+######################################################
+# Phase 1 --> Phase 2 --> Cray  Transitional Settings
+######################################################
+NWROOTp1=${NWROOTp1:-/nwprod}
 
 ##########################
 # Specify Execution Areas
 ##########################
-NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
@@ -114,9 +118,8 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # ---------------------------------
 # Paths for obsproc_dump_post items
 # ---------------------------------
-export HOMEobsproc_dump_post=/nw${envir}/obsproc_dump_post.${obsproc_dump_post_ver}
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
--${NWROOTp1:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
+-${NWROOT:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:\
@@ -163,10 +166,6 @@ export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
 export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 -$HOMEobsproc_shared_bufr_dumplist/fix}
 
-# ---------------------------
-# Paths for non-obsproc items
-# ---------------------------
-
 ###########################
 # Set up the UTILITY paths
 ###########################
@@ -209,21 +208,28 @@ fi
 export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
 export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDYm1}}
 
+# ---------------------------
+# Paths for non-obsproc items
+# ---------------------------
+
 # directory path to data count/alert processing executed in bufr_datacount.sh
 #  and data count averaging executed in model script and in bufr_avgdata.sh
 # ---------------------------------------------------------------------------
 export HOMEarch=${HOMEarch:-${COMROOT:?}/arch/${envir}}
 
-#  .. AVGDarch_IN is directory with 30-day avg files input to bufr_datacount.sh
-#     --------------------------------------------------------------------------
-export AVGDarch_IN=${AVGDarch_IN:-$HOMEarch/avgdata}
-
+#  .. AVGDarch_IN is directory path containing 30-day avg files (read by
+#     bufr_datacount.sh)
+#     ------------------------------------------------------------------
 #  .. AVGDarch_OUT is directory path for avg tables output by model script
 #     --------------------------------------------------------------------
 if [[ "$RUN_ENVIR" == nco ]]; then
+  export AVGDarch_IN=$HOMEarch/avgdata
   export AVGDarch_OUT=$HOMEarch/avgdata
 else
-  export AVGDarch_OUT=${AVGDarch_OUT:-${DATA}/avgdata}
+  [ -n "$HOMEarch" ] && HOMEarch_avgdata=$HOMEarch/avgdata
+  export AVGDarch_IN=\
+${AVGDarch_IN:-${HOMEarch_avgdata:-${COMIN_ROOT:?}/arch/${envir}/avgdata}}
+  export AVGDarch_OUT=${AVGDarch_OUT:-${COMOUT_ROOT:?}/arch/${envir}/avgdata}
   mkdir -p $AVGDarch_OUT
 fi
 
@@ -236,15 +242,15 @@ export OBCNTarch=${OBCNTarch:-$HOMEarch/obcount_30day}
 #     -------------------------------------------------------------------
 if [[ "$RUN_ENVIR" == nco ]]; then
   if [[ ${envir} == prod ]]; then
-    ALERTL=${ALERTL:-${COMROOT:?}/logs/alertlog}
+    export ALERTL=${ALERTL:-${COMROOT:?}/logs/alertlog}
   else
-    ALERTL=${ALERTL:-${COMROOT:?}/logs/${envir}/alertlog}
+    export ALERTL=${ALERTL:-${COMROOT:?}/logs/${envir}/alertlog}
   fi
+  mkdir -p $ALERTL
 else # developer
-  ALERTL=${ALERTL:-${DATA}/alertlog}
+  export ALERTL=${ALERTL:-${COMOUT_ROOT:?}/logs/${envir}/alertlog}
   mkdir -p $ALERTL
 fi
-
 
 ################################################
 # SETUP GFS DATA DUMP POST PROCESSING VARIABLES

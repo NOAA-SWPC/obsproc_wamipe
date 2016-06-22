@@ -83,19 +83,23 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-################################################
+#################################################
 # SENDCOM      - Copy files to $COMOUT directory
 # SENDECF      - Flag Events on ECFLOW
 # SENDDBN      - Alert output file to TOC
-################################################
+#################################################
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 
+######################################################
+# Phase 1 --> Phase 2 --> Cray  Transitional Settings
+######################################################
+NWROOTp1=${NWROOTp1:-/nwprod}
+
 ##########################
 # Specify Execution Areas
 ##########################
-NWROOTp1=${NWROOTp1:-/nwprod}  # transitional setting
 
 # -------------------------------
 # Paths for obsproc_network items
@@ -131,7 +135,6 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 # Set up the UTILITY paths
 ###########################
 export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-export utilexec=${utilexec:-/nwprod/util/exec}       # temporary
 
 ################################################################
 # Run setup to initialize working directory and utility scripts
@@ -149,6 +152,7 @@ setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
   export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
