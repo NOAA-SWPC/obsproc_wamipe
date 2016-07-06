@@ -315,7 +315,7 @@ files:
 
  Special Instructions:
  ---------------------
-   This is part of OBSPROC.v6.1.0b.
+   This is part of OBSPROC.v6.1.0.
    - It is expected that this will be implemented simultaneously with the
      implementation of the FY16Q3 GFS Upgrade bundle on Phase 2.  However, it
      could go in sooner.  Please note, however:
