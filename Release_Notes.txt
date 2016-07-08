@@ -47,8 +47,23 @@ files:
     - Load module util_shared/v1.0.4.
       BENEFIT: Defines prepended path now relied on to run utility ush
                getges.sh in ush script prepobs_makeprepbufr.sh.
-    - Remove exported script variable GETGES_COM (no longer needed due to
-      change just above).
+    - Now sets GETGES_COM with default of "/com2" if GETGES_COM is not imported
+      from driver script.  This always overrides getges.sh default "$COMROOT".
+      Before, GETGES_COM first defaulted to "$COMROOT" and then to "/com" if
+      COMROOT was not imported from driver script (this had been put in place
+      as the GFS/CDAS was transitioning from Phase 1 to Phase 2).
+      BENEFIT: Gives more flexibility for cases when a development or test run
+               may redirect COMROOT to an alternate location. Avoids the need
+               to set GETGES_COM in the driver script in this case.  Also
+               allows GETGES_COM to be set to an alternative location in driver
+               script.
+    - Added GETGES_NWG with default of "/nwges2" if GETGES_NWG is not imported
+      from driver script.  This always overrides getges.sh default "$GESROOT".
+      BENEFIT: Gives more flexibility for cases when a development or test run
+               may redirect GESROOT to an alternate location. Avoids the need
+               to set GETGES_NWG in the driver script in this case.  Also
+               allows GETGES_NWG to be set to an alternative location in driver
+               script.
     - Points to latest version of obsproc_prep in Phase 2 vs. Phase 1 ($NWROOT
       replaces $NWROOTp1, the transitional setting no longer needed).
     - Remove exported script variable $utilexec (which defaulted to

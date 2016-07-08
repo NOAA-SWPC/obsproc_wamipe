@@ -188,6 +188,8 @@ else
   export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
+export GETGES_COM=${GETGES_COM:-/com2} # Root location for GFS/GDAS COM data
+export GETGES_NWG=${GETGES_NWG:-/nwges2}
 
 ##########################################
 # SETUP GFS PREPBUFR PROCESSING VARIABLES
