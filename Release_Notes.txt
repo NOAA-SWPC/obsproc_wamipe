@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.3.0 --> released ??? ??, 2016, 
+obsproc_global release 2.3.0 --> released Sep 1, 2016, 
                              --> implemented ??? ??, ????
 
 files:
@@ -91,9 +91,92 @@ files:
       messages posted to jlogfile when copying 0.5 degree snow grib file, T574
       snow grib file, engice grib file and lowres sst grib file.
       BENEFIT: Adds more information, generalizes now that prod i/o is /com2.
+    - Moved GPSIPW from dump group #3 to dump group #4 and adjusted the window 
+      from +/- 3-hours to +/- 0.05 hours (3-min) to accommodate the new Ground
+      Based GPS-IPW/ZTD (from U.S.-ENI and foreign GNSS providers) in dump
+      message type NC012004.
+      BENEFIT: These are not yet assimilated by the Global-GSI but they are
+               monitored.  This change prevents a potential overload of reports
+               from reaching the GSI.  Only reports at cycle time will be
+               available for monitoring (similar change made in NAM and RAP,
+               networks that do assimilate these data).  (This may be tweaked in
+               the future, but done now just to be safe.)
 
 
- < incomplete >
+ Output changes:
+ ---------------
+   Job JGDAS_DUMP, JGFS_DUMP:
+    - As a result of update to obsproc_shared/bufr_dumplist.v1.3.0:
+       - Dump files
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d
+         now contain new U.S.-ENI and foreign-GNSS Ground Based GPS-IPW/ZTD
+         (message type NC012004) (before they contained U.S.-GSD Ground Based
+         GPS-IPW/ZTD, message type NC012003).
+          - As a result of above, the dump "status" files
+            /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.status.tm00.bufr_d
+            will now reflect a much lower dump count for data group "gpsipw"
+            (now in 012.004 as opposed to 012.003 before) since the dump time
+            window has been greatly reduced (see below).  This change in dump
+            counts will be reflected in the RTDM "Model Data Dump Tables - GFS"
+            and "Model Data Dump Tables - GDS" under the new data type "gnss"
+            (which replaces "gpspw" which represented the old-GSD feed).
+    - The time window for new U.S.-ENI and foreign-GNSS Ground Based
+      GPS-IPW/ZTD in dump files
+      /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d
+      is +/- 3-min about cycle time (the time window for previous U.S.-GSD
+      Ground Based GPS-IPW/ZTD was +/- 3-hr about cycle time).
+   Jobs JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - As a result of update to obsproc_dump_post.v2.2.0:
+       - Dump listing files
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d.listing
+         list lat and lon to nearest 0.00001 degree rather than to nearest 0.01
+         degree.
+       - Information for 30-day average for "GOES/NESDIS infrared short-wave
+         derived cloud motion(3p9us)" is now available in files
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.updated.status.tm00.bufr_d.
+         This completes missing data in RTDMS graphics.
+   Job JGDAS_PREP, JGFS_PREP:
+    - As a result of update to obsproc_prep.v3.7.0:
+       - Reports in PREPBUFR files with message type GPSIPW (report type 153)
+         will now contain new U.S.-ENI Ground Based GPS-IPW/ZTD at cycle time
+         (before they contained U.S.-GSD Ground Based GPS-IPW at 15-min past
+         each hour in the dump file).
+          - Encodes zenith total delay (when present) and its error into
+            PREPBUFR file, represented by "atmospheric path delay in satellite
+            signal" (mnemonic APDS) and "error in atmospheric path delay in
+            satellite signal" (mnemonic APDE), resp., in association with
+            hardwired azimuth angle (mnemonic BEARAZ) of 0.0 (deg) and hardwired
+            elevation angle (mnemonic ELEV) of 90.0 (deg).
+    - As a result of update to obsproc_prep.v3.6.0:
+       - Surface land METAR reports in PREPBUFR files with message type ADPSFC
+         (report type 187) will now contain a cloud ceiling field (derived from
+         cloud amount and cloud height values) represented by mnemonic CEILING.
+         This is not read by the Global-GSI.
+
+
+ Compute Resource Information:
+ -----------------------------
+   All jobs:
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - Negligible change in wallclock run time.
+
+
+ Disk Space Changes:
+ -------------------
+   /com/gfs/prod/gfs.   - Decrease ~0.25 Mb per day
+   /com/gfs/prod/gdas.  - Decrease ~0.12 Mb per day
+
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v3.2.1
+    - obsproc_prep.v3.7.0 (updated from v3.5.0)
+    - obsproc_dump_post.v2.2.0 (updated from v2.1.0)
+    - obsproc_prep_post.v2.3.0 (updated from v2.2.0)
+    - obsproc_shared/bufr_dumplist.v1.3.0 (updated from v1.2.0)
+    - obsproc_shared/bufr_remorest.v1.0.0
+    - obsproc_shared/bufr_avgdata.v1.0.1
 
 
  Required modules:
@@ -107,12 +190,22 @@ files:
     util_shared/v1.0.4 (loaded in job script)
 
 
- < incomplete >
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all eight production jobs.
+   - This is part of the parallel test of the new GPS-IPW update.
+
+
+ Dissemination:
+ --------------
+   - The main users of this output are the GDAS and GFS networks.
+   - No changes in dissemination.
+   - No change in archival on HPSS.
 
 
  Special Instructions:
  ---------------------
-   This is part of OBSPROC.v?.?.?.
+   This is part of OBSPROC.v6.4.0.
    This must be implemented simultaneously with the implementations of:
       v2.1.0 of obsproc_cdas,
       v2.0.0 of obsproc_dump_monitor,
@@ -121,22 +214,12 @@ files:
       v3.7.0 of obsproc_prep,
       v2.3.0 of obsproc_prep_post,
       v2.2.0 of obsproc_rap,
-      v2.2.0 of obsproc_rtma,
-      v2.2.0 of obsproc_urma.
-   Eventually there will also be an implementation of obsproc_dump to go along
-   with this package but if this package (or any other in the combined group
-   above) is implemented before the update to obsproc_dump is ready (due to
-   some accelerated change, etc.) then DO NOT implement obsproc_dump currrently
-   at the head of the trunk.  Instead, stick with the current production
-   version of obsproc_dump by TEMPORARILY adding
-        export HOMEobsproc_dump=/nwprod/obsproc_dump.v3.2.1
-   to ecflow scripts for JGDAS_DUMP and JGFS_DUMP (and all of the other network
-   dump packages being implemented simulatneously with this package) so that
-   the Phase 1 obsproc_dump in production is used.
+      v1.3.0 of obsproc_shared/bufr_dumplist;
+   but AFTER the implementation of v3.1.0 of obsproc_satingest.
 
-
- < incomplete >
-
+   Please export file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20160901_OBSPROC-v6.4.0/obsproc_global.ver
+   and copy to /nwprod2/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.2.0 --> released Jan 27, 2016, 

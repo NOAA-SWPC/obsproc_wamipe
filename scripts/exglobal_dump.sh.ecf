@@ -16,9 +16,11 @@ echo "                       excdas_dump.sh.ecf.  This script now tailored  "
 echo "                       exclusively to GDAS and GFS.                   "
 echo "         Feb  2 2015 - Dump window for new satwnd type NC005090 set   "
 echo "                       to 3.00 to +2.99 hours about center dump time. "
-echo "                       Removed ADD_satwnd=\"005019 005080\" since       "
+echo "                       Removed ADD_satwnd=\"005019 005080\" since     "
 echo "                       types are now part of "satwnd" dump group      "
 echo "                       mnemonic in bufr_dumplist.                     "
+echo "         Aug 22 2016 - GSPIPW dump window reset for new data stream   "
+echo "                         (moved to dump group #4 where TIME_TRIM=on)  "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas1 RUN 
@@ -55,10 +57,10 @@ set +u
 #                   * - for GDAS only
 #
 # Dump group #3 (pb, TIME_TRIM defaults to OFF) =
-#               adpupa gpsipw ascatt
+#               adpupa ascatt
 #
 # Dump group #4 (pb, TIME_TRIM defaults to ON) =
-#               aircar aircft proflr vadwnd rassda
+#               aircar aircft proflr vadwnd rassda gpsipw 
 #
 # Dump group #5 (pb, TIME_TRIM defaults to OFF) =
 #               msonet
@@ -675,30 +677,26 @@ export DUMP_NUMBER=3
 #
 #--------------------------------------------------------------------------
 # Dump #3:   ADPUPA: 6 subtype(s)
-#            GPSIPW: 1 subtype(s)
 #            ASCATT: 1 subtype(s)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 8
+#            TOTAL NUMBER OF SUBTYPES = 7
 #
 #====================================================================
 
 # other dump types
 # ----------------
 DTIM_latest_adpupa=${DTIM_latest_adpupa:-"+2.99"}
-DTIM_latest_gpsipw=${DTIM_latest_gpsipw:-"+2.99"}
 DTIM_latest_ascatt=${DTIM_latest_ascatt:-"+2.99"}
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM3:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 adpupa gpsipw ascatt
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 adpupa ascatt
 error3=$?
 echo "$error3" > $DATA/error3
 
 if [ "$SENDDBN" = "YES" ]; then
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpupa $job \
     ${COMSP}adpupa.tm00.bufr_d
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsipw $job \
-    ${COMSP}gpsipw.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatt $job \
     ${COMSP}ascatt.tm00.bufr_d
    if [ "$NET" = 'gdas' ]; then
@@ -766,6 +764,7 @@ export DUMP_NUMBER=4
 #       EXCEPT: AIRCFT where it is +/- 3.25 hours
 #               AIRCAR where it is +/- 3.25 hours
 #               PROFLR where it is -4.00 to +3.99 hours
+#               GSPIPW where it is +/- 0.05 hours (+/- 3min)
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
@@ -774,8 +773,9 @@ export DUMP_NUMBER=4
 #            PROFLR: 4 subtype(s)
 #            VADWND: 1 subtype(s)
 #            RASSDA: 1 subtype(s)
+#            GPSIPW: 1 subtype(s)
 #            -------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 14
+#            TOTAL NUMBER OF SUBTYPES = 15
 #
 #=======================================================================
 
@@ -792,6 +792,10 @@ export SKIP_002017=YES
 #  (time window will be winnowed down in output from PREPOBS_PROFCQC, see
 #   parm cards for output time window)
 
+# Dump GPSIPW with narrow (+/- 3-min) time window since new Ground Based
+#  GPS-IPW/ZTD (from U.S.-ENI and foreign GNSS providers) is currently limited
+#  to obs only at cycle-time
+
 DTIM_earliest_aircft=${DTIM_earliest_aircft:-"-3.25"}
 DTIM_latest_aircft=${DTIM_latest_aircft:-"+3.25"}
 
@@ -804,10 +808,13 @@ DTIM_latest_proflr=${DTIM_latest_proflr:-"+3.99"}
 DTIM_latest_vadwnd=${DTIM_latest_vadwnd:-"+2.99"}
 DTIM_latest_rassda=${DTIM_latest_rassda:-"+2.99"}
 
+DTIM_earliest_gpsipw=${DTIM_latest_gpsipw:-"-0.05"}
+DTIM_latest_gpsipw=${DTIM_latest_gpsipw:-"+0.05"}
+
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM4:-on}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 aircar aircft proflr vadwnd \
- rassda
+ rassda gpsipw 
 error4=$?
 echo "$error4" > $DATA/error4
 
@@ -822,6 +829,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}vadwnd.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_rassda $job \
     ${COMSP}rassda.tm00.bufr_d
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsipw $job \
+    ${COMSP}gpsipw.tm00.bufr_d
 fi
 
 set +x
