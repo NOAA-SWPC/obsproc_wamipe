@@ -33,14 +33,16 @@ files:
 
  JOB script changes:
    JGDAS_DUMP, JGFS_DUMP:
-    - Points to latest version of obsproc_dump in Phase 2 vs. Phase 1 ($NWROOT
-      replaces $NWROOTp1, the transitional setting no longer needed). Also
-      removed setting of temporary variable EXGRBIX.
+    - Points to latest version of obsproc_shared/bufr_dumplist in Phase 2 vs.
+      Phase 1 ($NWROOTp2 replaces $NWROOTp1; the transitional setting for
+      $NWROOTp2 added).
+    - Removed setting of temporary variable EXGRBIX.
     - Remove exported script variable $utilparm (which defaulted to
       /nwprod/util/parm) as it is no longer required by any child scripts.
    JGDAS_DUMP_POST, JGFS_DUMP_POST:
-    - Points to latest version of obsproc_dump_post in Phase 2 vs. Phase 1
-      ($NWROOT replaces $NWROOTp1).
+    - Points to latest version of obsproc_dump_post and
+      obsproc_shared/bufr_dumplist in Phase 2 vs. Phase 1 ($NWROOTp2 replaces
+      $NWROOTp1; the transitional setting for $NWROOTp2 added).
     - More flexible options for specifiying variables $AVGDarch_IN,
       $AVGDarch_OUT and $ALERTL in developer runs.
    JGDAS_PREP, JGFS_PREP:
@@ -64,8 +66,9 @@ files:
                to set GETGES_NWG in the driver script in this case.  Also
                allows GETGES_NWG to be set to an alternative location in driver
                script.
-    - Points to latest version of obsproc_prep in Phase 2 vs. Phase 1 ($NWROOT
-      replaces $NWROOTp1, the transitional setting no longer needed).
+    - Points to latest version of obsproc_prep in Phase 2 vs. Phase 1 ($NWROOTp2
+      replaces $NWROOTp1; the transitional setting for $NWROOTp1 no longer
+      needed; the transitional setting for $NWROOTp2 added).
     - Remove exported script variable $utilexec (which defaulted to
       /nwprod/util/exec) as it is no longer required by any child scripts.
    JGDAS_PREP_POST:
@@ -81,9 +84,15 @@ files:
                a local output location.
     - More flexible options for specifiying variables $VOSarch_IN and
       $VOSarch_OUT in developer runs.
+    - Replaces generic $NWROOT with more specific $NWROOTp2 as root to
+      obsproc_prep_post in Phase 2 (the transitional setting for $NWROOTp2
+      added).
    JGFS_PREP_POST:
     - Remove exported script variable $utilexec (which defaulted to
       /nwprod/util/exec) as it is no longer required by any child scripts.
+    - Replaces generic $NWROOT with more specific $NWROOTp2 as root to
+      obsproc_prep_post in Phase 2 (the transitional setting for $NWROOTp2
+      added).
 
  Model script changes:
    exglobal_dump.sh.ecf:
@@ -101,6 +110,22 @@ files:
                available for monitoring (similar change made in NAM and RAP,
                networks that do assimilate these data).  (This may be tweaked in
                the future, but done now just to be safe.)
+    - Now dumps "adpupa" after all other types are dumped if new environment
+      variable $ADPUPA_wait is set to "YES".
+      BENEFIT: Set to "YES" in GFS network to maximize RAOB, PIBAL, and,
+               especially, RECCO and DROPSONDE data availability. (Set to "NO"
+               in GDAS network where the late cutoff means this is not needed.
+               When ADPUPA_wait=NO the dump jobs will run a bit faster.
+    - Added temporary logic to change "gpsipw" dump file's group to "rstprod"
+      and its permission to "640" so that it can only be read by users in the
+      rstprod group.
+      BENEFIT: New "gpsipw" dump file is restricted.  The logic to restrict dump
+               files is done in obsproc_dump ush script bufr_dump_obs.sh, where
+               the list of files to restrict is hardwired.  Since obsproc_dump
+               is not included in this release bundle, the restriction must be
+               done here.  This temporary logic will be removed once a future
+               change to add "gpsipw" to the list of dump files to restrict is
+               made in the next obsproc_dump release.
 
 
  Output changes:
@@ -111,7 +136,7 @@ files:
          /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d
          now contain new U.S.-ENI and foreign-GNSS Ground Based GPS-IPW/ZTD
          (message type NC012004) (before they contained U.S.-GSD Ground Based
-         GPS-IPW/ZTD, message type NC012003).
+         GPS-IPW/ZTD, message type NC012003).  They will also now be restricted.
           - As a result of above, the dump "status" files
             /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.status.tm00.bufr_d
             will now reflect a much lower dump count for data group "gpsipw"
@@ -127,10 +152,17 @@ files:
       Ground Based GPS-IPW/ZTD was +/- 3-hr about cycle time).
    Jobs JGDAS_DUMP_POST, JGFS_DUMP_POST:
     - As a result of update to obsproc_dump_post.v2.2.0:
+       - The following new files are created:
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d.nr
+       - The updated status files in
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.updated.status.tm00.bufr_d
+         will now contain dump counts and 30-d avg dump counts for new data type
+         "gnss" (new-GSD feed which replaces "gpspw" which represented the old-
+         GSD feed).
        - Dump listing files
          /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.gpsipw.tm00.bufr_d.listing
          list lat and lon to nearest 0.00001 degree rather than to nearest 0.01
-         degree.
+         degree.  These files are now restricted.
        - Information for 30-day average for "GOES/NESDIS infrared short-wave
          derived cloud motion(3p9us)" is now available in files
          /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.updated.status.tm00.bufr_d.
@@ -152,11 +184,23 @@ files:
          (report type 187) will now contain a cloud ceiling field (derived from
          cloud amount and cloud height values) represented by mnemonic CEILING.
          This is not read by the Global-GSI.
+   Job JGDAS_PREP_POST, JGFS_PREP_POST:
+    - As a result of update to obsproc_prep_post.v2.3.0:
+       - Non-restricted PREPBUFR files Files
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.prepbufr.nr
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.prepbufr_pre-qc.nr
+         /com2/gfs/prod/[gfs][gdas].<yyyymmdd>/[gfs][gdas1].t<cc>z.prepbufr.unblok.nr
+         no longer contain any reports in message type "GPSIPW" (as all reports
+         are restricted and stripped out)
 
 
  Compute Resource Information:
  -----------------------------
-   All jobs:
+   Jobs JGDAS_DUMP_POST, JGFS_DUMP_POST:
+    - No change in requested resources in the job cards.
+    - No change to memory usage.
+    - ~3 second increase in wallclock run time.
+   All other jobs:
     - No change in requested resources in the job cards.
     - No change to memory usage.
     - Negligible change in wallclock run time.
@@ -164,8 +208,8 @@ files:
 
  Disk Space Changes:
  -------------------
-   /com/gfs/prod/gfs.   - Decrease ~0.25 Mb per day
-   /com/gfs/prod/gdas.  - Decrease ~0.12 Mb per day
+   /com/gfs/prod/gfs.   - Increase ~1.1 Mb per day
+   /com/gfs/prod/gdas.  - Increase ~7.4 Mb per day
 
 
  Shared Software (with 1 or more jobs):

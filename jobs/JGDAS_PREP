@@ -95,6 +95,11 @@ export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 
+######################################################
+# Phase 1 --> Phase 2 --> Cray  Transitional Settings
+######################################################
+NWROOTp2=${NWROOTp2:-/nwprod2}
+
 ##########################
 # Specify Execution Areas
 ##########################
@@ -115,7 +120,7 @@ export FIXobsproc_global=${FIXobsproc_global:-$HOMEobsproc_network/fix}
 # Paths for obsproc_prep items
 # ----------------------------
 export HOMEobsproc_prep=${HOMEobsproc_prep:\
--${NWROOT:?}/obsproc_prep.${obsproc_prep_ver:?\
+-${NWROOTp2:?}/obsproc_prep.${obsproc_prep_ver:?\
 "###FATAL ERROR \"obsproc_prep_ver\" is not set"}}
 
 export USHobsproc_prep=${USHobsproc_prep:-$HOMEobsproc_prep/ush}

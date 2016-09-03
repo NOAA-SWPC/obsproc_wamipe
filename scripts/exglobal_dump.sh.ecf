@@ -53,11 +53,11 @@ set +u
 #               esmhs airsev gome
 #
 # Dump group #2 (pb, TIME_TRIM defaults to OFF) =
-#               sfcshp atovs* adpsfc
+#               sfcshp atovs* adpsfc ascatt
 #                   * - for GDAS only
 #
 # Dump group #3 (pb, TIME_TRIM defaults to OFF) =
-#               adpupa ascatt
+#               adpupa
 #
 # Dump group #4 (pb, TIME_TRIM defaults to ON) =
 #               aircar aircft proflr vadwnd rassda gpsipw 
@@ -127,6 +127,13 @@ else
    DUMP_group7=${DUMP_group7:-"YES"}
    DUMP_group8=${DUMP_group8:-"YES"}
    DUMP_group9=${DUMP_group9:-"YES"}
+fi
+
+if [ "$NET" = 'gfs' ]; then
+   ADPUPA_wait=${ADPUPA_wait:-"YES"}
+########ADPUPA_wait=${ADPUPA_wait:-"NO"} # saves time if ADPUPA_wait=NO
+else
+   ADPUPA_wait=${ADPUPA_wait:-"NO"}
 fi
 
 
@@ -576,21 +583,23 @@ export DUMP_NUMBER=2
 # Dump # 2 : SFCSHP: 5 subtype(s)
 #            ATOVS:  1 subtype(s)
 #            ADPSFC: 4 subtype(s)
+#            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 10
+#            TOTAL NUMBER OF SUBTYPES = 11
 #
 #--------------------------------------------------------------------------
 # GFS:
 # Dump # 2 : SFCSHP: 5 subtype(s)
 #            ADPSFC: 4 subtype(s)
+#            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 9
+#            TOTAL NUMBER OF SUBTYPES =  10
 #
 #==========================================================================
 
@@ -603,6 +612,7 @@ if [ "$NET" = 'gdas' ]; then
 fi
 
 DTIM_latest_adpsfc=${DTIM_latest_adpsfc:-"+2.99"}
+DTIM_latest_ascatt=${DTIM_latest_ascatt:-"+2.99"}
 #-----------------------------------------------
 # check for wndsat tank presence in past 10 days
 wndsat=""
@@ -619,7 +629,7 @@ fi
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM2:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc $wndsat
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc ascatt $wndsat
 error2=$?
 echo "$error2" > $DATA/error2
 
@@ -631,6 +641,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}atovs.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpsfc $job \
     ${COMSP}adpsfc.tm00.bufr_d
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatt $job \
+    ${COMSP}ascatt.tm00.bufr_d
    if [ "$wndsat" = wndsat ];then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_wndsat $job \
        ${COMSP}wndsat.tm00.bufr_d
@@ -677,28 +689,22 @@ export DUMP_NUMBER=3
 #
 #--------------------------------------------------------------------------
 # Dump #3:   ADPUPA: 6 subtype(s)
-#            ASCATT: 1 subtype(s)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 7
+#            TOTAL NUMBER OF SUBTYPES = 6
 #
 #====================================================================
 
-# other dump types
-# ----------------
 DTIM_latest_adpupa=${DTIM_latest_adpupa:-"+2.99"}
-DTIM_latest_ascatt=${DTIM_latest_ascatt:-"+2.99"}
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM3:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 adpupa ascatt
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 adpupa
 error3=$?
 echo "$error3" > $DATA/error3
 
 if [ "$SENDDBN" = "YES" ]; then
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpupa $job \
     ${COMSP}adpupa.tm00.bufr_d
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatt $job \
-    ${COMSP}ascatt.tm00.bufr_d
    if [ "$NET" = 'gdas' ]; then
     ####### ALERT TURNED ON for GDAS only ########################
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatw $job \
@@ -817,6 +823,62 @@ $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 aircar aircft proflr vadwnd \
  rassda gpsipw 
 error4=$?
 echo "$error4" > $DATA/error4
+
+#+++++++++++++++++++
+#  Temporary logic to change "gpsipw" dump file's group to "rstprod" and its
+#   permission to "640" so that it can only be read by users in the rstprod
+#   group (new "gpsipw" dump file is restricted; currently the logic to restrict
+#   dump files is done in obsproc_dump ush script bufr_dump_obs.sh, where the
+#   list of files to restrict is hardwired. Since obsproc_dump is not included
+#   in the bundle which includes the switch to new "gpsipw" we must do it here.
+#   Future change will either be to add "gpsipw" to list of dump files to
+#   restrict in next obsproc_dump release, or to parameterize the list of files
+#   to be restricted in this script and pass it to bufr_dump_obs.sh.  In either
+#   case, once that is done this logic can be removed.  Also, must place this
+#   logic here since below a dbn_alert is issued to post the "gpsipw" dump file
+#   to ftpprd server (and it must be restricted before transfer!).
+
+if [ -f ${COMSP}gpsipw.${tmmark}.bufr_d ]; then
+CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
+if [ "$CHGRP_RSTPROD" = 'YES' ]; then
+   chgrp rstprod ${COMSP}gpsipw.${tmmark}.bufr_d
+   errch=$?
+   if [ $errch -eq 0 ]; then
+      chmod 640 ${COMSP}gpsipw.${tmmark}.bufr_d
+      msg="NOTE: gpsipw dump contains RESTRICTED data, only users in rstprod \
+group have read permission"
+      set +u
+      [ -n "$jlogfile" ] && $DATA/postmsg "$jlogfile" "$msg"
+      set -u
+      set +x
+      echo
+      echo
+      echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo "$msg"
+      echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo
+      echo
+      set -x
+   else
+      cp /dev/null ${COMSP}gpsipw.${tmmark}.bufr_d
+      msg="**WARNING: gpsipw dump contains RESTRICTED data, since user $USER \
+is not in rstprod group a null file is copied in its place"
+      set +u
+      [ -n "$jlogfile" ] && $DATA/postmsg "$jlogfile" "$msg"
+      set -u
+      set +x
+      echo
+      echo
+      echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo "$msg"
+      echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo
+      echo
+      set -x
+   fi
+fi
+fi
+#+++++++++++++++++++
 
 if [ "$SENDDBN" = "YES" ]; then
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_aircar $job \
@@ -1342,7 +1404,7 @@ if [ "$launcher" = cfp ]; then
    [ $DUMP_group6 = YES ]  &&  echo thread_6 >> $DATA/poe.cmdfile  # moved up
    [ $DUMP_group8 = YES ]  &&  echo thread_8 >> $DATA/poe.cmdfile  # moved up
    [ $DUMP_group2 = YES ]  &&  echo thread_2 >> $DATA/poe.cmdfile
-   [ $DUMP_group3 = YES ]  &&  echo thread_3 >> $DATA/poe.cmdfile
+   [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  echo thread_3 >> $DATA/poe.cmdfile
    [ $DUMP_group4 = YES ]  &&  echo thread_4 >> $DATA/poe.cmdfile
    [ $DUMP_group9 = YES ]  &&  echo thread_9 >> $DATA/poe.cmdfile
 
@@ -1363,7 +1425,7 @@ else
    echo "Spawning background threads"
    [ $DUMP_group1 = YES ]  &&  thread_1 &
    [ $DUMP_group2 = YES ]  &&  thread_2 &
-   [ $DUMP_group3 = YES ]  &&  thread_3 &
+   [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  thread_3 &
    [ $DUMP_group4 = YES ]  &&  thread_4 &
    [ $DUMP_group5 = YES ]  &&  thread_5 &
    [ $DUMP_group6 = YES ]  &&  thread_6 &
@@ -1372,6 +1434,13 @@ else
    [ $DUMP_group9 = YES ]  &&  thread_9 &
    wait
 fi
+
+#  if ADPUPA_wait is YES, adpupa is dumped AFTER all other dump threads have
+#   run (normally done in real-time GFS runs to dump as late as possible in
+#   order to maximize data availability in GFS network, particularly DROPs)
+#  --------------------------------------------------------------------------
+
+[ $DUMP_group3 = YES -a $ADPUPA_wait  = YES ]  &&  thread_3
 
 cat $DATA/1.out $DATA/2.out $DATA/3.out $DATA/4.out $DATA/5.out $DATA/6.out $DATA/7.out $DATA/8.out $DATA/9.out
 

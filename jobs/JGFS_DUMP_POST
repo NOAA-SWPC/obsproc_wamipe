@@ -103,6 +103,7 @@ export SENDSDM=${SENDSDM:-YES}
 # Phase 1 --> Phase 2 --> Cray  Transitional Settings
 ######################################################
 NWROOTp1=${NWROOTp1:-/nwprod}
+NWROOTp2=${NWROOTp2:-/nwprod2}
 
 ##########################
 # Specify Execution Areas
@@ -119,7 +120,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # Paths for obsproc_dump_post items
 # ---------------------------------
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
--${NWROOT:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
+-${NWROOTp2:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:\
@@ -160,7 +161,7 @@ export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
 # Paths for obsproc_shared_bufr_dumplist items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
--${NWROOTp1:?}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
+-${NWROOTp2:?}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_dumplist_ver\" is not set"}}
 
 export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
