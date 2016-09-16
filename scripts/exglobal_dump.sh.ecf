@@ -643,6 +643,11 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}adpsfc.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatt $job \
     ${COMSP}ascatt.tm00.bufr_d
+   if [ "$NET" = 'gdas' ]; then
+    ####### ALERT TURNED ON for GDAS only ########################
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatw $job \
+       ${COMSP}ascatw.tm00.bufr_d
+   fi
    if [ "$wndsat" = wndsat ];then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_wndsat $job \
        ${COMSP}wndsat.tm00.bufr_d
@@ -705,10 +710,8 @@ echo "$error3" > $DATA/error3
 if [ "$SENDDBN" = "YES" ]; then
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpupa $job \
     ${COMSP}adpupa.tm00.bufr_d
-   if [ "$NET" = 'gdas' ]; then
+## if [ "$NET" = 'gdas' ]; then
     ####### ALERT TURNED ON for GDAS only ########################
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ascatw $job \
-       ${COMSP}ascatw.tm00.bufr_d
        ####### MOVED FROM exnesdis_pushradiosonde.sh.sms ############
 #      $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE $job \
 #       $COMINm1/gdas1.${cycle}.adpupa.tm00.bufr_d         
@@ -730,7 +733,7 @@ if [ "$SENDDBN" = "YES" ]; then
 #        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE3 $job \
 #          $COMINm1/gdas1.${cycle}.prepbufr.nr
 #      fi
-   fi
+## fi
 fi
 
 set +x
