@@ -4,7 +4,7 @@ date -u
 ##################################
 # Load modules needed by this job
 ##################################
-module load util_shared/v1.0.4 # (prepended path to util ush script
+module load util_shared/${util_shared_ver} # (prepended path to util ush script
                                 # month_name.sh in ush script gdas_summary.sh)
 
 ################################

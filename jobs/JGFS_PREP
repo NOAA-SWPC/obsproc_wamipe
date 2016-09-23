@@ -4,7 +4,7 @@ date -u
 ##################################
 # Load modules needed by this job
 ##################################
-module load util_shared/v1.0.4 # (prepended path to util ush script getges.sh
+module load util_shared/${util_shared_ver} # (prepended path to util ush script getges.sh
                                #  in ush script prepobs_makeprepbufr.sh)
 
 ################################

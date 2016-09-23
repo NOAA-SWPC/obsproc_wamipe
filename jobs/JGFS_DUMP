@@ -4,7 +4,7 @@ date -u
 ##################################
 # Load modules needed by this job
 ##################################
-module load grib_util/v1.0.1 # ($GRBINDEX and $CNVGRIB in model script exglobal_dump.sh.ecf)
+module load grib_util/${grib_util_ver} # ($GRBINDEX and $CNVGRIB in model script exglobal_dump.sh.ecf)
                              # ($GRBINDEX in ush script bufr_dump_obs.sh)
 
 ################################
