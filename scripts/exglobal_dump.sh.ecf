@@ -894,8 +894,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}vadwnd.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_rassda $job \
     ${COMSP}rassda.tm00.bufr_d
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsipw $job \
-    ${COMSP}gpsipw.tm00.bufr_d
+#  $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsipw $job \
+#   ${COMSP}gpsipw.tm00.bufr_d
 fi
 
 set +x
