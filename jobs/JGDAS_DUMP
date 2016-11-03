@@ -109,6 +109,7 @@ export SENDDBN=${SENDDBN:-YES}
 NWROOTp1=${NWROOTp1:-/nwprod}
 NWROOTp2=${NWROOTp2:-/nwprod2}
 COMROOTp1=${COMROOTp1:-/com}
+COMROOTp2=${COMROOTp2:-/com2}
 
 ##########################
 # Specify Execution Areas
@@ -183,10 +184,10 @@ export TANK=${TANK:-${DCOMROOT}/us007003}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
 # -----------------------------------------------------------------------
-export COM_ENGICE=${COM_ENGICE:-$COMROOTp1/omb/prod/sice}
-export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp1/omb/prod/sice}
+export COM_ENGICE=${COM_ENGICE:-$COMROOTp2/omb/prod/sice}
+export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp2/omb/prod/sice}
 export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
-export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp1/gfs/prod/sst}
+export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp2/gfs/prod/sst}
 export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
 
 ###########################
