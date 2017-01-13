@@ -1,11 +1,17 @@
 set -xa
 date -u
 
-##################################
-# Load modules needed by this job
-##################################
-module load grib_util/${grib_util_ver} # ($GRBINDEX and $CNVGRIB in model script exglobal_dump.sh.ecf)
-                             # ($GRBINDEX in ush script bufr_dump_obs.sh)
+########################################
+# Check that required variables are set
+########################################
+set +x
+echo
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
+echo
+set -x
 
 ################################
 # Print out version information
@@ -18,7 +24,24 @@ echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_DUMP version used by this job is ${obsproc_dump_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
        "${obsproc_shared_bufr_dumplist_ver:-not set}"
+echo Version of module grib_util used by this job is \
+${grib_util_ver?"###FATAL ERROR \"grib_util_ver\" is not set"}
 echo
+echo "####################################################################"
+echo
+set -x
+
+##################################
+# Load modules needed by this job
+##################################
+module load grib_util/${grib_util_ver} # ($GRBINDEX and $CNVGRIB in model script
+                                       #  exglobal_dump.sh.ecf)
+                                       # ($GRBINDEX in ush script
+                                       #  bufr_dump_obs.sh)
+
+set +x
+echo
+echo "####################################################################"
 echo
       module list
 echo
@@ -39,18 +62,6 @@ case $DEBUG_LEVEL in
   4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
   *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
 esac
-
-########################################
-# Check that required variables are set
-########################################
-set +x
-echo
-echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
-echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
-echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
-echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
-echo
-set -x
 
 ##################################
 # Specify NET, RUN and model Name
@@ -239,6 +250,7 @@ export PROCESS_GRIBFLDS=${PROCESS_GRIBFLDS:-YES}
 export PROCESS_DUMP=${PROCESS_DUMP:-YES}
 export prepssmi=NO # "spssmi" reprocessed dump no longer generated
                    # since SSM/I instrument on F-13 has failed (11/2009)
+export KEEP_NEARDUP_ACFT=${KEEP_NEARDUP_ACFT:-NO} # toss near-dupl. acft rpts
 
 # During the period where both Goodberlet and NN3 SSM/I products are
 #  being dumped, switch PREPSSMI_PROD_TYPE will direct the PREPSSMI
@@ -276,6 +288,8 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
  echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is \
 $obsproc_shared_bufr_dumplist_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
+echo "Version of module \"grib_util\" used by this job is $grib_util_ver" \
+ >> $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 
 if [ "$KEEPDATA" != YES ]; then
    cd $DATAROOT

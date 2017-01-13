@@ -10,11 +10,12 @@
    PG4243    =FALSE,
    RWINDO    = 300., DWINDO    = 300.,
    FLDMGS    =FALSE, FLDMAF    =FALSE, FLDMFR    = TRUE,
-   KTEMP     = TRUE, AWINDO    = 6*325., 2*325., 4*325.,
-   JAMASS    = 36*0,
-   IACFTL    =  100,-200,-200,-200,-200,-200,
-   AIFNOW    =6*TRUE,
-   FLACMS    = TRUE, TRUE, TRUE,FALSE, FALSE, TRUE,
+   KTEMP     = TRUE, AWINDO    = 6*325., 2*325., 10*325.,
+   JAMASS    = 54*0,
+   JAWIND    = 54*0,
+   IACFTL    =  100,-200,-200,-200,-200,-200,-200,-200,-200,
+   AIFNOW    =9*TRUE,
+   FLACMS    = TRUE, TRUE, TRUE,FALSE, FALSE, TRUE, TRUE, TRUE, TRUE,
 
              !goes-o/e  insat   jma    eumt-o/e aqua/terra
              !-------- ------- ------- -------- ----------

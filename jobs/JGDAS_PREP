@@ -1,11 +1,17 @@
 set -xa
 date -u
 
-##################################
-# Load modules needed by this job
-##################################
-module load util_shared/${util_shared_ver} # (prepended path to util ush script getges.sh
-                               #  in ush script prepobs_makeprepbufr.sh)
+########################################
+# Check that required variables are set
+########################################
+set +x
+echo
+echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
+echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
+echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
+echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
+echo
+set -x
 
 ################################
 # Print out version information
@@ -16,7 +22,23 @@ echo "####################################################################"
 echo
 echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_PREP version used by this job is ${obsproc_prep_ver:-not set}"
+echo Version of module util_shared used by this job is \
+${util_shared_ver?"###FATAL ERROR \"util_shared_ver\" is not set"}
 echo
+echo "####################################################################"
+echo
+set -x
+
+##################################
+# Load modules needed by this job
+##################################
+module load util_shared/${util_shared_ver} # (prepended path to util ush script
+                                           #  getges.sh in ush script
+                                           #  prepobs_makeprepbufr.sh)
+
+set +x
+echo
+echo "####################################################################"
 echo
       module list
 echo
@@ -37,18 +59,6 @@ case $DEBUG_LEVEL in
   4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
   *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
 esac
-
-########################################
-# Check that required variables are set
-########################################
-set +x
-echo
-echo cyc is ${cyc:?"###FATAL ERROR \"cyc\" is not set"}
-echo envir is ${envir:?"###FATAL ERROR \"envir\" is not set"}
-echo job is ${job:?"###FATAL ERROR \"job\" is not set"}
-echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
-echo
-set -x
 
 ##################################
 # Specify NET, RUN and model Name
@@ -212,7 +222,7 @@ export POE=${POE:-YES}
                    #  NO)
 
 #  NPROCS indicates the number of POE tasks to use
-#   (Applies only when POE=YES and PREPDATA=YES)
+#   (Applies only when POE=YES, launcher!=cfp and PREPDATA=YES)
 
 export NPROCS=${NPROCS=$(($(echo $LSB_HOSTS|wc -w)+0))}
 
@@ -305,6 +315,8 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 [ -n "$obsproc_prep_ver" ]  &&  \
  echo "OBSPROC_PREP version used by this job is $obsproc_prep_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_run
+echo "Version of module \"util_shared\" used by this job is $util_shared_ver" \
+ >> $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_run
 
 if [ "$KEEPDATA" != YES ]; then
    cd $DATAROOT
