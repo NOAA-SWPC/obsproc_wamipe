@@ -126,7 +126,7 @@ files:
     - "ESIASI" (IASI DB radiances from RARS), "SAPHIR" (MT SAPHIR btemps),
       "CRISDB" (CrIS DB radiances from UW/SSEC), "ESATMS" (ATMS DB btemps from
       RARS), "AMSR2" (AMSR2 btemps), "IASIDB" (IASI DB radiances from UW/SSEC),
-      "ESCRIS" (CrIS DB radiances from RARS), "SEVASR" (SEVIRI all-sKy
+      "ESCRIS" (CrIS DB radiances from RARS), "SEVASR" (SEVIRI all-sky
       radiances) and "ATMSDB" (ATMS DB btemps from UW/SSEC) will now appear in
       GFS ("GFS") and GDAS ("GDS") RTDM count graphics.
     - After ARINC switches to v7 BUFR for AMDAR and MDCRS, dump files
@@ -275,6 +275,7 @@ files:
    This must be implemented simultaneously with the implementations of:
       v2.2.0 of obsproc_cdas,
       v3.3.0 of obsproc_dump,
+      v2.1.0 of obsproc_dump_monitor,
       v2.3.0 of obsproc_dump_post,
       v2.3.0 of obsproc_nam,
       v3.8.0 of obsproc_prep,
@@ -283,7 +284,7 @@ files:
       v2.2.0 of obsproc_urma.
 
    Please export file
-   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/2017????_OBSPROC-v6.5.0/obsproc_global.ver
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20170112_OBSPROC-v6.5.0/obsproc_global.ver
    and copy to /nwprod2/versions, replacing like-named file.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
