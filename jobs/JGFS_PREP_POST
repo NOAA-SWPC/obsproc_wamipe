@@ -1,5 +1,20 @@
+#!/bin/bash
 set -xa
 date -u
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
 
 ########################################
 # Check that required variables are set
@@ -28,6 +43,19 @@ echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
 echo
 echo "####################################################################"
 echo
+set -x
+
+#####################################################################
+# List modules loaded for this job
+#   On luna/surge may need to initialize the Modules package to find
+#   the module command.  Will do so for either system.
+#####################################################################
+if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
+  . /opt/modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
+  . /usrx/local/Modules/default/init/sh 2>/dev/null
+fi
+set +x
 echo
 echo "####################################################################"
 echo
@@ -37,26 +65,11 @@ echo "####################################################################"
 echo
 set -x
 
-###################################################################
-# Set DEBUG LEVEL - modifies info in execution trace prompt string
-###################################################################
-export DEBUG_LEVEL=${DEBUG_LEVEL=1}
-case $DEBUG_LEVEL in
-  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
-  0) export PS4='+ ';;                      # don't include seconds (useful if
-                                            #  want to diff output from 2 runs)
-  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
-  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
-  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
-  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
-esac
-
-##################################
-# Specify NET, RUN and model Name
-##################################
+######################
+# Specify NET and RUN
+######################
 export NET=${NET:-gfs}
 export RUN=${RUN:-gfs}
-export model=${model:-gfs}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark
@@ -67,25 +80,17 @@ export tmmark=tm00
 ###############################
 # Create new working directory
 ###############################
-host=$(hostname -s)
-export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+jobid=${jobid:-${job}.$(hostname -s).$$}
+export DATA=${DATA:-$DATAROOT/${jobid}}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
+export pgmout=OUTPUT.$$
 
 ######################################
 # Set job log file for postmsg output
 ######################################
 jlogfile=${jlogfile:-${DATA}/jlogfile}
-
-######################################
-# Determine Job Output Name on System
-######################################
-export pid=$$
-export outid="LL$job"
-[ $envir != prod ]  && export outid="LL${job}_${envir}"
-export jobid="${outid}.o${pid}"
-export pgmout="OUTPUT.${pid}"
 
 #################################################
 # SENDCOM      - Copy files to $COMOUT directory
@@ -95,12 +100,6 @@ export pgmout="OUTPUT.${pid}"
 export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
-
-######################################################
-# Phase 1 --> Phase 2 --> Cray  Transitional Settings
-######################################################
-NWROOTp1=${NWROOTp1:-/nwprod}
-NWROOTp2=${NWROOTp2:-/nwprod2}
 
 ##########################
 # Specify Execution Areas
@@ -117,7 +116,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # Paths for obsproc_prep_post items
 # ---------------------------------
 export HOMEobsproc_prep_post=${HOMEobsproc_prep_post:\
--${NWROOTp2:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
+-${NWROOT:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
 "###FATAL ERROR \"obsproc_prep_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
@@ -127,7 +126,7 @@ export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
 # Paths for obsproc_shared_bufr_remorest items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
--${NWROOTp1:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
+-${NWROOT:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
 
 export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
@@ -136,22 +135,21 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-###########################
-# Set up the UTILITY paths
-###########################
-export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-
-################################################################
-# Run setup to initialize working directory and utility scripts
-################################################################
-sh $utilscript/setup.sh                              # temporary
+#########################################################################
+# Add some prod utilities to working directory
+#########################################################################
+echo "step ############# break ##############################" > ./break
+cp $UTILROOT/ush/err_chk   .; chmod +x err_chk
+cp $UTILROOT/ush/err_exit  .; chmod +x err_exit
+cp $UTILROOT/ush/prep_step .; chmod +x prep_step
+cp $UTILROOT/ush/postmsg   .; chmod +x postmsg
+cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
-setpdy.sh
-. $DATA/PDY
+./setpdy.sh
+. PDY
 
 #########################
 # Define COM directories
@@ -159,18 +157,18 @@ setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
 
@@ -182,6 +180,7 @@ fi
 # Specify variables specific to this execution of script
 #########################################################
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
 export PROCESS_TIMETWINS=NO  # can never run here
 export PROCESS_ALL_REPORT_COUNTS=NO  # can never run here
 
@@ -191,7 +190,7 @@ env
 # Execute the script
 #####################
 $SCRIPTSobsproc_prep_post/exprep_post.sh.ecf
-eval err_${model}_prep_post=$?
+eval err_${RUN}_prep_post=$?
 
 echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_post_ran
 

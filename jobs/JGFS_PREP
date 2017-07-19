@@ -1,5 +1,20 @@
+#!/bin/bash
 set -xa
 date -u
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
 
 ########################################
 # Check that required variables are set
@@ -22,20 +37,21 @@ echo "####################################################################"
 echo
 echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_PREP version used by this job is ${obsproc_prep_ver:-not set}"
-echo Version of module util_shared used by this job is \
-${util_shared_ver?"###FATAL ERROR \"util_shared_ver\" is not set"}
 echo
 echo "####################################################################"
 echo
 set -x
 
-##################################
-# Load modules needed by this job
-##################################
-module load util_shared/${util_shared_ver} # (prepended path to util ush script
-                                           #  getges.sh in ush script
-                                           #  prepobs_makeprepbufr.sh)
-
+#####################################################################
+# List modules loaded for this job
+#   On luna/surge may need to initialize the Modules package to find
+#   the module command.  Will do so for either system.
+#####################################################################
+if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
+  . /opt/modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
+  . /usrx/local/Modules/default/init/sh 2>/dev/null
+fi
 set +x
 echo
 echo "####################################################################"
@@ -46,26 +62,11 @@ echo "####################################################################"
 echo
 set -x
 
-###################################################################
-# Set DEBUG LEVEL - modifies info in execution trace prompt string
-###################################################################
-export DEBUG_LEVEL=${DEBUG_LEVEL=1}
-case $DEBUG_LEVEL in
-  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
-  0) export PS4='+ ';;                      # don't include seconds (useful if
-                                            #  want to diff output from 2 runs)
-  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
-  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
-  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
-  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
-esac
-
-##################################
-# Specify NET, RUN and model Name
-##################################
+######################
+# Specify NET and RUN
+######################
 export NET=${NET:-gfs}
 export RUN=${RUN:-gfs}
-export model=${model:-gfs}  # Used in subscripts for file names
 
 ##############################
 # Specify cycle and time-mark
@@ -76,25 +77,17 @@ export tmmark=tm00
 ###############################
 # Create new working directory
 ###############################
-host=$(hostname -s)
-export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+jobid=${jobid:-${job}.$(hostname -s).$$}
+export DATA=${DATA:-$DATAROOT/${jobid}}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
+export pgmout=OUTPUT.$$
 
 ######################################
 # Set job log file for postmsg output
 ######################################
 jlogfile=${jlogfile:-${DATA}/jlogfile}
-
-######################################
-# Determine Job Output Name on System
-######################################
-export pid=$$
-export outid="LL$job"
-[ $envir != prod ]  && export outid="LL${job}_${envir}"
-export jobid="${outid}.o${pid}"
-export pgmout="OUTPUT.${pid}"
 
 #################################################
 # SENDCOM      - Copy files to $COMOUT directory
@@ -108,7 +101,7 @@ export SENDDBN=${SENDDBN:-YES}
 ######################################################
 # Phase 1 --> Phase 2 --> Cray  Transitional Settings
 ######################################################
-NWROOTp2=${NWROOTp2:-/nwprod2}
+NWROOTp1=${NWROOTp1:-/nwprod}
 
 ##########################
 # Specify Execution Areas
@@ -130,7 +123,7 @@ export FIXobsproc_global=${FIXobsproc_global:-$HOMEobsproc_network/fix}
 # Paths for obsproc_prep items
 # ----------------------------
 export HOMEobsproc_prep=${HOMEobsproc_prep:\
--${NWROOTp2:?}/obsproc_prep.${obsproc_prep_ver:?\
+-${NWROOT:?}/obsproc_prep.${obsproc_prep_ver:?\
 "###FATAL ERROR \"obsproc_prep_ver\" is not set"}}
 
 export USHobsproc_prep=${USHobsproc_prep:-$HOMEobsproc_prep/ush}
@@ -164,24 +157,23 @@ export PARMSYND=${PARMSYND:-${HOMEobsproc_network}/parm}
 # DICTPREP is directory path to metar.tbl dictionary used in
 #  prepobs_prepacqc.sh if PREPOBS_PREPACPF is executed
 # ----------------------------------------------------------
-export DICTPREP=${DICTPREP:-/nwprod/decoders/decod_shared/dictionaries}
+export DICTPREP=${DICTPREP:-${NWROOTp1}/decoders/decod_shared/dictionaries}
 
-###########################
-# Set up the UTILITY paths
-###########################
-export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-
-################################################################
-# Run setup to initialize working directory and utility scripts
-################################################################
-sh $utilscript/setup.sh                              # temporary
+#########################################################################
+# Add some prod utilities to working directory
+#########################################################################
+echo "step ############# break ##############################" > ./break
+cp $UTILROOT/ush/err_chk   .; chmod +x err_chk
+cp $UTILROOT/ush/err_exit  .; chmod +x err_exit
+cp $UTILROOT/ush/prep_step .; chmod +x prep_step
+cp $UTILROOT/ush/postmsg   .; chmod +x postmsg
+cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
-setpdy.sh
-. $DATA/PDY
+./setpdy.sh
+. PDY
 
 #########################
 # Define COM directories
@@ -189,22 +181,27 @@ setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
-export GETGES_COM=${GETGES_COM:-/com2} # Root location for GFS/GDAS COM data
-export GETGES_NWG=${GETGES_NWG:-/nwges2}
+
+export NEMSIO_IN=${NEMSIO_IN:-.true.}     # switch for nemsio vs sigio guess
+export envir_getges=${envir_getges:-$envir}
+export GETGES_COM=${GETGES_COM:-$COMROOT} # Root location for GFS/GDAS COM data
+export GETGES_NWG=${GETGES_NWG:-$GESROOT}
+export COMINgdas=${COMINgdas:-$(compath.py gfs/${envir_getges}/gdas.$PDY)}
+export COMINgfs=${COMINgfs:-$(compath.py gfs/${envir_getges}/gfs.$PDY)}
 
 ##########################################
 # SETUP GFS PREPBUFR PROCESSING VARIABLES
@@ -221,20 +218,12 @@ export POE=${POE:-YES}
                    #  job in a parallel environment (in this case POE must be
                    #  NO)
 
-#  NPROCS indicates the number of POE tasks to use
-#   (Applies only when POE=YES, launcher!=cfp and PREPDATA=YES)
-
-export NPROCS=${NPROCS=$(($(echo $LSB_HOSTS|wc -w)+0))}
-
 #  NSPLIT indicates the number of parts into which the PREPDATA
 #         processing will will be split in order to run in parallel
 #         for computational efficiency (either under poe tasks when
 #         POE=YES or in background threads when BACK=YES)
 #   (Applies only when either POE=YES or BACK=YES, and PREPDATA=YES)
-#   A value less than or equal to NPROCS is recommended for POE, 
-#   and may be required depending on poe launcher used.
 #   Consider the size of the backgrounds fields if using threads. 
-#   (At T1534 resolution, only four fit on a WCOSS compute node).
 
 export NSPLIT=${NSPLIT:-3}
 
@@ -287,7 +276,7 @@ export GETGUESS=${GETGUESS:-YES}
                       # Encode first guess (background) values interpolated to
                       # observation locations in the PREPBUFR file for use by
                       # the q.c. programs.  This guess is always from a global
-                      # sigma guess file valid at the center PREPBUFR
+                      # sigma or nemsio guess file valid at the center PREPBUFR
                       # processing date/time.
 
 export DO_QC=${DO_QC:-YES}
@@ -297,13 +286,16 @@ export DO_QC=${DO_QC:-YES}
                       # switches above -
                       # should be set to NO only as a last resort!!!
 
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
+                      # IF YES, create prepbufr.unblok
+
 env
 
 #####################
 # Execute the script
 #####################
 $SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
-eval err_${model}_prep=$?
+eval err_${RUN}_prep=$?
 
 echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 
@@ -314,8 +306,6 @@ echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 [ -n "$obsproc_prep_ver" ]  &&  \
  echo "OBSPROC_PREP version used by this job is $obsproc_prep_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_run
-echo "Version of module \"util_shared\" used by this job is $util_shared_ver" \
- >> $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_run
 
 if [ "$KEEPDATA" != YES ]; then
    cd $DATAROOT

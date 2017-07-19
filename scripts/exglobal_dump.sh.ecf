@@ -1,3 +1,4 @@
+#!/bin/ksh
 #############################################################################
 echo "----------------------------------------------------------------------"
 echo "exglobal_dump.sh.ecf - Global (GDAS, GFS) network data dump processing"
@@ -23,9 +24,10 @@ echo "         Aug 22 2016 - GSPIPW dump window reset for new data stream   "
 echo "                         (moved to dump group #4 where TIME_TRIM=on)  "
 echo "         Jan  5 2017 - Dump new satellite data types. Reordered to    "
 echo "                       improve run time with all the new data.        "
+echo "         Feb  8 2017 - Update to run on Cray-XC40 or IBM iDataPlex    "
 #############################################################################
 
-# NOTE: NET is changed to gdas in the parent Job script for the gdas1 RUN 
+# NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
 #       (was gfs - NET remains gfs for gfs RUN)
 # -----------------------------------------------------------------------
 
@@ -81,10 +83,12 @@ set +u
 #               geoimr
 #
 # Dump group #10 (non-pb, TIME_TRIM defaults to OFF) =
-#               amsr2 esiasi mtiasi esamua crisdb iasidb sevasr 1bamua bathy
-#               osbuv8
+#               esiasi mtiasi esamua crisdb iasidb sevasr 1bamua bathy osbuv8
 #
-# Dump group #11 STATUS FILE
+# Dump group #11 (non-pb, TIME_TRIM defaults to OFF) =
+#               amsr2
+#
+# Dump group #12 STATUS FILE
 # -----------------------------------------------------------------------------
 
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -112,6 +116,7 @@ set -u
       DUMP_group8=${DUMP_group8:-"NO"}
       DUMP_group9=${DUMP_group9:-"YES"}
       DUMP_group10=${DUMP_group10:-"YES"}
+      DUMP_group11=${DUMP_group11:-"YES"}
    else
       dump_ind=DUMP
       DUMP_group1=${DUMP_group1:-"NO"}
@@ -124,6 +129,7 @@ set -u
       DUMP_group8=${DUMP_group8:-"YES"}
       DUMP_group9=${DUMP_group9:-"NO"}
       DUMP_group10=${DUMP_group10:-"NO"}
+      DUMP_group11=${DUMP_group11:-"NO"}
    fi
 else
    dump_ind=DUMP
@@ -137,6 +143,7 @@ else
    DUMP_group8=${DUMP_group8:-"YES"}
    DUMP_group9=${DUMP_group9:-"YES"}
    DUMP_group10=${DUMP_group10:-"YES"}
+   DUMP_group11=${DUMP_group11:-"YES"}
 fi
 
 if [ "$NET" = 'gfs' ]; then
@@ -438,6 +445,7 @@ echo "=======> Dump group 7 (thread_7) not executed." > $DATA/7.out
 echo "=======> Dump group 8 (thread_8) not executed." > $DATA/8.out
 echo "=======> Dump group 9 (thread_9) not executed." > $DATA/9.out
 echo "=======> Dump group 10 (thread_10) not executed." > $DATA/10.out
+echo "=======> Dump group 11 (thread_11) not executed." > $DATA/11.out
 
 err1=0
 err2=0
@@ -449,6 +457,7 @@ err7=0
 err8=0
 err9=0
 err10=0
+err11=0
 if [ "$PROCESS_DUMP" = 'YES' ]; then
 
 ####################################
@@ -767,30 +776,6 @@ echo "$error3" > $DATA/error3
 if [ "$SENDDBN" = "YES" ]; then
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_adpupa $job \
     ${COMSP}adpupa.tm00.bufr_d
-## if [ "$NET" = 'gdas' ]; then
-    ####### ALERT TURNED ON for GDAS only ########################
-       ####### MOVED FROM exnesdis_pushradiosonde.sh.sms ############
-#      $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE $job \
-#       $COMINm1/gdas1.${cycle}.adpupa.tm00.bufr_d         
-#
-#      if [ "$cyc" = '00' ]; then
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE2 $job \
-#          $COMIN/gdas1.${cycle}.adpupa.tm00.bufr_d
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE4 $job \
-#          $COMIN/gdas1.${cycle}.prepbufr.nr
-#      elif [ "$cyc" = '06' ]; then
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE2 $job \
-#          $COMIN/gdas1.${cycle}.adpupa.tm00.bufr_d
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE4 $job \
-#          $COMIN/gdas1.${cycle}.prepbufr.nr
-#      elif [ "$cyc" = '12' ]; then
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE3 $job \
-#          $COMINm1/gdas1.${cycle}.prepbufr.nr
-#      elif [ "$cyc" = '18' ]; then
-#        $DBNROOT/bin/dbn_alert MODEL DDS_RSONDE3 $job \
-#          $COMINm1/gdas1.${cycle}.prepbufr.nr
-#      fi
-## fi
 fi
 
 set +x
@@ -1382,8 +1367,7 @@ export DUMP_NUMBER=10
 #   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
-# Dump #10 : AMSR2:  1 subtype(s)
-#            ESIASI: 1 subtype(s)
+# Dump #10 : ESIASI: 1 subtype(s)
 #            MTIASI: 1 subtype(s)
 #            ESAMUA: 1 subtype(s)
 #            CRISDB: 1 subtype(s)
@@ -1393,11 +1377,10 @@ export DUMP_NUMBER=10
 #            BATHY:  1 subtype(s)
 #            OSBUV8: 1 subtype(s)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 10
+#            TOTAL NUMBER OF SUBTYPES = 9
 #
 #=========================================================================
 
-DTIM_latest_amsr2=${DTIM_latest_amsr2:-"+2.99"}
 DTIM_latest_esiasi=${DTIM_latest_esiasi:-"+2.99"}
 DTIM_latest_mtiasi=${DTIM_latest_mtiasi:-"+2.99"}
 DTIM_latest_esamua=${DTIM_latest_esamua:-"+2.99"}
@@ -1410,14 +1393,12 @@ DTIM_latest_osbuv8=${DTIM_latest_osbuv8:-"+2.99"}
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM10:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 amsr2 esiasi mtiasi esamua \
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 esiasi mtiasi esamua \
  crisdb iasidb sevasr 1bamua bathy osbuv8
 error10=$?
 echo "$error10" > $DATA/error10
 
 if [ "$SENDDBN" = "YES" ]; then
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_amsr2 $job \
-    ${COMSP}amsr2.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esiasi $job \
     ${COMSP}esiasi.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_mtiasi $job \
@@ -1451,57 +1432,154 @@ set -x
 EOF
 set -x
 
+set +x
+#------------------------------------------------------------------------------
+cat<<\EOF>thread_11; chmod +x thread_11
+set -uax
+
+cd $DATA
+
+{ echo
+set +x
+echo "********************************************************************"
+echo Script thread_11
+echo Executing on node  `hostname`
+echo Starting time: `date -u`
+echo "********************************************************************"
+echo
+set -x
+
+export STATUS=NO
+export DUMP_NUMBER=11
+
+#=========================================================================
+# NOTES ABOUT THIS DUMP GROUP:
+#   (1) time window radius is -3.00 to +2.99 hours on all types
+#   (2) TIME TRIMMING IS NOT DONE IN THIS DUMP (default, unless overridden)
+#
+#--------------------------------------------------------------------------
+# Dump #11 : AMSR2:  1 subtype(s)
+#            --------------------
+#            TOTAL NUMBER OF SUBTYPES = 1
+#
+#=========================================================================
+
+DTIM_latest_amsr2=${DTIM_latest_amsr2:-"+2.99"}
+
+TIME_TRIM=${TIME_TRIM:-${TIME_TRIM11:-off}}
+
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 amsr2
+error11=$?
+echo "$error11" > $DATA/error11
+
+if [ "$SENDDBN" = "YES" ]; then
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_amsr2 $job \
+    ${COMSP}amsr2.tm00.bufr_d
+fi
+
+set +x
+echo "********************************************************************"
+echo Script thread_11
+echo Finished executing on node  `hostname`
+echo Ending time  : `date -u`
+echo "********************************************************************"
+set -x
+} > $DATA/11.out 2>&1
+EOF
+set -x
+
 
 #----------------------------------------------------------------
+# Now launch the threads
 
-set +u
-launcher=${launcher:-"cfp"}  # if not "cfp", background threads will be used.
-if [ "$launcher" = "cfp" -a -z "$LSB_HOSTS" ]; then
+#  determine local system name and type if available
+#  -------------------------------------------------
+SITE=${SITE:-""}
+sys_tp=${sys_tp:-$(getsystem.pl -tp)}
+getsystp_err=$?
+if [ $getsystp_err -ne 0 ]; then
+   msg="***WARNING: error using getsystem.pl to determine system type and phase"
+   set +u
+   [ -n "$jlogfile" ] && $DATA/postmsg "$jlogfile" "$msg"
+   set -u
+fi
+echo sys_tp is set to: $sys_tp
+
+if [ "$sys_tp" = 'Cray-XC40' -o "$SITE" = SURGE -o "$SITE" = LUNA ]; then
+   launcher=${launcher:-"aprun_cfp"}
+else
+   launcher=${launcher:-"cfp"}
+fi
+if [ "$launcher" = aprun_cfp ]; then
+   #  Get compute node count:  Subtract one from the total number of unique
+   #  hosts to account for the MAMU node that runs serial portion of job
+   typeset -i nodesall=$(echo -e "${LSB_HOSTS// /\\n}"|sort -u|wc -w)
+   typeset -i ncnodes=$(($nodesall-1)) # we want compute nodes only
+   if [ $ncnodes -lt 1 ]; then
+      set +x
+      echo
+      echo " ######################################################## "
+      echo " --> Could not get positive compute node count for aprun! "
+      echo " --> Check that BSUB directives included a reservation    "
+      echo "                   request for one or more compute nodes. "
+      echo " --> @@ F A T A L   E R R O R @@   --  ABNORMAL EXIT      "
+      echo " ######################################################## "
+      echo
+      set -x
+      $DATA/err_exit "***FATAL: Check if compute nodes were allocated"
+   fi
+elif [[ "$launcher" = cfp && -z "$LSB_HOSTS" ]]; then
    set +x
    echo
    echo "You requested the cfp poe launcher but are not running under LSF!!"
-   echo "You must run under LSF to use cfp option.  Exiting..."
+   echo "You must run under LSF to use cfp option on IBM.  Exiting..."
    echo
    set -x
-   exit 99
+   $DATA/err_exit
 fi
-set -u
-
-if [ "$launcher" = cfp ]; then
+if [ "$launcher" = cfp -o "$launcher" = aprun_cfp ]; then
    > $DATA/poe.cmdfile
-
-#################################################################################################
-## Sample timings
-## thread_7:
-##  avcspm esmhs  goesfv 1bmhs  airsev atmsdb gome   omi    trkob gpsro $escris
-##   3:03   1:52   1:07   0:38   0:33   0:15   0:05   0:03   0:01  0:01  *0:38   ===> 8:16 (496)
-
-## thread_1:
-##  avcsam eshrs3 ssmisu $cris  saphir $atms  1bhrs4 sevcsr tesac $mls  $esatms
-##   3:10   1:29   1:09   0:37   0:36   0:11   0:07   0:02   0:01  0:01  *0:32   ===> 7:55 (475)
-
-## thread-10:
-##  amsr2  esiasi mtiasi esamua crisdb iasidb sevasr 1bamua bathy osbuv8
-##   2:47   2:09   0:54   0:45   0:28   0:15   0:04   0:04   0:01  0:00          ===> 7:27 (447)
-#################################################################################################
 
 # To better take advantage of cfp, execute the longer running commands first.
 # Some reordering was done here based on recent sample runtimes.
    [ $DUMP_group7 = YES ]  &&  echo thread_7 >> $DATA/poe.cmdfile  # moved up
    [ $DUMP_group1 = YES ]  &&  echo thread_1 >> $DATA/poe.cmdfile
-   [ $DUMP_group10 = YES ] &&  echo thread_10 >> $DATA/poe.cmdfile # moved up
    [ $DUMP_group5 = YES ]  &&  echo thread_5 >> $DATA/poe.cmdfile  # moved up
    [ $DUMP_group6 = YES ]  &&  echo thread_6 >> $DATA/poe.cmdfile  # moved up
    [ $DUMP_group8 = YES ]  &&  echo thread_8 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group11 = YES ] &&  echo thread_11 >> $DATA/poe.cmdfile # moved up
+   [ $DUMP_group10 = YES ] &&  echo thread_10 >> $DATA/poe.cmdfile # moved up
    [ $DUMP_group2 = YES ]  &&  echo thread_2 >> $DATA/poe.cmdfile
    [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  echo thread_3 >> $DATA/poe.cmdfile
    [ $DUMP_group4 = YES ]  &&  echo thread_4 >> $DATA/poe.cmdfile
    [ $DUMP_group9 = YES ]  &&  echo thread_9 >> $DATA/poe.cmdfile
 
    if [ -s $DATA/poe.cmdfile ]; then
-      module load cfp
-      export MP_CSS_INTERRUPT=yes
-      mpirun.lsf cfp $DATA/poe.cmdfile 2>&1
+      nthreads=$(cat $DATA/poe.cmdfile | wc -l)
+      if [ $nthreads -eq 1 ]; then   # don't expect to need this, but just in case
+         echo "do not need cfp for 1 thread"
+         if [ "$launcher" = aprun_cfp ]; then
+           aprun -n 1 -N 1 -d 1 sh $DATA/poe.cmdfile
+         else
+           sh $DATA/poe.cmdfile
+         fi
+      elif [ "$launcher" = cfp ]; then  # iDataPlex
+         module load cfp
+         export MP_CSS_INTERRUPT=yes
+         mpirun.lsf cfp $DATA/poe.cmdfile 2>&1
+      elif [ "$launcher" = aprun_cfp ]; then
+         if [[ -z ${DUMPStpn:-""} ]]; then   # pes per node
+            # cfp is faster with extra thread so add one if there is room.
+            #   For now, going with 20 as default max rather than 24.
+            if [ $nthreads -lt 20 ]; then
+               DUMPStpn=$(($nthreads+1))
+            else
+               DUMPStpn=20
+            fi
+         fi
+         NPROCS=$(($ncnodes*$DUMPStpn))  # concurrent processes
+         aprun -j 1 -n${NPROCS} -N${DUMPStpn} -d 1 --cc depth cfp $DATA/poe.cmdfile
+      fi
       errpoe=$?
       if [ $errpoe -ne 0 ]; then
          $DATA/err_exit "***FATAL: EXIT STATUS $errpoe RUNNING POE COMMAND FILE"
@@ -1512,18 +1590,31 @@ if [ "$launcher" = cfp ]; then
       echo
    fi
 else
-   echo "Spawning background threads"
-   [ $DUMP_group1 = YES ]  &&  thread_1 &
-   [ $DUMP_group2 = YES ]  &&  thread_2 &
-   [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  thread_3 &
-   [ $DUMP_group4 = YES ]  &&  thread_4 &
-   [ $DUMP_group5 = YES ]  &&  thread_5 &
-   [ $DUMP_group6 = YES ]  &&  thread_6 &
-   [ $DUMP_group7 = YES ]  &&  thread_7 &
-   [ $DUMP_group8 = YES ]  &&  thread_8 &
-   [ $DUMP_group9 = YES ]  &&  thread_9 &
-   [ $DUMP_group10 = YES ]  &&  thread_10 &
-   wait
+   if [ "$sys_tp" = 'Cray-XC40' -o "$SITE" = SURGE -o "$SITE" = LUNA ]; then
+      set +x
+      echo
+      echo " ############################################################# "
+      echo " --> Option to use background threads is disabled on Cray-XC40."
+      echo " --> @@ F A T A L   E R R O R @@   --  ABNORMAL EXIT    "
+      echo " ############################################################# "
+      echo
+      set -x
+      $DATA/err_exit "***FATAL: Check if compute nodes were allocated"
+   else
+      echo "Spawning background threads"
+      [ $DUMP_group1 = YES ]  &&  thread_1 &
+      [ $DUMP_group2 = YES ]  &&  thread_2 &
+      [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  thread_3 &
+      [ $DUMP_group4 = YES ]  &&  thread_4 &
+      [ $DUMP_group5 = YES ]  &&  thread_5 &
+      [ $DUMP_group6 = YES ]  &&  thread_6 &
+      [ $DUMP_group7 = YES ]  &&  thread_7 &
+      [ $DUMP_group8 = YES ]  &&  thread_8 &
+      [ $DUMP_group9 = YES ]  &&  thread_9 &
+      [ $DUMP_group10 = YES ]  &&  thread_10 &
+      [ $DUMP_group11 = YES ]  &&  thread_11 &
+      wait
+   fi
 fi
 
 #  if ADPUPA_wait is YES, adpupa is dumped AFTER all other dump threads have
@@ -1533,7 +1624,7 @@ fi
 
 [ $DUMP_group3 = YES -a $ADPUPA_wait  = YES ]  &&  thread_3
 
-cat $DATA/1.out $DATA/2.out $DATA/3.out $DATA/4.out $DATA/5.out $DATA/6.out $DATA/7.out $DATA/8.out $DATA/9.out $DATA/10.out
+cat $DATA/1.out $DATA/2.out $DATA/3.out $DATA/4.out $DATA/5.out $DATA/6.out $DATA/7.out $DATA/8.out $DATA/9.out $DATA/10.out $DATA/11.out
 
 set +x
 echo " "
@@ -1550,12 +1641,13 @@ set -x
 [ -s $DATA/error8 ] && err8=`cat $DATA/error8`
 [ -s $DATA/error9 ] && err9=`cat $DATA/error9`
 [ -s $DATA/error10 ] && err10=`cat $DATA/error10`
+[ -s $DATA/error11 ] && err11=`cat $DATA/error11`
 
 
 #===============================================================================
 
 export STATUS=YES
-export DUMP_NUMBER=11
+export DUMP_NUMBER=12
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.00 1 null
 
 #  endif loop $PROCESS_DUMP
@@ -1575,8 +1667,8 @@ if [ "$PROCESS_DUMP" = 'YES' ]; then
    if [ "$err1" -gt '5' -o "$err2" -gt '5' -o "$err3" -gt '5' -o \
         "$err4" -gt '5' -o "$err5" -gt '5' -o "$err6" -gt '5' -o \
         "$err7" -gt '5' -o "$err8" -gt '5' -o "$err9" -gt '5' -o \
-        "$err10" -gt '5' ]; then
-      for n in $err1 $err2 $err3 $err4 $err5 $err6 $err7 $err8 $err9 $err10
+        "$err10" -gt '5' -o "$err11" -gt '5' ]; then
+      for n in $err1 $err2 $err3 $err4 $err5 $err6 $err7 $err8 $err9 $err10 $err11
       do
          if [ "$n" -gt '5' ]; then
             if [ "$n" -ne '11' -a "$n" -ne '22' ]; then
@@ -1587,7 +1679,7 @@ if [ "$PROCESS_DUMP" = 'YES' ]; then
 echo
 echo " ###################################################### "
 echo " --> > 22 RETURN CODE FROM DATA DUMP, $err1, $err2, $err3, $err4, \
-$err5, $err6, $err7, $err8, $err9, $err10 "
+$err5, $err6, $err7, $err8, $err9, $err10, $err11 "
 echo " --> @@ F A T A L   E R R O R @@   --  ABNORMAL EXIT    "
 echo " ###################################################### "
 echo
@@ -1605,7 +1697,7 @@ echo
       echo
       echo " ###################################################### "
       echo " --> > 5 RETURN CODE FROM DATA DUMP, $err1, $err2, $err3, $err4, \
-$err5, $err6, $err7, $err8, $err9, $err10 "
+$err5, $err6, $err7, $err8, $err9, $err10, $err11 "
       echo " --> NOT ALL DATA DUMP FILES ARE COMPLETE - CONTINUE    "
       echo " ###################################################### "
       echo

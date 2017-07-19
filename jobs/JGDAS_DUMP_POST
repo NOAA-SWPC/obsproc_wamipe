@@ -1,5 +1,20 @@
+#!/bin/bash
 set -xa
 date -u
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
 
 ########################################
 # Check that required variables are set
@@ -32,6 +47,19 @@ echo "OBSPROC_SHARED_BUFR_DUMPLIST version used by this job is" \
 echo
 echo "####################################################################"
 echo
+set -x
+
+#####################################################################
+# List modules loaded for this job
+#   On luna/surge may need to initialize the Modules package to find
+#   the module command.  Will do so for either system.
+#####################################################################
+if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
+  . /opt/modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
+  . /usrx/local/Modules/default/init/sh 2>/dev/null
+fi
+set +x
 echo
 echo "####################################################################"
 echo
@@ -41,26 +69,17 @@ echo "####################################################################"
 echo
 set -x
 
-###################################################################
-# Set DEBUG LEVEL - modifies info in execution trace prompt string
-###################################################################
-export DEBUG_LEVEL=${DEBUG_LEVEL=1}
-case $DEBUG_LEVEL in
-  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
-  0) export PS4='+ ';;                      # don't include seconds (useful if
-                                            #  want to diff output from 2 runs)
-  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
-  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
-  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
-  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
-esac
-
-##################################
-# Specify NET, RUN and model Name
-##################################
+######################
+# Specify NET and RUN
+######################
 export NET=${NET:-gfs}
-export RUN=${RUN:-gdas1}
-export model=${model:-gdas}  # Used in subscripts for file names
+export RUN=${RUN:-gdas}
+export RUND=${RUND:-gdas}    # gdas1->gdas transitional variable
+# Variable "$RUND" will be used temporarily to set default gdas COM directories.
+#  This replaces old variable "$model", which NCO now uses for another purpose.
+#  Use of $RUND (rather than $RUN) to set gdas COM directories is intended as a
+#  transitional safety measure in case $RUN (used in child scripts to define the
+#  leading filename segment) needs to be reverted back to "gdas1".
 
 ##############################
 # Specify cycle and time-mark
@@ -71,25 +90,17 @@ export tmmark=tm00
 ###############################
 # Create new working directory
 ###############################
-host=$(hostname -s)
-export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+jobid=${jobid:-${job}.$(hostname -s).$$}
+export DATA=${DATA:-$DATAROOT/${jobid}}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
+export pgmout=OUTPUT.$$
 
 ######################################
 # Set job log file for postmsg output
 ######################################
 jlogfile=${jlogfile:-${DATA}/jlogfile}
-
-######################################
-# Determine Job Output Name on System
-######################################
-export pid=$$
-export outid="LL$job"
-[ $envir != prod ]  && export outid="LL${job}_${envir}"
-export jobid="${outid}.o${pid}"
-export pgmout="OUTPUT.${pid}"
 
 ###############################################################################
 # SENDCOM  - Copy files to $COMOUT directory
@@ -102,12 +113,6 @@ export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 export SENDSDM=${SENDSDM:-YES}
 [[ "$envir" != prod ]] && export SENDSDM=NO  # parallel , not send email to SDM
-
-######################################################
-# Phase 1 --> Phase 2 --> Cray  Transitional Settings
-######################################################
-NWROOTp1=${NWROOTp1:-/nwprod}
-NWROOTp2=${NWROOTp2:-/nwprod2}
 
 ##########################
 # Specify Execution Areas
@@ -124,7 +129,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # Paths for obsproc_dump_post items
 # ---------------------------------
 export HOMEobsproc_dump_post=${HOMEobsproc_dump_post:\
--${NWROOTp2:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
+-${NWROOT:?}/obsproc_dump_post.${obsproc_dump_post_ver:?\
 "###FATAL ERROR \"obsproc_dump_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_dump_post=${SCRIPTSobsproc_dump_post:\
@@ -139,7 +144,7 @@ export USHobsproc_dump_post=${USHobsproc_dump_post:-$HOMEobsproc_dump_post/ush}
 # Paths for obsproc_shared_bufr_remorest items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
--${NWROOTp1:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
+-${NWROOT:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
 
 export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
@@ -152,7 +157,7 @@ export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 # Paths for obsproc_shared_bufr_avgdata items
 # -------------------------------------------
 export HOMEobsproc_shared_bufr_avgdata=${HOMEobsproc_shared_bufr_avgdata:\
--${NWROOTp1:?}/obsproc_shared/bufr_avgdata.${obsproc_shared_bufr_avgdata_ver:?\
+-${NWROOT:?}/obsproc_shared/bufr_avgdata.${obsproc_shared_bufr_avgdata_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_avgdata_ver\" is not set"}}
 
 export EXECobsproc_shared_bufr_avgdata=${EXECobsproc_shared_bufr_avgdata:\
@@ -165,28 +170,27 @@ export USHobsproc_shared_bufr_avgdata=${USHobsproc_shared_bufr_avgdata:\
 # Paths for obsproc_shared_bufr_dumplist items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:\
--${NWROOTp2:?}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
+-${NWROOT:?}/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_dumplist_ver\" is not set"}}
 
 export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 -$HOMEobsproc_shared_bufr_dumplist/fix}
 
-###########################
-# Set up the UTILITY paths
-###########################
-export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-
-################################################################
-# Run setup to initialize working directory and utility scripts
-################################################################
-sh $utilscript/setup.sh                              # temporary
+#########################################################################
+# Add some prod utilities to working directory
+#########################################################################
+echo "step ############# break ##############################" > ./break
+cp $UTILROOT/ush/err_chk   .; chmod +x err_chk
+cp $UTILROOT/ush/err_exit  .; chmod +x err_exit
+cp $UTILROOT/ush/prep_step .; chmod +x prep_step
+cp $UTILROOT/ush/postmsg   .; chmod +x postmsg
+cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
-setpdy.sh
-. $DATA/PDY
+./setpdy.sh
+. PDY
 
 #########################
 # Define COM directories
@@ -194,24 +198,24 @@ setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUND}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUND}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
 
 # comin and comin_m1 are paths to dump status files for bufr_avgdata.sh
-export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
-export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDYm1}}
+export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
+export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDYm1}}
 
 # ---------------------------
 # Paths for non-obsproc items
@@ -220,7 +224,7 @@ export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDYm1}}
 # directory path to data count/alert processing executed in bufr_datacount.sh
 #  and data count averaging executed in model script and in bufr_avgdata.sh
 # ---------------------------------------------------------------------------
-export HOMEarch=${HOMEarch:-${COMROOT:?}/arch/${envir}}
+export HOMEarch=${HOMEarch:-${COMROOT:?}/$NET/$envir/sdm_rtdm}
 
 #  .. AVGDarch_IN is directory path containing 30-day avg files (read by
 #     bufr_datacount.sh)
@@ -233,8 +237,8 @@ if [[ "$RUN_ENVIR" == nco ]]; then
 else
   [ -n "$HOMEarch" ] && HOMEarch_avgdata=$HOMEarch/avgdata
   export AVGDarch_IN=\
-${AVGDarch_IN:-${HOMEarch_avgdata:-${COMIN_ROOT:?}/arch/${envir}/avgdata}}
-  export AVGDarch_OUT=${AVGDarch_OUT:-${COMOUT_ROOT:?}/arch/${envir}/avgdata}
+${AVGDarch_IN:-${HOMEarch_avgdata:-${COMIN_ROOT:?}/$NET/$envir/sdm_rtdm/avgdata}}
+  export AVGDarch_OUT=${AVGDarch_OUT:-${COMOUT_ROOT:?}/$NET/$envir/sdm_rtdm/avgdata}
   mkdir -p $AVGDarch_OUT
 fi
 
@@ -266,7 +270,7 @@ fi
 #########################################################
 export PROCESS_DATACOUNTS=${PROCESS_DATACOUNTS:-YES}
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
-export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-YES}
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
 export PROCESS_LISTERS=${PROCESS_LISTERS:-YES}
 
 # Data count average tables are generated in the 18Z run only
@@ -283,7 +287,7 @@ export NET=gdas
 # Execute the script
 #####################
 $SCRIPTSobsproc_dump_post/exdump_post.sh.ecf
-eval err_${model}_dump_post=$?
+eval err_${RUN}_dump_post=$?
 
 echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_post_ran
 

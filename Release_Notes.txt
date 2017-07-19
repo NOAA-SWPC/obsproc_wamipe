@@ -1,10 +1,12 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 2.4.0 --> released Jan 12, 2017, 
-                             --> implemented ??? ??, 2017
+obsproc_global release 3.0.0 --> prelim release Mar 13, 2017,
+                             --> updated Apr 13, 2017
+                             --> implemented Jul 19, 2017
 
 files:
+
  M obsproc_global/fix/prepobs_errtable.global
- M obsproc_global/fix/prepobs_oiqc.oberrs
+   obsproc_global/fix/prepobs_oiqc.oberrs
  M obsproc_global/jobs/JGDAS_DUMP
  M obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
@@ -17,8 +19,8 @@ files:
    obsproc_global/parm/prepobs_cqcbufr.gfs.parm
    obsproc_global/parm/prepobs_prepacqc.gdas.parm
    obsproc_global/parm/prepobs_prepacqc.gfs.parm
- M obsproc_global/parm/prepobs_prepdata.gdas.parm
- M obsproc_global/parm/prepobs_prepdata.gfs.parm
+   obsproc_global/parm/prepobs_prepdata.gdas.parm
+   obsproc_global/parm/prepobs_prepdata.gfs.parm
    obsproc_global/parm/prepobs_prepssmi.gdas.parm
    obsproc_global/parm/prepobs_prepssmi.gfs.parm
    obsproc_global/parm/prepobs_profcqc.gdas.parm
@@ -26,9 +28,248 @@ files:
    obsproc_global/parm/syndat_syndata.gdas.parm
    obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+( A - added,  M - modified, D - deleted)
 
-( M - modified)
+
+ JOB script changes:
+   All job scripts:
+    - Use variable $RUN rather than $model to set the default COMIN and COMOUT
+      directory basenames for GFS job scripts because variable $model is now
+      used by NCO for another purpose.
+    - Use new variable $RUND rather than $model to set the default COMIN and
+      COMOUT directory basenames for GDAS job scripts because "$model" now used
+      by NCO for another purpose. (Use of $RUND rather than $RUN for GDAS
+      scripts is temporary to get through "gdas1" to "gdas" transition).
+    - Changed default RUN from "gdas1" to "gdas" for GDAS jobs due to new file
+      naming convention for 2017 GFS upgrade.
+    - Added shebang to use /bin/bash interpreter
+    - Reorganized to set execution trace prompt string (PS4) closer to the top
+    - Added Module package initialization so that the module function can be
+      found to list currently loaded modules when running on luna and surge
+      (which currently use a setup that does not export the module function to
+      child scripts)
+    - Made variable jobid expandable to preserve the setting exported from NCO
+      wrapper scripts.
+    - Explicitly copy needed prod utils to the working directory (in place
+      of old setup.sh)
+
+   JGDAS_DUMP, JGFS_DUMP:
+    - Removed load of grib_util module (latest preferred practice is to load 
+      modules in the parent environment).
+
+   JGDAS_PREP, JGFS_PREP:
+    - Added new variable NEMSIO_IN with default setting of ".true." to tell
+      obsproc_prep software whether to process nemsio global forecast files
+      vs the older sigio files.
+    - Added new variables COMINgdas and COMINgfs needed by new getges script.
+    - Removed load of util_shared module (no longer needed)
+    - Use variable $NWROOTp1 to find decoder dictionary directory.
+    - Removed NPROCS.  (This variable is now set if needed in obsproc_prep)
+    - Added variable PROCESS_UNBLKBUFR with default of "NO" (see related change
+      for exglobal_makeprepbufr.sh.ecf, below).
+
+   JGDAS_DUMP_POST and JGFS_DUMP_POST:
+    - Use new directory $COMROOT/gfs/$envir/sdm_rtdm to hold obcount_30day and
+      avgdata directories which contain dump status info to help the SDM 
+      monitor changes in data counts.
+
+   JGDAS_DUMP_POST :
+     - Changed default setting for PROCESS_UNBLKBUFR to "NO", turning off
+       creation of copies of bufr dump files with the "unblok" extension.
+
+   JGDAS_PREP_POST:
+    - Changed default location for DATACOM* variables from /com/arch/$envir to
+      $COMROOT/gfs/$envir/gdascounts.
+    - Changed default location for SATCOM* variables from $COMROOT/gfs/$envir to
+      $COMROOT/gfs/$envir/gdascounts.
+    - The naming convention for SATCOM subdirectories was also modified from
+      satcounts/$MON to satcounts.$YYYYMM to ease maintenance.
+    - The default location for the VOS ship names archive remains under
+      $COMROOTp2/arch/$envir because downstream usage is from the IBM.
+
+   JGDAS_PREP_POST and JGFS_PREP_POST:
+    - Added variable PROCESS_UNBLKBUFR with default of "NO".
+
+ Model script changes:
+   exglobal_dump.sh.ecf:
+    - Run under ksh.  Necessary on luna and surge in order to create here-docs
+      if variable TMPDIR was imported in an lsf job.
+    - Added logic to determine if running on Cray-XC40 or IBM iDataPlex.
+    - Added MPMD logic for running on Cray-XC40 or IBM iDataPlex.
+    - Moved amsr2 to new dump group (11) to improve performance on Cray-XC40.
+    - Removed obsolete/commented block of logic that was added to the script by
+      SPA during WCOSS transition (to alert radiosonde related data for DDS).
+      
+   exglobal_makeprepbufr.sh.ecf:
+    - Added step to create nsstbufr file needed for 2017 GFS upgrade analysis.  
+    - Added alert for gdas.t??Z.prepbufr.acft_profiles. (expected to go to 
+      restricted section of nomads server only)
+    - Added logic to save and alert atmospheric guess files using 2017 GFS
+      naming conventions.
+    - Added wrappers to check setting of new variable $PROCESS_UNBLKBUFR to
+      determine whether or not to create and alert a copy of the output prepbufr
+      file with extension "unblok". The default setting is NO.
+    - dbn_alerts for gdas prepbufr files will have alert subtype prefix of GDAS
+      rather than GDAS1.
+ 
+ Fixed file changes:
+   prepobs_errtable.global:
+    - Updated wind ob errors for type 247 (GOES clear air water vapor winds)
+
+
+ Output changes:
+ ---------------
+   - GDAS files that previously had names that started with "gdas1" will now
+     have names that start with "gdas".  Eg, gdas1.t00z.adpupa.tm00.bufr_d 
+     becomes gdas.t00z.adpupa.tm00.bufr_d.
+   - New files gdas.tCCz.nsstbufr and gfs.tCCz.nsstbufr (for CC=00,06,12,18)
+     are created for downstream analysis jobs.  These are simply a concatenation
+     of the sfcshp, tesac, bathy, trkob dump files for the given cycle.  They
+     are restricted because they contain resticted ship data.
+   - Due to the upgrade to obsproc_dump_post.v3.0.0 which uses mail.py rather
+     than the mail command, the SDM should start to see mail msgs about dump
+     counts for GDAS cycles.
+   - As noted in Dissemination section below, unblok versions of bufr_d and
+     prepbufr files will no longer be generated.
+
+
+ Compute Resource Information:
+ -----------------------------
+   With the move from IBM iDataPlex to Cray-XC40 come significant changes to the
+   job cards.  These were provide to SPA in a separate document.
+ 
+   Performance:
+     - jgfs_dump and jgdas_dump run times are about the same but with larger
+       variance on the cray.
+     - jgfs_prep and jgdas_prep runs are faster with this upgrade by ~30s.
+     - jgfs_dump_post and jgdas_dump_post jobs are slower (~30s for gfs and ~60s
+       for gdas) due to poor performance of the bufr dump file lister on the
+       cray.  (i/o buffering did not help).
+     - jgfs_prep_post runs are a few seconds slower, jgdas_prep_post runs are
+       typically ~15-30 seconds slower. Worst case is the 18z run on the 2nd of
+       the month might take an additional two to three minutes due to extra text
+       processing to compute monthly summaries of data counts.
+
+
+ Disk Space Changes:
+ -------------------
+   Roughly 6.5Gb saved per day in com (and hpss) due to retirement of "unblok"
+   files.
+
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v4.0.0
+    - obsproc_prep.v4.0.0
+    - obsproc_dump_post.v3.0.0
+    - obsproc_prep_post.v3.0.0
+    - obsproc_shared/bufr_dumplist.v1.3.0
+    - obsproc_shared/bufr_remorest.v2.0.0
+    - obsproc_shared/bufr_avgdata.v2.0.0
+
+
+ Required modules:
+ -----------------
+  All jobs require:
+    prod_util         (tested with 1.0.8, the default at the time)
+    prod_envir        (tested with 1.0.1, the default at the time)
+  JGDAS_DUMP and JGFS_DUMP require:
+    grib_util/1.0.5
+    cfp_intel_sandybridge/1.1.0
+  JGDAS_DUMP_POST and JGFS_DUMP_POST require:
+    cfp_intel_sandybridge/1.1.0
+  JGDAS_PREP and JGFS_PREP require:
+    cfp_intel_sandybridge/1.1.0
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all eight production jobs.
+   - Details provided in a separate document.
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - All files that had filename prefix "gdas1" will be renamed with filename
+     prefix "gdas" (unless they are in the list of files to be discontinued).
+     The alert subtype is changed accordingly ("GDAS1_" will be "GDAS_")
+   - The following versions of bufr dump and prepbufr files will no longer be
+     generated and alerted for CC=00,06,12,18:
+        gdas1.tCCz.*.tm00.bufr_d.unblok
+        gdas1.tCCz.*.tm00.bufr_d.unblok.nr
+        gfs.tCCz.prepbufr.unblok
+        gfs.tCCz.prepbufr.unblok.nr
+        gdas1.tCCz.prepbufr.unblok
+        gdas1.tCCz.prepbufr.unblok.nr
+     Files with the same content will continue to be available without the
+     "unblok" filename qualifier (and with the change in prefix for gdas files).
+     Eg, file gdas1.t00z.adpupa.tm00.bufr_d.unblok will be available as
+     gdas.t00z.adpupa.tm00.bufr_d and file gfs.t00z.prepbufr.unblok.nr will be
+     available as gfs.t00z.prepbufr.nr.  There is one exception to the pattern
+     in that gdas1.tCCz.sfcshp.tm00.bufr_d.unblok will be available as
+     gdas.tCCz.sfcshp.tm00.bufr_d.nr.
+   - When JGFS_PREP is run with swich NEMSIO_IN=.true. (which is the default),
+     the atmospheric guess files alerted by this job will be gridded binary
+     (nemsio) rather than spectral coordinates (sigio). The nemsio global files
+     are 3.55Gb larger than their sigio counterparts. The filenames and
+     dbn_alert subtypes are changing as follows:
+          Old file       Old Alert           New file              New alert
+          --------       ---------           --------              ---------
+     gfs.tCCz.sgesprep GFS_sges_PREP -> gfs.tCCz.atmges.nemsio GFS_atmges_NEMSIO
+     gfs.tCCz.sgm3prep GFS_sgm3_PREP -> gfs.tCCz.atmgm3.nemsio GFS_atmgm3_NEMSIO
+     gfs.tCCz.sgp3prep GFS_sgp3_PREP -> gfs.tCCz.atmgp3.nemsio GFS_atmgp3_NEMSIO
+    
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v8.0.1.
+   The following must be implemented before or simultaneously:
+      obsproc_prep.v4.0.0
+      obsproc_dump_post.v3.0.0
+      obsproc_prep_post.v3.0.0
+      obsproc_dump_alert.v2.0.0
+      obsproc_shared/bufr_avgdata.v2.0.0
+      obsproc_shared/bufr_remorest.v2.0.0
+      obsproc_nam.v3.2.0                   (simultaneous)
+      obsproc_rap.v2.5.0                   (simultaneous)
+      obsproc_rtma.v2.3.0                  (simultaneous)
+      obsproc_urma.v2.3.0                  (simultaneous)
+
+   Please export file
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20170413_OBSPROC-v8.0.1/obsproc_global.ver
+   and copy to /gpfs/hps/nco/ops/nwprod/versions.  This is the first
+   obsproc_global.ver file in that directory.
+
+   More detailed instructions provided in separate documents.
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 2.4.0 --> released Jan 12, 2017, 
+                             --> implemented Feb 21, 2017
+
+files added, modified or deleted since last release:
+ M obsproc_global/fix/prepobs_errtable.global
+ M obsproc_global/fix/prepobs_oiqc.oberrs
+ M obsproc_global/jobs/JGDAS_DUMP
+ M obsproc_global/jobs/JGDAS_DUMP_POST
+ M obsproc_global/jobs/JGDAS_PREP
+ M obsproc_global/jobs/JGDAS_PREP_POST
+ M obsproc_global/jobs/JGFS_DUMP
+ M obsproc_global/jobs/JGFS_DUMP_POST
+ M obsproc_global/jobs/JGFS_PREP
+ M obsproc_global/jobs/JGFS_PREP_POST
+ M obsproc_global/parm/prepobs_prepdata.gdas.parm
+ M obsproc_global/parm/prepobs_prepdata.gfs.parm
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -295,8 +536,7 @@ obsproc_global release 2.3.2 --> released Oct 28, 2016,
 
  M obsproc_global/jobs/JGDAS_DUMP
  M obsproc_global/jobs/JGFS_DUMP
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -312,8 +552,7 @@ obsproc_global release 2.3.1 --> released Oct 7, 2016,
  only change:
 
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  Model script changes:
@@ -331,9 +570,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.3.0 --> released Sep 1, 2016, 
                              --> implemented Sep 27, 2016
 
-files:
-   obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
+files added, modified or deleted since last release:
  M obsproc_global/jobs/JGDAS_DUMP
  M obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
@@ -342,22 +579,8 @@ files:
  M obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
  M obsproc_global/jobs/JGFS_PREP_POST
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
-   obsproc_global/parm/prepobs_prepacqc.gdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gfs.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -614,9 +837,8 @@ obsproc_global release 2.2.0 --> released Jan 27, 2016,
                                  updated Mar 30, 2016
                              --> implemented May 11, 2016
 
-files:
+files added, modified or deleted since last release:
  M obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
  M obsproc_global/jobs/JGDAS_DUMP
  M obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
@@ -625,22 +847,9 @@ files:
  M obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
  M obsproc_global/jobs/JGFS_PREP_POST
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
-   obsproc_global/parm/prepobs_prepacqc.gdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gfs.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
  M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -856,10 +1065,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.1.1 --> released May 1, 2015, updated Jul 12, 2015
                              --> implemented Aug 10, 2015
 
-files:
+files added, modified or deleted since last release:
  D obsproc_global/fix/prepobs_errtable.cdas
  M obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
  D obsproc_global/fix/prepobs_oiqc.oberrs.cdas
  D obsproc_global/jobs/JCDAS_DUMP
  D obsproc_global/jobs/JCDAS_DUMP_POST
@@ -867,17 +1075,10 @@ files:
  D obsproc_global/jobs/JCDAS_PREP1_POST
  D obsproc_global/jobs/JCDAS_PREP2
  D obsproc_global/jobs/JCDAS_PREP2_POST
-   obsproc_global/jobs/JGDAS_DUMP
-   obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
  M obsproc_global/jobs/JGDAS_PREP_POST
-   obsproc_global/jobs/JGFS_DUMP
-   obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
-   obsproc_global/jobs/JGFS_PREP_POST
  D obsproc_global/parm/prepobs_cqcbufr.cdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
  D obsproc_global/parm/prepobs_prepacqc.cdas.parm
  M obsproc_global/parm/prepobs_prepacqc.gdas.parm
  M obsproc_global/parm/prepobs_prepacqc.gfs.parm
@@ -885,18 +1086,10 @@ files:
  M obsproc_global/parm/prepobs_prepdata.gdas.parm
  M obsproc_global/parm/prepobs_prepdata.gfs.parm
  D obsproc_global/parm/prepobs_prepssmi.cdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
  D obsproc_global/parm/prepobs_prevents.cdas.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
  M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( D - deleted)
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -1112,11 +1305,8 @@ Note: Prior to this implementation, all of the CDAS related files were
        obsproc_global.v2.1.0 with some being changed as noted below, these
        files will not be used by production.
 
-files:
-   obsproc_global/fix/prepobs_errtable.cdas
+files added, modified or deleted since last release:
  M obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
-   obsproc_global/fix/prepobs_oiqc.oberrs.cdas
  M obsproc_global/jobs/JCDAS_DUMP
  M obsproc_global/jobs/JCDAS_DUMP_POST
  M obsproc_global/jobs/JCDAS_PREP1
@@ -1131,27 +1321,8 @@ files:
  M obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
  M obsproc_global/jobs/JGFS_PREP_POST
-   obsproc_global/parm/prepobs_cqcbufr.cdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
-   obsproc_global/parm/prepobs_prepacqc.cdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gfs.parm
-   obsproc_global/parm/prepobs_prepdata.cdas.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
-   obsproc_global/parm/prepobs_prepssmi.cdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
-   obsproc_global/parm/prepobs_prevents.cdas.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -1321,11 +1492,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.2 --> released Sep 30, 2014
                              --> implemented Nov 4, 2014
 
-files:
-   obsproc_global/fix/prepobs_errtable.cdas
-   obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
-   obsproc_global/fix/prepobs_oiqc.oberrs.cdas
+files added, modified or deleted since last release:
  M obsproc_global/jobs/JCDAS_DUMP
  M obsproc_global/jobs/JCDAS_DUMP_POST
  M obsproc_global/jobs/JCDAS_PREP1
@@ -1340,27 +1507,8 @@ files:
  M obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
  M obsproc_global/jobs/JGFS_PREP_POST
-   obsproc_global/parm/prepobs_cqcbufr.cdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
-   obsproc_global/parm/prepobs_prepacqc.cdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gfs.parm
-   obsproc_global/parm/prepobs_prepdata.cdas.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
-   obsproc_global/parm/prepobs_prepssmi.cdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
-   obsproc_global/parm/prepobs_prevents.cdas.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -1481,46 +1629,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.1 --> released Jul 23, 2014, updated Aug 5, 2014
                              --> implemented Aug 12, 2014
 
-files:
-   obsproc_global/fix/prepobs_errtable.cdas
-   obsproc_global/fix/prepobs_errtable.global
-   obsproc_global/fix/prepobs_oiqc.oberrs
-   obsproc_global/fix/prepobs_oiqc.oberrs.cdas
-   obsproc_global/jobs/JCDAS_DUMP
-   obsproc_global/jobs/JCDAS_DUMP_POST
+files added, modified or deleted since last release:
  M obsproc_global/jobs/JCDAS_PREP1
-   obsproc_global/jobs/JCDAS_PREP1_POST
  M obsproc_global/jobs/JCDAS_PREP2
-   obsproc_global/jobs/JCDAS_PREP2_POST
-   obsproc_global/jobs/JGDAS_DUMP
-   obsproc_global/jobs/JGDAS_DUMP_POST
  M obsproc_global/jobs/JGDAS_PREP
-   obsproc_global/jobs/JGDAS_PREP_POST
-   obsproc_global/jobs/JGFS_DUMP
-   obsproc_global/jobs/JGFS_DUMP_POST
  M obsproc_global/jobs/JGFS_PREP
-   obsproc_global/jobs/JGFS_PREP_POST
-   obsproc_global/parm/prepobs_cqcbufr.cdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gdas.parm
-   obsproc_global/parm/prepobs_cqcbufr.gfs.parm
-   obsproc_global/parm/prepobs_prepacqc.cdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gdas.parm
-   obsproc_global/parm/prepobs_prepacqc.gfs.parm
-   obsproc_global/parm/prepobs_prepdata.cdas.parm
-   obsproc_global/parm/prepobs_prepdata.gdas.parm
-   obsproc_global/parm/prepobs_prepdata.gfs.parm
-   obsproc_global/parm/prepobs_prepssmi.cdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
-   obsproc_global/parm/prepobs_prevents.cdas.parm
-   obsproc_global/parm/prepobs_profcqc.gdas.parm
-   obsproc_global/parm/prepobs_profcqc.gfs.parm
-   obsproc_global/parm/syndat_syndata.gdas.parm
-   obsproc_global/parm/syndat_syndata.gfs.parm
-   obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -1594,7 +1708,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 2.0.0 --> released May 5, 2014
                              --> implemented Jun 24, 2014
 
-files:
+files added, modified or deleted since last release:
  M obsproc_global/fix/prepobs_errtable.cdas
  M obsproc_global/fix/prepobs_errtable.global
  M obsproc_global/fix/prepobs_oiqc.oberrs
@@ -1632,8 +1746,7 @@ files:
  M obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
  M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:
@@ -1913,16 +2026,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 1.1.0 --> released Feb 9, 2014
                              --> implemented May 6, 2014
 
-files:
-   obsproc_global/jobs/JCDAS_DUMP
-   obsproc_global/jobs/JGDAS_DUMP
-   obsproc_global/jobs/JGFS_DUMP
-   obsproc_global/parm/prepobs_prepssmi.cdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gdas.parm
-   obsproc_global/parm/prepobs_prepssmi.gfs.parm
+files added, modified or deleted since last release:
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  Model script changes:
@@ -1995,8 +2101,7 @@ files:
  M obsproc_global/parm/prepobs_prepssmi.gdas.parm
  M obsproc_global/parm/prepobs_prepssmi.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-
-( M - modified)
+( A - added,  M - modified, D - deleted)
 
 
  JOB script changes:

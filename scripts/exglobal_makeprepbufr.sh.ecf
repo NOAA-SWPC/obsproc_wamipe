@@ -10,6 +10,7 @@ echo "History: Mar  1 2013 - Original script.                               "
 echo "         Dec  3 2014 - CDAS network, split off into its own script    "
 echo "                       excdas_makeprepbufr.sh.ecf.  This script now   "
 echo "                       tailored exclusively to GDAS and GFS.          "
+echo "         Mar 11 2017 - Update to handle nemsio filename patterns      "
 #############################################################################
 
 set -x
@@ -23,6 +24,7 @@ $DATA/postmsg "$jlogfile" "$msg"
 cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
+MAKE_NSSTBUFR=${MAKE_NSSTBUFR:-YES}
 
 export COMSP=${COMSP:-$COMIN/${RUN}.${cycle}.}
 
@@ -112,30 +114,54 @@ if [ "$PREPDATA" = 'YES' ]; then
    fi
 fi
 
-# save global sigma guess file(s) in COMOUT if they haven't already been saved
+# save global guess file(s) in COMOUT if they haven't already been saved
 #  here by previous tropical cyclone relocation processing
-[ -s sgm3prep -a ! -s $COMOUT/${RUN}.${cycle}.sgm3prep ]  &&  \
- cp sgm3prep $COMOUT/${RUN}.${cycle}.sgm3prep
-[ -s sgp3prep -a ! -s $COMOUT/${RUN}.${cycle}.sgp3prep ]  &&  \
- cp sgp3prep $COMOUT/${RUN}.${cycle}.sgp3prep
-if [ -s sgesprep ]; then
-   if [ -s sgesprepA ]; then
-      cp sgesprep  $COMOUT/${RUN}.${cycle}.sgesprep_before
-      cp sgesprepA $COMOUT/${RUN}.${cycle}.sgesprep_after
-   else
-      [ ! -s $COMOUT/${RUN}.${cycle}.sgesprep ]  &&  \
-       cp sgesprep $COMOUT/${RUN}.${cycle}.sgesprep
-   fi
-
-# save path name of global sigma guess file valid at center PREPBUFR
-#  date/time (encoded into PREPBUFR file and used by q.c. programs) in COMOUT
-   if [ "$GETGUESS" = 'YES' ]; then
-      if [ -s sgesprepA_pathname ]; then
-         cp sgesprep_pathname \
-          $COMOUT/${RUN}.${cycle}.sgesprep_pathname_before.$tmmark
-         cp sgesprepA_pathname \
-          $COMOUT/${RUN}.${cycle}.sgesprep_pathname_after.$tmmark
+#  first block is for nemsio input, second is for sigio input
+if [[ "$NEMSIO_IN" == .true. ]]; then
+   [ -s sgm3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgm3.nemsio ]  &&  \
+    cp sgm3prep $COMOUT/${RUN}.${cycle}.atmgm3.nemsio
+   [ -s sgp3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgp3.nemsio ]  &&  \
+    cp sgp3prep $COMOUT/${RUN}.${cycle}.atmgp3.nemsio
+   if [ -s sgesprep ]; then
+      if [ -s sgesprepA ]; then
+         cp sgesprep  $COMOUT/${RUN}.${cycle}.atmges.nemsio_before
+         cp sgesprepA $COMOUT/${RUN}.${cycle}.atmges.nemsio_after
       else
+         [ ! -s $COMOUT/${RUN}.${cycle}.atmges.nemsio ]  &&  \
+         cp sgesprep $COMOUT/${RUN}.${cycle}.atmges.nemsio
+      fi
+   fi
+else
+   [ -s sgm3prep -a ! -s $COMOUT/${RUN}.${cycle}.sgm3prep ]  &&  \
+    cp sgm3prep $COMOUT/${RUN}.${cycle}.sgm3prep
+   [ -s sgp3prep -a ! -s $COMOUT/${RUN}.${cycle}.sgp3prep ]  &&  \
+    cp sgp3prep $COMOUT/${RUN}.${cycle}.sgp3prep
+   if [ -s sgesprep ]; then
+      if [ -s sgesprepA ]; then
+         cp sgesprep  $COMOUT/${RUN}.${cycle}.sgesprep_before
+         cp sgesprepA $COMOUT/${RUN}.${cycle}.sgesprep_after
+      else
+         [ ! -s $COMOUT/${RUN}.${cycle}.sgesprep ]  &&  \
+          cp sgesprep $COMOUT/${RUN}.${cycle}.sgesprep
+      fi
+   fi
+fi
+# end nemsio vs sigio logic to copy guess files to COMOUT
+
+# save path name of global guess file valid at center PREPBUFR
+#  date/time (encoded into PREPBUFR file and used by q.c. programs) in COMOUT
+# FOR NOW, staying with term "sgesprep" for these "pathname" filenames even for
+# nemsio (as done in tropical cyclone relocation processing) - 03/2017
+if [ "$GETGUESS" = 'YES' ]; then
+   if [[ "$NEMSIO_IN" == .true. ]]; then
+      set +x; echo -e "\n\"sges_pathname\" files point to nemsio files\n";set -x
+   fi
+   if [ -s sgesprepA_pathname ]; then
+      cp sgesprep_pathname \
+       $COMOUT/${RUN}.${cycle}.sgesprep_pathname_before.$tmmark
+      cp sgesprepA_pathname \
+       $COMOUT/${RUN}.${cycle}.sgesprep_pathname_after.$tmmark
+   else
 
 #   if the target file already exists, it was created in previous
 #    tropcy_relocate.sh script because either there was an error or no
@@ -147,9 +173,8 @@ if [ -s sgesprep ]; then
 #      cyclone relocation did run previously and did modify the guess)
 #   ---------------------------------------------------------------------------
 
-         [ ! -s $COMOUT/${RUN}.${cycle}.sgesprep_pathname.$tmmark ]  &&  \
-         cp sgesprep_pathname $COMOUT/${RUN}.${cycle}.sgesprep_pathname.$tmmark
-      fi
+      [ ! -s $COMOUT/${RUN}.${cycle}.sgesprep_pathname.$tmmark ]  &&  \
+      cp sgesprep_pathname $COMOUT/${RUN}.${cycle}.sgesprep_pathname.$tmmark
    fi
 fi
 
@@ -158,28 +183,14 @@ fi
 [ -s bogdata ]  &&  cp bogdata  $COMOUT/${RUN}.${cycle}.syndata.bogdata
 [ -s dthistry ] &&  cp dthistry $COMOUT/${RUN}.${cycle}.syndata.dthistry
 
-if test "$SENDDBN" = "YES"
-then
-   if test "$RUN" = "gfs"
-   then
-      if [ -s bogrept ]
-      then
-         $DBNROOT/bin/dbn_alert MODEL GFS_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogrept
+if [[ "$SENDDBN" == "YES" ]]; then
+   if [[ "$RUN" == "gfs" || "$RUN" == "gdas" || "$RUN" == "gdas1" ]]; then
+      RUN_uc=$(echo $RUN | tr [a-z] [A-Z])
+      if [[ -s bogrept ]]; then
+         $DBNROOT/bin/dbn_alert MODEL ${RUN_uc}_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogrept
       fi
-      if [ -s bogdata ]
-      then
-         $DBNROOT/bin/dbn_alert MODEL GFS_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogdata
-      fi
-   fi
-   if test "$RUN" = "gdas1"
-   then
-      if [ -s bogrept ]
-      then
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogrept
-      fi
-      if [ -s bogdata ]
-      then
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogdata
+      if [[ -s bogdata ]]; then
+         $DBNROOT/bin/dbn_alert MODEL ${RUN_uc}_TCI $job $COMOUT/${RUN}.${cycle}.syndata.bogdata
       fi
    fi
 fi
@@ -439,49 +450,96 @@ if [ "$DO_QC" = 'YES' ]; then
       fi
    fi
 
+   # Remove the following logic to create unblocked prepbufr files once we know
+   #  it is definitely no longer needed.
+   if [ "${PROCESS_UNBLKBUFR:-NO}" = 'YES' ]; then
+# 
 # make unblocked prepbufr file
 # ---> ON WCOSS prepbufr is already unblocked, so for now just copy it to the
 #      unblok file location used before on CCS - hopefully this can be removed
 #      someday!
-   cp -p  prepda.${cycle} prepda.${cycle}.unblok
-   err_cp=$?
-   if [ $err_cp -eq 0 ]; then
-      cp prepda.${cycle}.unblok $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-      chmod 664 $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-      if [ "$CHGRP_RSTPROD" = 'YES' ]; then
-         chgrp rstprod $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-         errch=$?
-         if [ $errch -eq 0 ]; then
-            chmod 640 $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+      cp -p  prepda.${cycle} prepda.${cycle}.unblok
+      err_cp=$?
+      if [ $err_cp -eq 0 ]; then
+         cp prepda.${cycle}.unblok $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+         chmod 664 $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+         if [ "$CHGRP_RSTPROD" = 'YES' ]; then
+            chgrp rstprod $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+            errch=$?
+            if [ $errch -eq 0 ]; then
+               chmod 640 $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+            else
+               cp /dev/null $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+               warning=yes
+            fi
+         fi
+      fi
+   fi  ## end logic to potentially create unblok version of prepbufr file
+
+   if [[ "$SENDDBN" == "YES" ]]; then
+      if [[ "$RUN" == "gdas" || "$RUN" == "gdas1" ]]; then
+         RUN_uc=$(echo $RUN | tr [a-z] [A-Z])
+         $DBNROOT/bin/dbn_alert MODEL ${RUN_uc}_BUFR_PREPda $job \
+          $COMOUT/${RUN}.${cycle}.prepbufr
+         $DBNROOT/bin/dbn_alert MODEL ${RUN_uc}_BUFR_acft $job \
+          $COMOUT/${RUN}.${cycle}.prepbufr.acft_profiles
+         if [ "${PROCESS_UNBLKBUFR:-NO}" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL ${RUN_uc}_BUFR_PREPda_unblok $job \
+             $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+         fi
+      elif [[ "$RUN" == "gfs" ]]; then
+         $DBNROOT/bin/dbn_alert MODEL GFS_BUFR_PREPda $job \
+          $COMOUT/${RUN}.${cycle}.prepbufr
+         if [ "${PROCESS_UNBLKBUFR:-NO}" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL GFS_BUFR_PREPda_unblok $job \
+            $COMOUT/${RUN}.${cycle}.prepbufr.unblok
+         fi
+         if [[ "$NEMSIO_IN" == .true. ]]; then
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmges_NEMSIO $job \
+             $COMOUT/${RUN}.${cycle}.atmges.nemsio
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmgm3_NEMSIO $job \
+             $COMOUT/${RUN}.${cycle}.atmgm3.nemsio
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmgp3_NEMSIO $job \
+             $COMOUT/${RUN}.${cycle}.atmgp3.nemsio
          else
-            cp /dev/null $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-            warning=yes
+            $DBNROOT/bin/dbn_alert MODEL GFS_sges_PREP $job \
+             $COMOUT/${RUN}.${cycle}.sgesprep
+            $DBNROOT/bin/dbn_alert MODEL GFS_sgm3_PREP $job \
+             $COMOUT/${RUN}.${cycle}.sgm3prep
+            $DBNROOT/bin/dbn_alert MODEL GFS_sgp3_PREP $job \
+             $COMOUT/${RUN}.${cycle}.sgp3prep
          fi
       fi
    fi
-
-   if test "$SENDDBN" = "YES"
-   then
-      if test "$RUN" = "gdas1"
-      then
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_BUFR_PREPda $job \
-          $COMOUT/${RUN}.${cycle}.prepbufr
-         $DBNROOT/bin/dbn_alert MODEL GDAS1_BUFR_PREPda_unblok $job \
-          $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-      fi
-      if test "$RUN" = "gfs"
-      then
-         $DBNROOT/bin/dbn_alert MODEL GFS_BUFR_PREPda $job \
-          $COMOUT/${RUN}.${cycle}.prepbufr
-         $DBNROOT/bin/dbn_alert MODEL GFS_BUFR_PREPda_unblok $job \
-          $COMOUT/${RUN}.${cycle}.prepbufr.unblok
-         $DBNROOT/bin/dbn_alert MODEL GFS_sges_PREP $job \
-          $COMOUT/${RUN}.${cycle}.sgesprep
-         $DBNROOT/bin/dbn_alert MODEL GFS_sgm3_PREP $job \
-          $COMOUT/${RUN}.${cycle}.sgm3prep
-         $DBNROOT/bin/dbn_alert MODEL GFS_sgp3_PREP $job \
-          $COMOUT/${RUN}.${cycle}.sgp3prep
-      fi
+fi
+## create combined ocean data dump file expected by NSST
+if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
+   > nsstbufr
+   chgrp rstprod nsstbufr
+   errch=$?
+   if [ $errch -eq 0 ]; then
+      for type in sfcshp tesac bathy trkob; do
+         file=${COMSP}$type.$tmmark.bufr_d
+         if [ -s $file ]; then
+            cat $file >> nsstbufr
+            err=$?
+            if [ $err -ne 0 ]; then
+              msg="**WARNING: exit status $err from cat of $file to nsstbufr"
+              $DATA/postmsg "$jlogfile" "$msg"
+            fi
+         else
+            echo $file is empty or does not exist
+         fi
+      done
+      cp nsstbufr $COMOUT/${RUN}.${cycle}.nsstbufr
+      chgrp rstprod $COMOUT/${RUN}.${cycle}.nsstbufr
+      chmod 640 $COMOUT/${RUN}.${cycle}.nsstbufr
+      msg="NOTE: nsstbufr file contains RESTRICTED data, only users in \
+rstprod group have read permission"
+      $DATA/postmsg "$jlogfile" "$msg"
+   else
+      cp /dev/null $COMOUT/${RUN}.${cycle}.nsstbufr
+      warning=yes
    fi
 fi
 

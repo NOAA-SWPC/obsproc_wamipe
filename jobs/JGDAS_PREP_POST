@@ -1,5 +1,20 @@
+#!/bin/bash
 set -xa
 date -u
+
+###################################################################
+# Set DEBUG LEVEL - modifies info in execution trace prompt string
+###################################################################
+export DEBUG_LEVEL=${DEBUG_LEVEL=1}
+case $DEBUG_LEVEL in
+  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
+  0) export PS4='+ ';;                      # don't include seconds (useful if
+                                            #  want to diff output from 2 runs)
+  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
+  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
+  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
+  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
+esac
 
 ########################################
 # Check that required variables are set
@@ -25,20 +40,21 @@ echo "OBSPROC_PREP_POST version used by this job is" \
        "${obsproc_prep_post_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
        "${obsproc_shared_bufr_remorest_ver:-not set}"
-echo Version of module util_shared used by this job is \
-${util_shared_ver?"###FATAL ERROR \"util_shared_ver\" is not set"}
 echo
 echo "####################################################################"
 echo
 set -x
 
-##################################
-# Load modules needed by this job
-##################################
-module load util_shared/${util_shared_ver} # (prepended path to util ush script
-                                           #  month_name..sh in ush script
-                                           #  gdas_summary.sh)
-
+#####################################################################
+# List modules loaded for this job
+#   On luna/surge may need to initialize the Modules package to find
+#   the module command.  Will do so for either system.
+#####################################################################
+if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
+  . /opt/modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
+  . /usrx/local/Modules/default/init/sh 2>/dev/null
+fi
 set +x
 echo
 echo "####################################################################"
@@ -49,26 +65,17 @@ echo "####################################################################"
 echo
 set -x
 
-###################################################################
-# Set DEBUG LEVEL - modifies info in execution trace prompt string
-###################################################################
-export DEBUG_LEVEL=${DEBUG_LEVEL=1}
-case $DEBUG_LEVEL in
-  1) export PS4='+ ${SECONDS}s + ' ;;       # add seconds (this is typical case)
-  0) export PS4='+ ';;                      # don't include seconds (useful if
-                                            #  want to diff output from 2 runs)
-  2) export PS4='+ ${SECONDS}s:L$LINENO + ';;         # add script line #
-  3) export PS4='+ ${SECONDS}s:${0##*/}:L$LINENO + ';;# add script name & line #
-  4) export PS4='+ ${0##*/}:L$LINENO + ';;  # script name & line (no seconds)
-  *) echo "Unrecognized DEBUG_LEVEL.  Stay with current PS4 setting";;
-esac
-
-##################################
-# Specify NET, RUN and model Name
-##################################
+######################
+# Specify NET and RUN
+######################
 export NET=${NET:-gfs}
-export RUN=${RUN:-gdas1}
-export model=${model:-gdas}  # Used in subscripts for file names
+export RUN=${RUN:-gdas}
+export RUND=${RUND:-gdas}    # gdas1->gdas transitional variable
+# Variable "$RUND" will be used temporarily to set default gdas COM directories.
+#  This replaces old variable "$model", which NCO now uses for another purpose.
+#  Use of $RUND (rather than $RUN) to set gdas COM directories is intended as a
+#  transitional safety measure in case $RUN (used in child scripts to define the
+#  leading filename segment) needs to be reverted back to "gdas1".
 
 ##############################
 # Specify cycle and time-mark
@@ -79,25 +86,17 @@ export tmmark=tm00
 ###############################
 # Create new working directory
 ###############################
-host=$(hostname -s)
-export DATA=${DATA:-$DATAROOT/${job}.${host}.$$}
+jobid=${jobid:-${job}.$(hostname -s).$$}
+export DATA=${DATA:-$DATAROOT/${jobid}}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
+export pgmout=OUTPUT.$$
 
 ######################################
 # Set job log file for postmsg output
 ######################################
 jlogfile=${jlogfile:-${DATA}/jlogfile}
-
-######################################
-# Determine Job Output Name on System
-######################################
-export pid=$$
-export outid="LL$job"
-[ $envir != prod ]  && export outid="LL${job}_${envir}"
-export jobid="${outid}.o${pid}"
-export pgmout="OUTPUT.${pid}"
 
 #################################################
 # SENDCOM      - Copy files to $COMOUT directory
@@ -109,12 +108,6 @@ export SENDCOM=${SENDCOM:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDDBN=${SENDDBN:-YES}
 export SENDWEB=${SENDWEB:-YES}
-
-######################################################
-# Phase 1 --> Phase 2 --> Cray  Transitional Settings
-######################################################
-NWROOTp1=${NWROOTp1:-/nwprod}
-NWROOTp2=${NWROOTp2:-/nwprod2}
 
 ##########################
 # Specify Execution Areas
@@ -131,7 +124,7 @@ export HOMEobsproc_network=${HOMEobsproc_network:\
 # Paths for obsproc_prep_post items
 # ---------------------------------
 export HOMEobsproc_prep_post=${HOMEobsproc_prep_post:\
--${NWROOTp2:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
+-${NWROOT:?}/obsproc_prep_post.${obsproc_prep_post_ver:?\
 "###FATAL ERROR \"obsproc_prep_post_ver\" is not set"}}
 
 export SCRIPTSobsproc_prep_post=${SCRIPTSobsproc_prep_post:\
@@ -150,7 +143,7 @@ export EXECobsproc_prep_post=${EXECobsproc_prep_post:\
 # Paths for obsproc_shared_bufr_remorest items
 # --------------------------------------------
 export HOMEobsproc_shared_bufr_remorest=${HOMEobsproc_shared_bufr_remorest:\
--${NWROOTp1:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
+-${NWROOT:?}/obsproc_shared/bufr_remorest.${obsproc_shared_bufr_remorest_ver:?\
 "###FATAL ERROR \"obsproc_shared_bufr_remorest_ver\" is not set"}}
 
 export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
@@ -159,23 +152,21 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
-###########################
-# Set up the UTILITY paths
-###########################
-export utilscript=${utilscript:-/nwprod/util/ush}    # temporary
-export utilexec=${utilexec:-/nwprod/util/exec}       # temporary, used by timetwins
-
-################################################################
-# Run setup to initialize working directory and utility scripts
-################################################################
-sh $utilscript/setup.sh                              # temporary
+#########################################################################
+# Add some prod utilities to working directory
+#########################################################################
+echo "step ############# break ##############################" > ./break
+cp $UTILROOT/ush/err_chk   .; chmod +x err_chk
+cp $UTILROOT/ush/err_exit  .; chmod +x err_exit
+cp $UTILROOT/ush/prep_step .; chmod +x prep_step
+cp $UTILROOT/ush/postmsg   .; chmod +x postmsg
+cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 
 ##########################################
 # Run setpdy and initialize PDY variables
 ##########################################
-set +x; echo -e "\n---> path to setpdy.sh below is: `which setpdy.sh`"; set -x
-setpdy.sh
-. $DATA/PDY
+./setpdy.sh
+. PDY
 
 #########################
 # Define COM directories
@@ -183,25 +174,25 @@ setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${model}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUND}.${PDY}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${model}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUND}.${PDY}}
   mkdir -m 755 -p $COMOUT
 fi
 
 # The following are used by $PROCESS_TIMETWINS when it is YES
 # -----------------------------------------------------------
 export COMINGFS=${COMINGFS:-${COMIN_ROOT:?}/${NET}/${envir}/${NET}.${PDY}}
-export COMIN1=${COMIN1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.}
+export COMIN1=${COMIN1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.}
 
 #########################################################
 # SETUP GDAS POST-ANALYSIS PREPBUFR PROCESSING VARIABLES
@@ -211,6 +202,7 @@ export COMIN1=${COMIN1:-${COMIN_ROOT:?}/${NET}/${envir}/${model}.}
 # Specify variables specific to this execution of script
 #########################################################
 export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
 export PROCESS_TIMETWINS=${PROCESS_TIMETWINS:-YES}
 
 # $PROCESS_ALL_REPORT_COUNTS and $PROCESS_MASTER_SHIP_STNLST both default to
@@ -230,24 +222,24 @@ if [ $PROCESS_ALL_REPORT_COUNTS == YES ]; then
   MON=${MONS[10#$MM]}   # get month string from array MONS.
   YYYYMM=`echo $PDY  | cut -c1-6`
   if [[ "$RUN_ENVIR" == nco ]]; then
-    export DATCOMIN=${COMIN_ROOT:?}/arch/${envir}
-    export SATCOMIN=${COMIN_ROOT:?}/${NET}/${envir}
+    export DATCOMIN=${COMIN_ROOT:?}/${NET}/${envir}/gdascounts
+    export SATCOMIN=${COMIN_ROOT:?}/${NET}/${envir}/gdascounts
     export ARCHCOMIN=${COMIN_ROOT:?}/${NET}/${envir}
-    export DATCOM1_IN=${COMIN_ROOT:?}/arch/${envir}
-    export DATCOMOUT_dir=${COMROOT:?}/arch/${envir}/data_counts.${YYYYMM}
-    export SATCOMOUT_dir=${COMROOT:?}/${NET}/${envir}/satcounts/${MON}
-    export ARCHCOMOUT=${COMROOT:?}/${NET}/${envir}
-    export DATCOM1_OUT=${COMROOT:?}/arch/${envir}
+    export DATCOM1_IN=${COMIN_ROOT:?}/${NET}/${envir}/gdascounts
+    export DATCOMOUT_dir=${COMROOT:?}/${NET}/${envir}/gdascounts/data_counts.$YYYYMM
+    export SATCOMOUT_dir=${COMROOT:?}/${NET}/${envir}/gdascounts/satcounts.$YYYYMM
+    export ARCHCOMOUT=${COMROOT:?}/${NET}/${envir}  # used in gdascounts_archive_pyear.sh
+    export DATCOM1_OUT=${COMROOT:?}/${NET}/${envir}/gdascounts
     mkdir -m 775 -p $DATCOMOUT_dir $SATCOMOUT_dir $ARCHCOMOUT $DATCOM1_OUT
   else
-    export DATCOMIN=${DATCOMIN:-${COMIN_ROOT:?}/arch/${envir}}
-    export SATCOMIN=${SATCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}}
-    export ARCHCOMIN=${ARCHCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}}
-    export DATCOM1_IN=${DATCOM1_IN:-${COMIN_ROOT:?}/arch/${envir}}
-    export DATCOMOUT_dir=${DATCOMOUT_dir:-${COMOUT_ROOT:?}/arch/${envir}/data_counts.${YYYYMM}}
-    export SATCOMOUT_dir=${SATCOMOUT_dir:-${COMOUT_ROOT:?}/${NET}/${envir}/satcounts/${MON}}
-    export ARCHCOMOUT=${ARCHCOMOUT:-${COMOUT_ROOT:?}/${NET}/${envir}}
-    export DATCOM1_OUT=${DATCOM1_OUT:-${COMOUT_ROOT:?}/arch/${envir}}
+    export DATCOMIN=${DATCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}/gdascounts}
+    export SATCOMIN=${SATCOMIN:-${COMIN_ROOT:?}/${NET}/${envir}/gdascounts}
+    export ARCHCOMIN=${ARCHCOMIN:-${COMIN_ROOT:?}/${NET}/$envir}
+    export DATCOM1_IN=${DATCOM1_IN:-${COMIN_ROOT:?}/${NET}/${envir}/gdascounts}
+    export DATCOMOUT_dir=${DATCOMOUT_dir:-${COMOUT_ROOT:?}/${NET}/${envir}/gdascounts/data_counts.$YYYYMM}
+    export SATCOMOUT_dir=${SATCOMOUT_dir:-${COMOUT_ROOT:?}/${NET}/${envir}/gdascounts/satcounts.$YYYYMM}
+    export ARCHCOMOUT=${ARCHCOMOUT:-${COMOUT_ROOT:?}/${NET}/$envir}  # used in gdascounts_archive_pyear.sh
+    export DATCOM1_OUT=${DATCOM1_OUT:-${COMOUT_ROOT:?}/${NET}/${envir}/gdascounts}
     mkdir -m 775 -p $DATCOMOUT_dir $SATCOMOUT_dir $ARCHCOMOUT $DATCOM1_OUT
   fi
 fi 
@@ -255,13 +247,13 @@ if [ $PROCESS_MASTER_SHIP_STNLST == YES ]; then
   export DCOMROOT=${DCOMROOT:-/dcom}
   export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/us007003/ndbc}
   if [[ "$RUN_ENVIR" == nco ]]; then
-    export VOSarch_IN=${COMIN_ROOT:?}/arch/${envir}/VOS
-    export VOSarch_OUT=${COMROOT:?}/arch/${envir}/VOS
+    export VOSarch_IN=${COMROOTp2:?}/arch/${envir}/VOS
+    export VOSarch_OUT=${COMROOTp2:?}/arch/${envir}/VOS
     mkdir -m 755 $VOSarch_OUT
   else
-    export VOSarch_IN=${VOSarch_IN:-${COMIN_ROOT:?}/arch/${envir}/VOS}
+    export VOSarch_IN=${VOSarch_IN:-${COMROOTp2:?}/arch/${envir}/VOS}
     export VOSarch_OUT=${VOSarch_OUT:-${COMOUT_ROOT:?}/arch/${envir}/VOS}
-    mkdir -m 755 $VOSarch_OUT
+    mkdir -p -m 755 $VOSarch_OUT
   fi
 fi 
 
@@ -271,7 +263,7 @@ env
 # Execute the script
 #####################
 $SCRIPTSobsproc_prep_post/exprep_post.sh.ecf
-eval err_${model}_prep_post=$?
+eval err_${RUN}_prep_post=$?
 
 echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_post_ran
 
@@ -287,8 +279,6 @@ $obsproc_prep_post_ver" >> \
  echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is \
 $obsproc_shared_bufr_remorest_ver" >> \
  $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
-echo "Version of module \"util_shared\" used by this job is $util_shared_ver" \
- >> $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_post_run
 
 if [ "$KEEPDATA" != YES ]; then
    cd $DATAROOT
