@@ -269,9 +269,10 @@ export NET=gdas
 # Execute the script
 #####################
 $SCRIPTSobsproc_global/exglobal_dump.sh.ecf
-eval err_${RUN}_dump=$?
+err_gdas_dump=$?
+[[ $err_gdas_dump -ne 0 ]] && $DATA/err_exit
 
-echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
+echo "$SITE `hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_ran
 
 > $COMOUT/obsproc_version_for_${cycle}_${RUN}_dump_run
 [ -n "$obsproc_global_ver" ]  &&  \

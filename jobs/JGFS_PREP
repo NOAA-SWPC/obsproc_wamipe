@@ -295,9 +295,10 @@ env
 # Execute the script
 #####################
 $SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
-eval err_${RUN}_prep=$?
+err_gfs_makeprepbufr=$?
+[[ $err_gfs_makeprepbufr -ne 0 ]] && $DATA/err_exit
 
-echo "`hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
+echo "$SITE `hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 
 > $COMOUT/obsproc_version_for_${cycle}_${RUN}_prep_run
 [ -n "$obsproc_global_ver" ]  &&  \

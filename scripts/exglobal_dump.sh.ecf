@@ -820,13 +820,13 @@ export DUMP_NUMBER=4
 #
 #--------------------------------------------------------------------------
 # Dump # 4 : AIRCAR: 2 subtype(s)
-#            AIRCFT: 6 subtype(s)
+#            AIRCFT: 8 subtype(s)
 #            PROFLR: 4 subtype(s)
 #            VADWND: 1 subtype(s)
 #            RASSDA: 1 subtype(s)
 #            GPSIPW: 1 subtype(s)
 #            -------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 15
+#            TOTAL NUMBER OF SUBTYPES = 17
 #
 #=======================================================================
 
@@ -1564,7 +1564,6 @@ if [ "$launcher" = cfp -o "$launcher" = aprun_cfp ]; then
            sh $DATA/poe.cmdfile
          fi
       elif [ "$launcher" = cfp ]; then  # iDataPlex
-         module load cfp
          export MP_CSS_INTERRUPT=yes
          mpirun.lsf cfp $DATA/poe.cmdfile 2>&1
       elif [ "$launcher" = aprun_cfp ]; then
