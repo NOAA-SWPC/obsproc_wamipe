@@ -1,5 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.1.0 --> released Nov ??, 2017,
+obsproc_global release 3.1.0 --> released Nov 6, 2017,
+                                 updated Nov 15, 2017
                              --> implemented ??? ??, 2017
 
 files:
@@ -40,12 +41,37 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
     - For runs on iDataPlex where launcher is cfp, no longer attempts to load
       module cfp because it is already loaded.
       BENEFIT: Avoids a non-fatal error message as this script runs under ksh.
+    - Include GOES-16 AMV's in tanks b005/xx030, b005/xx031, b005/xx032,
+      b005/xx034 and b005/xx039 as part of "satwnd" dump via use of exported
+      environment variable "ADD_satwnd". Set dump window to -3.00 to +2.99 hours
+      for these 5 new GOES-16 tanks. 
+      BENEFIT: AMV's generated from GOES-16 infrared/long-wave (processing
+               family "IRCD_DMW"), water vapor imager/deep-layer ("WVICS_DMW"),
+               visible ("VISB_DMW"), water vapor imager/cloud-top ("WVICT_DMW")
+               and infrared/short-wave ("SHRTWV_DMW") channels read from BUFR
+               /dcom database files NC005030, NC005031, NC005032, NC005034 and
+               NC005039, resp. will  will now be dumped into the "satwnd" file 
+               for testing and assimilation in the GFS and GDAS GSI (only, for
+               now).  GOES-16 is expected to replace GOES-13 as the operational
+               GOES-E satellite in mid-December 2017.
+    - Added dumps of "crisfs" [NPP/NOAA-20 CrIS full spectral radiances (2211
+      channels), type 021, subtype 205] and "crisf4" [NPP/NOAA-20 CrIS full
+      spectral radiances (431 channel subset), type 021, subtype 206] over a
+      time window of -3.00 to +2.99 hours in both GFS and GDAS.  These dumps
+      will be created only if at least one tank containing each type is present
+      over the past 10 days (these may have not yet been promoted to /dcom prior
+      to the implementation of exglobal_dump.sh.ecf).
+      BENEFIT: S-NPP "crisfs" and "crisf4" dump files will be generated now for
+               testing and eventual implementation in the GFS GSI. JPSS-1 data
+               will added into these dump files when that satellite's data is
+               available on PDA (also for testing and eventual implementation in
+               the GFS GSI).
 
 
  Output changes:
  ---------------
    Jobs JGDAS_DUMP and JGFS_DUMP:
-    - As a result of update to use obsproc_shared/bufr_dumplist.v1.4.0:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v1.5.0:
        - Dump files 
          /gpfs/hps/nco/ops/com/gfs/prod/g*s.$PDY/g*s.t${cyc}z.aircft.tm00.bufr_d
          now contain Korean AMDAR (BUFR), AMDAR-catchall (BUFR), and Panasonic
@@ -57,8 +83,21 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
          BUFR)], "KAMDAR" [Korean AMDAR aircraft data (decoded from BUFR)], and
          "AMDARB" [AMDAR aircraft data (decoded from BUFR)] will now appear in
          GDAS and GFS RTDM count graphics.
+    - The GFS and GDAS "satwnd" dump files will now include the five new GOES-16
+      AMV types noted earlier.  Eventually (~2 Jan 2018), the "satwnd" dump
+      files will no longer include GOES-13 AMV products.
+      Note: This is also true for JNAM_DUMP, JRAP_DUMP, JRTMA_DUMP and
+            JURMA_DUMP!!!
+    - As a result of changes to exglobal_dump.sh.ecf of update to use
+      obsproc_shared/bufr_dumplist.v1.5.0:
+       - Dump files
+         /gpfs/hps/nco/ops/com/gfs/prod/g*s.$PDY/g*s.t${cyc}z.crisfs.tm00.bufr_d
+             and
+         /gpfs/hps/nco/ops/com/gfs/prod/g*s.$PDY/g*s.t${cyc}z.crisf4.tm00.bufr_d
+         may now be created (if at least one tank containing each type is
+         present over the past 10 days).
    Jobs JGDAS_PREP and JGFS_PREP:
-    - As a result of update to use obsproc_shared/bufr_dumplist.v1.4.0:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v1.5.0:
        - Korean AMDAR (BUFR) (report type 131/231), AMDAR-catchall (BUFR)
          (report type 131/231) and Panasonic (AirDAT) TAMDAR (BUFR) (report type
          134/234) reports now encoded into PREPBUFR files and will be available
@@ -68,13 +107,17 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
  Compute Resource Information:
  -----------------------------
    Jobs JGDAS_DUMP and JGFS_DUMP:
-    - As a result of update to use obsproc_shared/bufr_dumplist.v1.4.0:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v1.5.0:
        - Processing additional aircraft data results in a ~3 second increase in
          wallclock run time.
+    - As a result of changes to exglobal_dump.sh.ecf of update to use
+      obsproc_shared/bufr_dumplist.v1.5.0:
+       - Generation of new "crisfs" and "crisf4" dumps results in a ~10 second
+         increase in wallclock run time.
     - No change in requested resources in the job cards.
     - No change to memory usage.
    Jobs JGDAS_PREP and JGFS_PREP:
-    - As a result of update to use obsproc_shared/bufr_dumplist.v1.4.0:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v1.5.0:
        - Processing additional aircraft data results in a ~21 second increase in
          wallclock run time.
     - No change in requested resources in the job cards.
@@ -87,8 +130,39 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
 
  Disk Space Changes:
  -------------------
-   /gpfs/hps/nco/ops/com/gfs/prod/gfs.    - Increase ~50 Mb per day
-   /gpfs/hps/nco/ops/com/gfs/prod/gdas.   - Increase ~51 Mb per day
+   Initially:
+    /gpfs/hps/nco/ops/com/gfs/prod/gfs.
+                                  - "aircft": Increase ~50 Mb per day
+                                    GOES-16 "satwnd": Increase ~286 Mb per day
+                                    S-NPP "crisf4": Increase ~500 Mb per day
+                                    S-NPP "crisfs": Increase ~1.5 Gb per day
+    /gpfs/hps/nco/ops/com/gfs/prod/gdas.
+                                  - "aircft": Increase ~51 Mb per day
+                                    GOES-16 "satwnd": Increase ~291 Mb per day
+                                    S-NPP "crisf4": Increase ~650 Mb per day
+                                    S-NPP "crisfs": Increase ~2.0 Gb per day
+
+   After JPSS-1 in on PDA (increases on top of above):
+    /gpfs/hps/nco/ops/com/gfs/prod/gfs.
+                                  - JPSS-1 "atms"  : Increase ~240 Mb per day
+                                    JPSS-1 "crisf4": Increase ~500 Mb per day
+                                    JPSS-1 "crisfs": Increase ~3.2 Gb per day
+    /gpfs/hps/nco/ops/com/gfs/prod/gdas.
+                                  - JPSS-1 "atms"  : Increase ~320 Mb per day
+                                    JPSS-1 "crisf4": Increase ~650 Mb per day
+                                    JPSS-1 "crisfs": Increase ~3.8 Gb per day
+    /com2/nam/prod/nam.           - JPSS-1 "atms"  : Increase 150 Mb per day
+    /com2/rap/prod/rap*.          - JPSS-1 "atms"  : Increase 200 Mb per day
+
+   On ~Jan 2, 2018 after GOES-13 is terminated:
+   /gpfs/hps/nco/ops/com/gfs/prod/gfs.
+                                  - GOES-13 "satwnd": Decrease ~226 Mb per day
+   /gpfs/hps/nco/ops/com/gfs/prod/gdas.
+                                  - GOES-13 "satwnd": Decrease ~229 Mb per day
+   /com2/nam/prod/nam.            - GOES-13 "satwnd": Decrease ~ 31 Mb per day
+   /com2/rap/prod/rap*.           - GOES-13 "satwnd": Decrease ~ 81 Mb per day
+   /com2/rtma/prod/rtma.          - GOES-13 "satwnd": Decrease ~ 41 Mb per day
+   /com2/urma/prod/urma.          - GOES-13 "satwnd": Decrease ~ 77 Mb per day
 
 
  Shared Software (with 1 or more jobs):
@@ -97,7 +171,7 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
     - obsproc_prep.v4.0.0
     - obsproc_dump_post.v3.0.0
     - obsproc_prep_post.v3.0.0
-    - obsproc_shared/bufr_dumplist.v1.4.0  (updated from v1.3.0)
+    - obsproc_shared/bufr_dumplist.v1.5.0  (updated from v1.3.0)
     - obsproc_shared/bufr_remorest.v2.0.0
     - obsproc_shared/bufr_avgdata.v2.0.0
 
@@ -136,10 +210,42 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
  Special Instructions:
  ---------------------
    This is part of OBSPROC.v8.0.4.
+   This must be implemented simultaneously with the implementation of:
+      obsproc_shared/bufr_dumplist.v1.5.0
+   and either simultaneously with or after the implementation of:
+      v3.4.2 of obsproc_satingest.
+
+   =====>  IMPORTANT: As you can see, the new CrIS-FSR 2231 "crisfs" dumps are
+                      very large now and will more than double in size when
+                      JPSS-1 is on PDA.   The CrIS-FSR 2231 database tanks
+                      (b021/xx205) are also large (see Release_Notes.txt for new
+                      release of obsproc_satingest.v3.4.2 for more information).
+
+                      While it would be preferable to generate these, they could
+                      be left out of this implementation per Andrew Collard. We
+                      leave this decision to NCO.  It should be noted that
+                      splitting up the JINPP jobs (in obsproc_satingest.v3.4.2)
+                      and the muti-processing nature of the dumping means that
+                      run time is not an issue here - only storage.
+
+                      If you decide not to generate the CrIS-FSR 2231 database
+                      tanks then do not initiate the new obsproc_satingest
+                      JINPP1 job (see "Special Instructions" in
+                      Release_Notes.txt for obsproc_satingest.v3.4.2).  This
+                      will also prevent the GFS and GDAS dump jobs from
+                      attempting to make "crisfs" dumps since no dumps are
+                      generated if there are no b021/xx205 tanks present over
+                      the past 10 days (see "Output changes" above).
 
    Please export file
-   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/20171020_OBSPROC-v8.0.4/obsproc_global.ver
+   https://svnemc.ncep.noaa.gov/projects/obsproc/branches/VS/versions/OBSPROC-v8.0.4/obsproc_global.ver
    and copy to /gpfs/hps/nco/ops/nwprod/versions.
+
+   Note: The files
+          /gpfs/hps/nco/ops/com/gfs/prod/[gfs][gdas].$PDY/[gfs][gfas].t${cyc}.satwnd.tm00.bufr_d.listing
+         generate garbled report listings for all GOES-16 data at this time.
+         This does not affect NCEP production.  It will be corrected at a later
+         date.
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.0.0 --> prelim release Mar 13, 2017,

@@ -25,6 +25,10 @@ echo "                         (moved to dump group #4 where TIME_TRIM=on)  "
 echo "         Jan  5 2017 - Dump new satellite data types. Reordered to    "
 echo "                       improve run time with all the new data.        "
 echo "         Feb  8 2017 - Update to run on Cray-XC40 or IBM iDataPlex    "
+echo "         Nov 13 2017 - Add dump of GOES-16 AMV's in tanks b005/xx030, "
+echo "                       b005/xx031, b005/xx032, b005/xx034 and         "
+echo "                       b005/xx039.  Set dump window to -3.00 to +2.99 "
+echo "                       hours for these 5 new GOES-16 tanks.           "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -54,7 +58,7 @@ set +u
 # -----------------------------------------------------------------------------
 # Dump group #1 (non-pb, TIME_TRIM defaults to OFF) =
 #               avcsam eshrs3 ssmisu cris saphir atms 1bhrs4 sevcsr tesac mls
-#               esatms
+#               esatms crisfs
 #
 # Dump group #2 (pb, TIME_TRIM defaults to OFF) =
 #               sfcshp atovs* adpsfc ascatt
@@ -74,7 +78,7 @@ set +u
 #
 # Dump group #7 (non-pb, TIME_TRIM defaults to OFF) =
 #               avcspm esmhs goesfv 1bmhs airsev atmsdb gome omi trkob gpsro
-#               escris
+#               escris crisf4
 #
 # Dump group #8 (pb, TIME_TRIM defaults to ON) =
 #               satwnd
@@ -506,8 +510,9 @@ export DUMP_NUMBER=1
 #            TESAC:  1 subtype(s)
 #            MLS:    1 subtype(s) (if present in past 10 days of tanks)
 #            ESATMS: 1 subtype(s) (if present in past 10 days of tanks)
+#            CRISFS: 1 subtype(s) (if present in past 10 days of tanks)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 11
+#            TOTAL NUMBER OF SUBTYPES = 12
 #
 #=========================================================================
 
@@ -562,11 +567,22 @@ if [ $err_check_tanks -eq 0 ];then
    DTIM_latest_esatms=${DTIM_latest_esatms:-"+2.99"}
 fi
 #-----------------------------------------------
+#-----------------------------------------------
+# check for crisfs tank presence in past 10 days
+crisfs=""
+err_check_tanks=0
+sh $USHobsproc_dump/check_tanks.sh crisfs
+err_check_tanks=$?
+if [ $err_check_tanks -eq 0 ];then
+   crisfs=crisfs
+   DTIM_latest_crisfs=${DTIM_latest_crisfs:-"+2.99"}
+fi
+#-----------------------------------------------
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM1:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcsam eshrs3 ssmisu $cris \
- saphir $atms 1bhrs4 sevcsr tesac $mls $esatms
+ saphir $atms 1bhrs4 sevcsr tesac $mls $esatms $crisfs
 error1=$?
 echo "$error1" > $DATA/error1
 
@@ -603,6 +619,12 @@ if [ "$SENDDBN" = "YES" ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esatms $job \
        ${COMSP}esatms.tm00.bufr_d
    fi
+####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
+#  if [ "$crisfs" = crisfs ];then
+#     $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisfs $job \
+#      ${COMSP}crisfs.tm00.bufr_d
+#  fi
+###########################################################################
 fi
 
 set +x
@@ -1127,8 +1149,9 @@ export DUMP_NUMBER=7
 #            TRKOB:  1 subtype(s)
 #            GPSRO:  1 subtype(s)
 #            ESCRIS: 1 subtype(s) (if present in past 10 days of tanks)
+#            CRISF4: 1 subtype(s) (if present in past 10 days of tanks)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 11
+#            TOTAL NUMBER OF SUBTYPES = 12
 #
 #=========================================================================
 
@@ -1153,11 +1176,22 @@ if [ $err_check_tanks -eq 0 ];then
    DTIM_latest_escris=${DTIM_latest_escris:-"+2.99"}
 fi
 #-----------------------------------------------
+#-----------------------------------------------
+# check for crisf4 tank presence in past 10 days
+crisf4=""
+err_check_tanks=0
+sh $USHobsproc_dump/check_tanks.sh crisf4
+err_check_tanks=$?
+if [ $err_check_tanks -eq 0 ];then
+   crisf4=crisf4
+   DTIM_latest_crisf4=${DTIM_latest_crisf4:-"+2.99"}
+fi
+#-----------------------------------------------
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM7:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcspm esmhs goesfv 1bmhs \
- airsev atmsdb gome omi trkob gpsro $escris
+ airsev atmsdb gome omi trkob gpsro $escris $crisf4
 error7=$?
 echo "$error7" > $DATA/error7
 
@@ -1188,6 +1222,12 @@ if [ "$SENDDBN" = "YES" ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_escris $job \
        ${COMSP}escris.tm00.bufr_d
    fi
+####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
+#  if [ "$crisf4" = crisf4 ];then
+#     $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisf4 $job \
+#      ${COMSP}crisf4.tm00.bufr_d
+#  fi
+###########################################################################
 fi
 
 set +x
@@ -1224,17 +1264,21 @@ export DUMP_NUMBER=8
 #=======================================================================
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
-#       EXCEPT: SATWND subtypes 005/010, 005/011, 005/12, 005/019, 005/064,
-#               005/065, 005/066, 005/070, 005/071, 005/080 and 005/090 where
-#               it is -3.00 to +2.99 hours.
+#       EXCEPT: SATWND subtypes 005/010, 005/011, 005/12, 005/019, 005/030,
+#               005/031, 005/032, 005/034, 005039, 005/064, 005/065,
+#               005/066, 005/070, 005/071, 005/080 and 005/090 where it is
+#               -3.00 to +2.99 hours.
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
 # Dump # 8 : SATWND: 17 subtype(s)
 #            --------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 17
+#            TOTAL NUMBER OF SUBTYPES = 22
 #
 #=======================================================================
+
+ADD_satwnd="005030 005031 005032 005034 005039"
+
 
 # satwnd types
 # ------------
@@ -1246,6 +1290,16 @@ DTIM_earliest_005012=${DTIM_earliest_005012:-"-3.00"}
 DTIM_latest_005012=${DTIM_latest_005012:-"+2.99"}
 DTIM_earliest_005019=${DTIM_earliest_005019:-"-3.00"}
 DTIM_latest_005019=${DTIM_latest_005019:-"+2.99"}
+DTIM_earliest_005030=${DTIM_earliest_005030:-"-3.00"}
+DTIM_latest_005030=${DTIM_latest_005030:-"+2.99"}
+DTIM_earliest_005031=${DTIM_earliest_005031:-"-3.00"}
+DTIM_latest_005031=${DTIM_latest_005031:-"+2.99"}
+DTIM_earliest_005032=${DTIM_earliest_005032:-"-3.00"}
+DTIM_latest_005032=${DTIM_latest_005032:-"+2.99"}
+DTIM_earliest_005034=${DTIM_earliest_005034:-"-3.00"}
+DTIM_latest_005034=${DTIM_latest_005034:-"+2.99"}
+DTIM_earliest_005039=${DTIM_earliest_005039:-"-3.00"}
+DTIM_latest_005039=${DTIM_latest_005039:-"+2.99"}
 DTIM_earliest_005064=${DTIM_earliest_005064:-"-3.00"}
 DTIM_latest_005064=${DTIM_latest_005064:-"+2.99"}
 DTIM_earliest_005065=${DTIM_earliest_005065:-"-3.00"}
