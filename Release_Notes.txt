@@ -84,10 +84,7 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
          "AMDARB" [AMDAR aircraft data (decoded from BUFR)] will now appear in
          GDAS and GFS RTDM count graphics.
     - The GFS and GDAS "satwnd" dump files will now include the five new GOES-16
-      AMV types noted earlier.  Eventually (~2 Jan 2018), the "satwnd" dump
-      files will no longer include GOES-13 AMV products.
-      Note: This is also true for JNAM_DUMP, JRAP_DUMP, JRTMA_DUMP and
-            JURMA_DUMP!!!
+      AMV types noted earlier.
     - As a result of changes to exglobal_dump.sh.ecf of update to use
       obsproc_shared/bufr_dumplist.v1.5.0:
        - Dump files
@@ -144,25 +141,11 @@ M  obsproc_global/scripts/exglobal_dump.sh.ecf
 
    After JPSS-1 in on PDA (increases on top of above):
     /gpfs/hps/nco/ops/com/gfs/prod/gfs.
-                                  - JPSS-1 "atms"  : Increase ~240 Mb per day
-                                    JPSS-1 "crisf4": Increase ~500 Mb per day
+                                  - JPSS-1 "crisf4": Increase ~500 Mb per day
                                     JPSS-1 "crisfs": Increase ~3.2 Gb per day
     /gpfs/hps/nco/ops/com/gfs/prod/gdas.
-                                  - JPSS-1 "atms"  : Increase ~320 Mb per day
                                     JPSS-1 "crisf4": Increase ~650 Mb per day
                                     JPSS-1 "crisfs": Increase ~3.8 Gb per day
-    /com2/nam/prod/nam.           - JPSS-1 "atms"  : Increase 150 Mb per day
-    /com2/rap/prod/rap*.          - JPSS-1 "atms"  : Increase 200 Mb per day
-
-   On ~Jan 2, 2018 after GOES-13 is terminated:
-   /gpfs/hps/nco/ops/com/gfs/prod/gfs.
-                                  - GOES-13 "satwnd": Decrease ~226 Mb per day
-   /gpfs/hps/nco/ops/com/gfs/prod/gdas.
-                                  - GOES-13 "satwnd": Decrease ~229 Mb per day
-   /com2/nam/prod/nam.            - GOES-13 "satwnd": Decrease ~ 31 Mb per day
-   /com2/rap/prod/rap*.           - GOES-13 "satwnd": Decrease ~ 81 Mb per day
-   /com2/rtma/prod/rtma.          - GOES-13 "satwnd": Decrease ~ 41 Mb per day
-   /com2/urma/prod/urma.          - GOES-13 "satwnd": Decrease ~ 77 Mb per day
 
 
  Shared Software (with 1 or more jobs):
@@ -368,9 +351,6 @@ files added, modified or deleted since last release:
       of the sfcshp, tesac, bathy, trkob dump files for the given cycle.  They
       are restricted because they contain resticted ship data.
     - As a result of update to obsproc_prep.v4.0.0:
-       - PREPBUFR files can have quality marks applied for more VADWND and
-         PROFLR stations due to increases in the max number of stations that can
-         be qc'd in prepobs_cqcvad and prepobs_profcqc, respectively.
        - Due to the upgrade in ifort compiler version from 12.1 (on IBM) to
          16.x.x (on Cray and IBM) some printed values in output informational
          files and dayfiles will no longer include a leading zero or may
