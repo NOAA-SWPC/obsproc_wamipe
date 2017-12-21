@@ -1265,7 +1265,7 @@ export DUMP_NUMBER=8
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
 #       EXCEPT: SATWND subtypes 005/010, 005/011, 005/12, 005/019, 005/030,
-#               005/031, 005/032, 005/034, 005039, 005/064, 005/065,
+#               005/031, 005/032, 005/034, 005/039, 005/064, 005/065,
 #               005/066, 005/070, 005/071, 005/080 and 005/090 where it is
 #               -3.00 to +2.99 hours.
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
