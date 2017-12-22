@@ -1,7 +1,7 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.1.0 --> released Nov 6, 2017,
                                  updated Nov 15, 2017
-                             --> implemented ??? ??, 2017
+                             --> implemented Dec 21, 2017
 
 files:
    obsproc_global/fix/prepobs_errtable.global
