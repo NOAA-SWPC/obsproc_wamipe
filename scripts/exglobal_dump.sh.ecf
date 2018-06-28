@@ -607,10 +607,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}1bhrs4.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sevcsr $job \
     ${COMSP}sevcsr.tm00.bufr_d
-####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
-#   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_tesac $job \
-#    ${COMSP}tesac.tm00.bufr_d
-###########################################################################
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_tesac $job \
+    ${COMSP}tesac.tm00.bufr_d
    if [ "$mls" = mls ];then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_mls $job \
        ${COMSP}mls.tm00.bufr_d
@@ -1212,10 +1210,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}gome.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_omi $job \
     ${COMSP}omi.tm00.bufr_d
-####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
-#   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_trkob $job \
-#    ${COMSP}trkob.tm00.bufr_d
-###########################################################################
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_trkob $job \
+    ${COMSP}trkob.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsro $job \
     ${COMSP}gpsro.tm00.bufr_d
    if [ "$escris" = escris ];then
@@ -1467,10 +1463,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}sevasr.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bamua $job \
     ${COMSP}1bamua.tm00.bufr_d
-####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
-#   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_bathy $job \
-#    ${COMSP}bathy.tm00.bufr_d
-###########################################################################
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_bathy $job \
+    ${COMSP}bathy.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_osbuv8 $job \
     ${COMSP}osbuv8.tm00.bufr_d
 fi
