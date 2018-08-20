@@ -29,6 +29,8 @@ echo "         Nov 13 2017 - Add dump of GOES-16 AMV's in tanks b005/xx030, "
 echo "                       b005/xx031, b005/xx032, b005/xx034 and         "
 echo "                       b005/xx039.  Set dump window to -3.00 to +2.99 "
 echo "                       hours for these 5 new GOES-16 tanks.           "
+echo "         Aug 10 2018 - Updated to run on Dell-p3 (as well as Cray-XC40"
+echo "                       and IBM iDataPlex.                             "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -1613,7 +1615,11 @@ if [ "$launcher" = cfp -o "$launcher" = aprun_cfp ]; then
          fi
       elif [ "$launcher" = cfp ]; then  # iDataPlex
          export MP_CSS_INTERRUPT=yes
-         mpirun.lsf cfp $DATA/poe.cmdfile 2>&1
+         launcher_DUMP=${launcher_DUMP:-mpirun.lsf}
+         if [ "$sys_tp" = Dell-p3 -o "$SITE" = VENUS -o "$SITE" = MARS ]; then
+           launcher_DUMP='mpirun -l'
+         fi
+         $launcher_DUMP cfp $DATA/poe.cmdfile 2>&1
       elif [ "$launcher" = aprun_cfp ]; then
          if [[ -z ${DUMPStpn:-""} ]]; then   # pes per node
             # cfp is faster with extra thread so add one if there is room.

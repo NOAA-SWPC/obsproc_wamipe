@@ -73,13 +73,21 @@ set -x
 # Specify NET and RUN
 ######################
 export NET=${NET:-gfs}
-export RUN=${RUN:-gdas}
-export RUND=${RUND:-gdas}    # gdas1->gdas transitional variable
-# Variable "$RUND" will be used temporarily to set default gdas COM directories.
-#  This replaces old variable "$model", which NCO now uses for another purpose.
-#  Use of $RUND (rather than $RUN) to set gdas COM directories is intended as a
-#  transitional safety measure in case $RUN (used in child scripts to define the
-#  leading filename segment) needs to be reverted back to "gdas1".
+echo $job | grep gfs
+err_gfs=$?
+echo $job | grep gdas
+err_gdas=$?
+if [ $err_gfs = 0 ]; then
+  export RUN=${RUN:-gfs}   # GFS
+elif [ $err_gdas = 0 ]; then
+  export RUN=${RUN:-gdas}  # GDAS
+fi
+set +x
+echo
+echo NET is ${NET:?"###FATAL ERROR \"NET\" is not set"}
+echo RUN is ${RUN:?"###FATAL ERROR \"RUN\" is not set"}
+echo
+set -x
 
 ##############################
 # Specify cycle and time-mark
@@ -198,24 +206,24 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUND}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUND}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
   mkdir -m 755 -p $COMOUT
 fi
 
 # comin and comin_m1 are paths to dump status files for bufr_avgdata.sh
-export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
-export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDYm1}}
+export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
+export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDYm1}/${cyc}}
 
 # ---------------------------
 # Paths for non-obsproc items
@@ -261,17 +269,17 @@ else # developer
   mkdir -p $ALERTL
 fi
 
-#################################################
-# SETUP GDAS DATA DUMP POST PROCESSING VARIABLES
-#################################################
+########################################################
+# SETUP GDAS OR GFS DATA DUMP POST PROCESSING VARIABLES
+########################################################
 
 #########################################################
 # Specify variables specific to this execution of script
 #########################################################
-export PROCESS_DATACOUNTS=${PROCESS_DATACOUNTS:-YES}
-export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}
-export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
-export PROCESS_LISTERS=${PROCESS_LISTERS:-YES}
+export PROCESS_DATACOUNTS=${PROCESS_DATACOUNTS:-YES} # normally runs
+export PROCESS_REMOREST=${PROCESS_REMOREST:-YES}     # normally runs
+export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}    # normally does not run
+export PROCESS_LISTERS=${PROCESS_LISTERS:-YES}       # normally runs
 
 # Data count average tables are generated in the 18Z run only
 if [ "$cyc" = '18' ]; then
@@ -282,13 +290,13 @@ fi
 
 env
 
-export NET=gdas
+[ $RUN = gdas ] && export NET=gdas
 #####################
 # Execute the script
 #####################
 $SCRIPTSobsproc_dump_post/exdump_post.sh.ecf
-err_gdas_dump_post=$?
-[[ $err_gdas_dump_post -ne 0 ]] && $DATA/err_exit
+eval err_${RUN}_dump_post=$?
+eval [[ \$err_${RUN}_dump_post -ne 0 ]] && $DATA/err_exit
 
 echo "$SITE `hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_dump_post_ran
 

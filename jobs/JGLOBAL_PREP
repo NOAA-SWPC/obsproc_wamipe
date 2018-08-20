@@ -28,6 +28,12 @@ echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
 echo
 set -x
 
+# Force prepobs_makeprepbufr.sh to use prepobs_errtable.global from
+# gfs.v*/fix/fix_gsi instead of from obsproc_global.v*/fix
+# -----> Ask NCO if they want this in driver script?
+VERSION_FILE_gfs=$NWROOT/versions/gfs.ver
+[ -f $VERSION_FILE_gfs ] && . $VERSION_FILE_gfs
+
 ################################
 # Print out version information
 ################################
@@ -37,6 +43,7 @@ echo "####################################################################"
 echo
 echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_PREP version used by this job is ${obsproc_prep_ver:-not set}"
+echo "GFS version used by this job is ${gfs_ver:-not set}"
 echo
 echo "####################################################################"
 echo
@@ -66,13 +73,21 @@ set -x
 # Specify NET and RUN
 ######################
 export NET=${NET:-gfs}
-export RUN=${RUN:-gdas}
-export RUND=${RUND:-gdas}    # gdas1->gdas transitional variable
-# Variable "$RUND" will be used temporarily to set default gdas COM directories.
-#  This replaces old variable "$model", which NCO now uses for another purpose.
-#  Use of $RUND (rather than $RUN) to set gdas COM directories is intended as a
-#  transitional safety measure in case $RUN (used in child scripts to define the
-#  leading filename segment) needs to be reverted back to "gdas1".
+echo $job | grep gfs
+err_gfs=$?
+echo $job | grep gdas
+err_gdas=$?
+if [ $err_gfs = 0 ]; then
+  export RUN=${RUN:-gfs}   # GFS
+elif [ $err_gdas = 0 ]; then
+  export RUN=${RUN:-gdas}  # GDAS
+fi
+set +x
+echo
+echo NET is ${NET:?"###FATAL ERROR \"NET\" is not set"}
+echo RUN is ${RUN:?"###FATAL ERROR \"RUN\" is not set"}
+echo
+set -x
 
 ##############################
 # Specify cycle and time-mark
@@ -165,6 +180,12 @@ export PARMSYND=${PARMSYND:-${HOMEobsproc_network}/parm}
 # ----------------------------------------------------------
 export DICTPREP=${DICTPREP:-${NWROOTp1}/decoders/decod_shared/dictionaries}
 
+# HOMEgfs is directory path to prepobs_errtable.global (PRVT), used in
+# prepobs_makeprepbufr.sh and its child scripts prepobs_syndata.sh and
+# prepobsp_prevents.sh.
+# ---------------------------------------------------------------------------
+export HOMEgfs=${HOMEgfs:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
+
 #########################################################################
 # Add some prod utilities to working directory
 #########################################################################
@@ -187,18 +208,18 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUND}.${PDY}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUND}.${PDY}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUND}.${PDY}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
   mkdir -m 755 -p $COMOUT
 fi
 
@@ -206,12 +227,12 @@ export NEMSIO_IN=${NEMSIO_IN:-.true.}     # switch for nemsio vs sigio guess
 export envir_getges=${envir_getges:-$envir}
 export GETGES_COM=${GETGES_COM:-$COMROOT} # Root location for GFS/GDAS COM data
 export GETGES_NWG=${GETGES_NWG:-$GESROOT}
-export COMINgdas=${COMINgdas:-$(compath.py gfs/${envir_getges}/gdas.$PDY)}
-export COMINgfs=${COMINgfs:-$(compath.py gfs/${envir_getges}/gfs.$PDY)}
+export COMINgdas=${COMINgdas:-$(compath.py gfs/${envir_getges}/gdas.$PDY/${cyc})}
+export COMINgfs=${COMINgfs:-$(compath.py gfs/${envir_getges}/gfs.$PDY/${cyc})}
 
-###########################################
-# SETUP GDAS PREPBUFR PROCESSING VARIABLES
-###########################################
+###################################################
+# SETUP GDAS AND GFS PREPBUFR PROCESSING VARIABLES
+###################################################
 
 #########################################################
 # Specify variables specific to this execution of script
@@ -297,13 +318,13 @@ export PROCESS_UNBLKBUFR=${PROCESS_UNBLKBUFR:-NO}
 
 env
 
-export NET=gdas
+[ $RUN = gdas ] && export NET=gdas
 #####################
 # Execute the script
 #####################
 $SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
-err_gdas_makeprepbufr=$?
-[[ $err_gdas_makeprepbufr -ne 0 ]] && $DATA/err_exit
+eval err_${RUN}_makeprepbufr=$?
+eval [[ \$err_${RUN}_makeprepbufr -ne 0 ]] && $DATA/err_exit
 
 echo "$SITE `hostname`  --  `date -u`" > $COMOUT/where_${cycle}_${RUN}_prep_ran
 
