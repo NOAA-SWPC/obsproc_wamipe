@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.0 --> released Aug ??, 2018,
+obsproc_global release 3.2.0 --> released Aug 31, 2018,
                              --> implemented ??? ??, 201?
 
 files:
@@ -138,6 +138,7 @@ Script file changes:
  ---------------------
    This is part of OBSPROC.v11.0.0.
    This must be implemented simultaneously with the implementation of:
+      v2.1.0 of obsproc_dump_alert,
       v3.3.0 of obsproc_nam,
       v3.1.0 of obsproc_rap.
    This must be implemented simultaneously with or after the implementations of:
@@ -152,7 +153,7 @@ Script file changes:
    This must be implemented on Dell-p3.
 
    Please retrieve the obsproc_global.ver file:
-   git clone gerrit:EMC_obsproc
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
    cd EMC_obsproc; git checkout master
    cp versions/20180725_OBSPROC_v11.0.0/obsproc_global.ver $NWROOTp3/versions
 
