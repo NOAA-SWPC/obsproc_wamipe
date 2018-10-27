@@ -55,6 +55,9 @@ files:
 Script file changes:
    exglobal_dump.sh.ecf:
     - Updated to run on Dell-p3 (as well as Cray-XC40 and IBM iDataPlex).
+    - Updated to add dump of OMPS VSN8 nadir profile (NP) (NC008017) and total 
+      column (TC) (NC008018), Indiasat AMV's in tanks b005/xx024 b005/xx025 
+      b005/xx026.
 
  Fixed file changes:
    prepobs_errtable.global:

@@ -31,6 +31,9 @@ echo "                       b005/xx039.  Set dump window to -3.00 to +2.99 "
 echo "                       hours for these 5 new GOES-16 tanks.           "
 echo "         Aug 10 2018 - Updated to run on Dell-p3 (as well as Cray-XC40"
 echo "                       and IBM iDataPlex.                             "
+echo "         Oct 24 2018 - Add dump of OMPS VSN8 nadir profile (NP) and    "
+echo "                       total column (TC), Indiasat AMV's in tanks     "
+echo "                       b005/xx024 b005/xx025 b005/xx026.              "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -1271,11 +1274,11 @@ export DUMP_NUMBER=8
 #--------------------------------------------------------------------------
 # Dump # 8 : SATWND: 17 subtype(s)
 #            --------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 22
+#            TOTAL NUMBER OF SUBTYPES = 25
 #
 #=======================================================================
 
-ADD_satwnd="005030 005031 005032 005034 005039"
+ADD_satwnd="005024 005025 005026 005030 005031 005032 005034 005039"
 
 
 # satwnd types
@@ -1288,6 +1291,12 @@ DTIM_earliest_005012=${DTIM_earliest_005012:-"-3.00"}
 DTIM_latest_005012=${DTIM_latest_005012:-"+2.99"}
 DTIM_earliest_005019=${DTIM_earliest_005019:-"-3.00"}
 DTIM_latest_005019=${DTIM_latest_005019:-"+2.99"}
+DTIM_earliest_005024=${DTIM_earliest_005024:-"-3.00"}
+DTIM_latest_005024=${DTIM_latest_005024:-"+2.99"}
+DTIM_earliest_005025=${DTIM_earliest_005025:-"-3.00"}
+DTIM_latest_005025=${DTIM_latest_005025:-"+2.99"}
+DTIM_earliest_005026=${DTIM_earliest_005026:-"-3.00"}
+DTIM_latest_005026=${DTIM_latest_005026:-"+2.99"}
 DTIM_earliest_005030=${DTIM_earliest_005030:-"-3.00"}
 DTIM_latest_005030=${DTIM_latest_005030:-"+2.99"}
 DTIM_earliest_005031=${DTIM_earliest_005031:-"-3.00"}
@@ -1428,8 +1437,10 @@ export DUMP_NUMBER=10
 #            1BAMUA: 1 subtype(s)
 #            BATHY:  1 subtype(s)
 #            OSBUV8: 1 subtype(s)
+#            OMPSN8: 1 subtype(s)
+#            OMPST8: 1 subtype(s)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 9
+#            TOTAL NUMBER OF SUBTYPES = 11
 #
 #=========================================================================
 
@@ -1442,11 +1453,13 @@ DTIM_latest_sevasr=${DTIM_latest_sevasr:-"+2.99"}
 DTIM_latest_1bamua=${DTIM_latest_1bamua:-"+2.99"}
 DTIM_latest_bathy=${DTIM_latest_bathy:-"+2.99"}
 DTIM_latest_osbuv8=${DTIM_latest_osbuv8:-"+2.99"}
+DTIM_latest_ompsn8=${DTIM_latest_ompsn8:-"+2.99"}
+DTIM_latest_ompst8=${DTIM_latest_ompst8:-"+2.99"}
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM10:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 esiasi mtiasi esamua \
- crisdb iasidb sevasr 1bamua bathy osbuv8
+ crisdb iasidb sevasr 1bamua bathy osbuv8 ompsn8 ompst8
 error10=$?
 echo "$error10" > $DATA/error10
 
@@ -1469,6 +1482,10 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}bathy.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_osbuv8 $job \
     ${COMSP}osbuv8.tm00.bufr_d
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ompsn8 $job \
+    ${COMSP}ompsn8.tm00.bufr_d
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ompst8 $job \
+    ${COMSP}ompst8.tm00.bufr_d
 fi
 
 set +x
