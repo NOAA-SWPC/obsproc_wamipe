@@ -76,6 +76,11 @@ Script file changes:
     - As a result of update to use obsproc_prep.v5.2.0:
        - The global first guess encoded in the PREPBUFR files may come from a
          different initial time.
+   Job JGLOBAL_DUMP in gdas and gfs runs:
+    - As a result of update to use obsproc_dump.v5.0.0:
+       - The global dump files will now include ompsn8, ompst8, and the satwnd
+         dump file will include 3 new India Sat AMV tanks:
+         005024, 005025, 005026.
 
 
  Compute Resource Information:
@@ -83,12 +88,20 @@ Script file changes:
    All jobs:
     - No change in requested resources in the job cards.
     - No change to memory usage.
-    - No change in wallclock run time.
+    - Negligible change in wallclock run time.
 
 
  Disk Space Changes:
  -------------------
-   No changes.
+    Increased $COMROOT usage for the additional dump data: 
+    For gdas network:
+    - ompsn8 bufr_d file ~ 1.9Mb per day
+    - ompst8 bufr_d file ~ 27Mb per day
+    - satwnd bufr_d file ~ 54Mb per day
+    For gfs network:
+    - ompsn8 bufr_d file ~ 1.5Mb per day
+    - ompst8 bufr_d file ~ 22.8Mb per day
+    - satwnd bufr_d file ~ 44Mb per day
 
 
  Shared Software (with 1 or more jobs):
