@@ -1223,12 +1223,10 @@ if [ "$SENDDBN" = "YES" ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_escris $job \
        ${COMSP}escris.tm00.bufr_d
    fi
-####### ALERTS TURNED OFF UNTIL REQUESTED BY USER #########################
-#  if [ "$crisf4" = crisf4 ];then
-#     $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisf4 $job \
-#      ${COMSP}crisf4.tm00.bufr_d
-#  fi
-###########################################################################
+   if [ "$crisf4" = crisf4 ];then
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisf4 $job \
+       ${COMSP}crisf4.tm00.bufr_d
+   fi
 fi
 
 set +x
