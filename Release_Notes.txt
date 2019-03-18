@@ -544,7 +544,7 @@ files added, modified or deleted since last release:
     - New files gdas.tCCz.nsstbufr and gfs.tCCz.nsstbufr (for CC=00,06,12,18)
       are created for downstream analysis jobs. These are simply a concatenation
       of the sfcshp, tesac, bathy, trkob dump files for the given cycle.  They
-      are restricted because they contain resticted ship data.
+      are restricted because they contain restricted ship data.
     - As a result of update to obsproc_prep.v4.0.0:
        - Due to the upgrade in ifort compiler version from 12.1 (on IBM) to
          16.x.x (on Cray and IBM) some printed values in output informational
