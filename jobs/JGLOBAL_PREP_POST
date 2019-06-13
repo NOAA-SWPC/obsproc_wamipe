@@ -54,6 +54,8 @@ if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
   . /opt/modules/default/init/sh 2>/dev/null
 elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
   . /usrx/local/Modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/prod/modules/default/init/sh ]; then # on venus/mars
+  . /usrx/local/prod/modules/default/init/sh 2>/dev/null
 fi
 set +x
 echo
@@ -258,7 +260,9 @@ elif [ $RUN = gdas ]; then
   fi 
   if [ $PROCESS_MASTER_SHIP_STNLST == YES ]; then
     export DCOMROOT=${DCOMROOT:-/dcom}
-    export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/us007003/ndbc}
+    # JY dcom P1 export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/us007003/ndbc}
+    # JY dcom P3 export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/prod/ndbc}
+    export SHPNAMDIR_DCOM=${SHPNAMDIR:-/gpfs/[tg]p1/nco/ops/dcom/us007003/ndbc}
     if [[ "$RUN_ENVIR" == nco ]]; then
       export VOSarch_IN=${COMROOTp2:?}/arch/${envir}/VOS
       export VOSarch_OUT=${COMROOTp2:?}/arch/${envir}/VOS

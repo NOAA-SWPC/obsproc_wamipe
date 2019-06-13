@@ -54,6 +54,8 @@ if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
   . /opt/modules/default/init/sh 2>/dev/null
 elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
   . /usrx/local/Modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/prod/modules/default/init/sh ]; then # on venus/mars
+  . /usrx/local/prod/modules/default/init/sh 2>/dev/null
 fi
 set +x
 echo
@@ -196,15 +198,15 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 # TANK is root directory path to observational database used in dumpjb
 # --------------------------------------------------------------------
 export DCOMROOT=${DCOMROOT:-/dcom}
-export TANK=${TANK:-${DCOMROOT}/us007003}
+export TANK=${TANK:-${DCOMROOT}/${envir}}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
 # -----------------------------------------------------------------------
-export COM_ENGICE=${COM_ENGICE:-$COMROOTp2/omb/prod/sice}
-export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp2/omb/prod/sice}
+export COM_ENGICE=${COM_ENGICE:-$COMROOTp3/omb/${envir}/sice}
+export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp3/omb/${envir}/sice}
 export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
 export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp2/gfs/prod/sst}
-export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/us007003}
+export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/${envir}}
 
 #########################################################################
 # Add some prod utilities to working directory

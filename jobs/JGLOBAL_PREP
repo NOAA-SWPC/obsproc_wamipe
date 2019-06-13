@@ -58,6 +58,8 @@ if [ -f /opt/modules/default/init/sh ]; then  # on luna/surge
   . /opt/modules/default/init/sh 2>/dev/null
 elif [ -f /usrx/local/Modules/default/init/sh ]; then  # on tide/gyre
   . /usrx/local/Modules/default/init/sh 2>/dev/null
+elif [ -f /usrx/local/prod/modules/default/init/sh ]; then # on venus/mars
+  . /usrx/local/prod/modules/default/init/sh 2>/dev/null
 fi
 set +x
 echo

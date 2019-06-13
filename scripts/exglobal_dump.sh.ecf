@@ -211,51 +211,52 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 ########################################################
 ########################################################
 
-   snogrb=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.global.grb
-   snoold=$TANK_GRIBFLDS/$PDYm1/wgrbbul/snowdepth.global.grb
+   # JY - 05/02: remove the dependency of snowdepth files created from isnowgrib job
+   #snogrb=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.global.grb
+   #snoold=$TANK_GRIBFLDS/$PDYm1/wgrbbul/snowdepth.global.grb
 
-   if [ -s $snogrb ]; then
-      cp $snogrb ${COMSP}snogrb
-      msg="todays 0.5 degree snow grib file located and copied to ${COMSP}snogrb"
-      $DATA/postmsg "$jlogfile" "$msg"
-   elif [ -s $snoold ]; then
-      cp $snoold ${COMSP}snogrb
-      msg="**todays 0.5 degree snow grib file not located - copy 1-day old file"
-      $DATA/postmsg "$jlogfile" "$msg"
-   else
-      set +x
-      echo " "
-      echo " #####################################################"
-      echo " cannot locate 0.5 degree snow grib file"
-      echo " #####################################################"
-      echo " "
-      set -x
-      msg="***WARNING: CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE.  Not critical."
-      $DATA/postmsg "$jlogfile" "$msg"
-   fi
+   #if [ -s $snogrb ]; then
+   #   cp $snogrb ${COMSP}snogrb
+   #   msg="todays 0.5 degree snow grib file located and copied to ${COMSP}snogrb"
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #elif [ -s $snoold ]; then
+   #   cp $snoold ${COMSP}snogrb
+   #   msg="**todays 0.5 degree snow grib file not located - copy 1-day old file"
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #else
+   #   set +x
+   #   echo " "
+   #   echo " #####################################################"
+   #   echo " cannot locate 0.5 degree snow grib file"
+   #   echo " #####################################################"
+   #   echo " "
+   #   set -x
+   #   msg="***WARNING: CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE.  Not critical."
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #fi
 
-   snogrb_t574=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.t574.grb
-   snoold_t574=$TANK_GRIBFLDS/$PDYm1/wgrbbul/snowdepth.t574.grb
+   #snogrb_t574=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.t574.grb
+   #snoold_t574=$TANK_GRIBFLDS/$PDYm1/wgrbbul/snowdepth.t574.grb
 
-   if [ -s $snogrb_t574 ]; then
-      cp $snogrb_t574 ${COMSP}snogrb_t574
-      msg="todays T574 snow grib file located and copied to ${COMSP}snogrb_t574"
-      $DATA/postmsg "$jlogfile" "$msg"
-   elif [ -s $snoold_t574 ]; then
-      cp $snoold_t574 ${COMSP}snogrb_t574
-      msg="**todays T574 snow grib file not located - copy 1-day old file"
-      $DATA/postmsg "$jlogfile" "$msg"
-   else
-      set +x
-      echo " "
-      echo " ###############################################"
-      echo " cannot locate T574 snow grib file"
-      echo " ###############################################"
-      echo " "
-      set -x
-      msg="***WARNING: CANNOT LOCATE T574 SNOW GRIB FILE.  Not critical."
-      $DATA/postmsg "$jlogfile" "$msg"
-   fi
+   #if [ -s $snogrb_t574 ]; then
+   #   cp $snogrb_t574 ${COMSP}snogrb_t574
+   #   msg="todays T574 snow grib file located and copied to ${COMSP}snogrb_t574"
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #elif [ -s $snoold_t574 ]; then
+   #   cp $snoold_t574 ${COMSP}snogrb_t574
+   #   msg="**todays T574 snow grib file not located - copy 1-day old file"
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #else
+   #   set +x
+   #   echo " "
+   #   echo " ###############################################"
+   #   echo " cannot locate T574 snow grib file"
+   #   echo " ###############################################"
+   #   echo " "
+   #   set -x
+   #   msg="***WARNING: CANNOT LOCATE T574 SNOW GRIB FILE.  Not critical."
+   #   $DATA/postmsg "$jlogfile" "$msg"
+   #fi
 
    engicegrb=${COM_ENGICE}.$PDY/engice.t00z.grb
    engiceold=${COM_ENGICE}.$PDYm1/engice.t00z.grb
@@ -326,11 +327,11 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       else
          echo_hashed_msg "Skip sstgrb.grib2 since grib1 file does not exist"
       fi
-      if [ -s ${COMSP}snogrb ]; then
-         $CNVGRIB -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
-      else
-         echo_hashed_msg "Skip snogrb.grib2 since grib1 file does not exist"
-      fi
+      #if [ -s ${COMSP}snogrb ]; then
+      #   $CNVGRIB -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
+      #else
+      #   echo_hashed_msg "Skip snogrb.grib2 since grib1 file does not exist"
+      #fi
    fi
 
 
