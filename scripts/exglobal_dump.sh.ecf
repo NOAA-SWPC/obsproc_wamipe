@@ -31,9 +31,11 @@ echo "                       b005/xx039.  Set dump window to -3.00 to +2.99 "
 echo "                       hours for these 5 new GOES-16 tanks.           "
 echo "         Aug 10 2018 - Updated to run on Dell-p3 (as well as Cray-XC40"
 echo "                       and IBM iDataPlex.                             "
-echo "         Oct 24 2018 - Add dump of OMPS VSN8 nadir profile (NP) and    "
+echo "         Oct 24 2018 - Add dump of OMPS VSN8 nadir profile (NP) and   "
 echo "                       total column (TC), Indiasat AMV's in tanks     "
 echo "                       b005/xx024 b005/xx025 b005/xx026.              "
+echo "         Mar 15 2019 - Add dumps of BUFR-feed drifting (NC001102) &   "
+echo "                       moored (NC001203) buoys to DUMP group #2       "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -66,7 +68,7 @@ set +u
 #               esatms crisfs
 #
 # Dump group #2 (pb, TIME_TRIM defaults to OFF) =
-#               sfcshp atovs* adpsfc ascatt
+#               sfcshp atovs* adpsfc ascatt dbuoyb mbuoyb
 #                   * - for GDAS only
 #
 # Dump group #3 (pb, TIME_TRIM defaults to OFF) =
@@ -677,10 +679,12 @@ export DUMP_NUMBER=2
 #            ADPSFC: 4 subtype(s)
 #            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+#            DBUOYB: = subtype    (not a dump group mnemonic)
+#            MBUOYB: = subtype    (not a dump group mnemonic)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 11
+#            TOTAL NUMBER OF SUBTYPES = 12
 #
 #--------------------------------------------------------------------------
 # GFS:
@@ -688,10 +692,12 @@ export DUMP_NUMBER=2
 #            ADPSFC: 4 subtype(s)
 #            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
+#            DBUOYB: = subtype    (not a dump group mnemonic)
+#            MBUOYB: = subtype    (not a dump group mnemonic)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES =  10
+#            TOTAL NUMBER OF SUBTYPES =  12
 #
 #==========================================================================
 
@@ -721,7 +727,8 @@ fi
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM2:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc ascatt $wndsat
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc ascatt \
+  $wndsat dbuoyb mbuoyb
 error2=$?
 echo "$error2" > $DATA/error2
 

@@ -1,22 +1,13 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.0 --> released Aug 31, 2018,
-                             --> implemented ??? ??, 201?
+obsproc_global release 3.2.2 --> released Jun ??, 2019,
+                             --> implemented ??? ??, 2019
 
 files:
- D obsproc_global/fix/prepobs_errtable.global
    obsproc_global/fix/prepobs_oiqc.oberrs
- D obsproc_global/jobs/JGDAS_DUMP
- D obsproc_global/jobs/JGDAS_DUMP_POST
- D obsproc_global/jobs/JGDAS_PREP
- D obsproc_global/jobs/JGDAS_PREP_POST
- D obsproc_global/jobs/JGFS_DUMP
- D obsproc_global/jobs/JGFS_DUMP_POST
- D obsproc_global/jobs/JGFS_PREP
- D obsproc_global/jobs/JGFS_PREP_POST
- A obsproc_global/jobs/JGLOBAL_DUMP
- A obsproc_global/jobs/JGLOBAL_DUMP_POST
- A obsproc_global/jobs/JGLOBAL_PREP
- A obsproc_global/jobs/JGLOBAL_PREP_POST
+   obsproc_global/jobs/JGLOBAL_DUMP
+   obsproc_global/jobs/JGLOBAL_DUMP_POST
+   obsproc_global/jobs/JGLOBAL_PREP
+   obsproc_global/jobs/JGLOBAL_PREP_POST
    obsproc_global/parm/prepobs_cqcbufr.gdas.parm
    obsproc_global/parm/prepobs_cqcbufr.gfs.parm
    obsproc_global/parm/prepobs_prepacqc.gdas.parm
@@ -29,6 +20,226 @@ files:
    obsproc_global/parm/prepobs_profcqc.gfs.parm
    obsproc_global/parm/syndat_syndata.gdas.parm
    obsproc_global/parm/syndat_syndata.gfs.parm
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+ A obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
+ A obsproc_global/sorc/bufr_latlonqc.fd/makefile
+ A obsproc_global/sorc/build.sh
+ A obsproc_global/sorc/load_libs.rc
+ A obsproc_global/sorc/clean.sh
+ A obsproc_global/sorc/clobber.sh
+ A obsproc_global/sorc/install.sh
+ A obsproc_global/sorc/setlibs.rc
+ A obsproc_global/ush/bufr_latlonqc.sh
+
+( A - added,  M - modified, D - deleted)
+
+
+ Model Script file changes:
+   exglobal_dump.sh.ecf:
+    - Added dumps of BUFR-feed buoy data streams, both drifting (dbuoyb,
+       NC001102) & moored (mbuoyb, NC002103) buoys, in support of NSST 
+       processing needs.
+
+   exglobal_makeprepbufr.sh.ecf:
+    - Added new imported environment variables to control adding new BUFR-feed
+       data dumps to the existing 'nsstbufr' data file:
+        MAKE_NSST_BUOYB:     when 'YES', enables concatenating dbuoyb & mbuoyb
+                              dumps to 'nsstbufr' file. (default: NO)
+        USHobpsroc_global:   specifies path to new ush script bufr_latlonqc.sh 
+        EXECobsproc_global:  specifies path to new bufr_latlonqc executable
+   
+    - Added logic to enable running a new script (bufr_latlonqc.sh) that
+       invokes new program (bufr_latlonqc.  This program does a quality check 
+       on the new dbuoyb & mbuoyb data dumps, removing reports with missing 
+       position (latitude & longitude) information before adding them to the 
+       'nsstbufr' file.
+
+ USH script file changes (additions):
+   ush/bufr_latlonqc.sh:
+    - A new 'ush' subdirectory was added to the obsproc_global structure to
+       contain this new script.
+    - This new ush script is enabled by imported environment variable 
+       (MAKE_NSST_BUOYB=YES).  When enabled, the script sets up and runs the
+       new bufr_latlonqc executable to quality check the dbuoyb & mbuoyb data
+       dumps for bad reports.
+    - The filtered output from the bufr_latlonqc executable is sent to $COMOUT
+       with a filename identical to the input dump file, but with a '.llqc'
+       suffix appended.  This filtered dump file is appended to the 'nsstbufr'
+       file for use in GFS NSST processing.
+
+ Source code changes (additions):
+   bufr_latlonqc.fd/latlonqc.f:
+    - A new 'sorc' subdirectory was added to the obsproc_global structure to
+       contain this new code.
+    - This new program reads in a BUFR dump file, checks records for missing
+      position (lat/lon) information, and generates a new dump file with these
+      bad reports removed.  The filtered dump file is created with a filename
+      identical to the incoming dump file, but with a '.2' suffix appended.
+    - A makefile, build scripts and build resource files were added to the 
+      sorc/* directories, supporting build process for the executable.
+
+
+ BENEFITS of all code & script changes in this update:
+    The availability of tradition data feed (TAC) observations for drifting and
+     moored buoys has been degrading as deployed platforms switch to BUFR-feed
+     format to provide their observations.  This has essentially caused a data
+     dropout which has been seen to degrade model skill.  This upgrade enables
+     use of the BUFR-feed data with significantly larger global coverage than
+     is currently available, thereby alleviating the TAC dropout.  These
+     additional data are only provided to NSST processing with this upgrade.  A
+     future upgrade is required in order to extend these data to general GSI
+     assimilation (eg, sfc pressure data).
+
+
+ Output changes:
+ ---------------
+   Job JGLOBAL_DUMP in gdas and gfs runs:
+    - New dump files for dbuoyb (NC001102) & mbuoyb (NC001103) will be created:
+          gfs.tHHz.dbuoyb.tm00.bufr_d
+         gdas.tHHz.dbuoyb.tm00.bufr_d
+          gfs.tHHz.mbuoyb.tm00.bufr_d
+         gdas.tHHz.mbuoyb.tm00.bufr_d
+
+   Job JGLOBAL_PREP_POST in gdas and gfs runs:
+    - Quality Checked copies of the dbuoyb & mbuoyb dump files will be created:
+          gfs.tHHz.dbuoyb.tm00.bufr_d.llqc
+         gdas.tHHz.dbuoyb.tm00.bufr_d.llqc
+          gfs.tHHz.mbuoyb.tm00.bufr_d.llqc
+         gdas.tHHz.mbuoyb.tm00.bufr_d.llqc
+
+
+ Compute Resource Information:
+ -----------------------------
+   All jobs:
+    - No change in requested resources in the job cards.
+    - Negligible change in memory usage.
+    - Negligible change in wallclock run time.
+
+
+ Disk Space Changes:
+ -------------------
+    Increased $COMROOT usage for the additional dump data: 
+    For each of gfs & gdas networks:
+    - dbuoyb bufr_d file (4/day) ~ 10Mb total
+    - mbuoyb bufr_d file (4/day) ~  4Mb total
+    
+     When MAKE_NSST_BUOYB=YES:
+    - dbuoyb bufr_d.llqc file (4/day) ~ 10Mb total
+    - mbuoyb bufr_d.llqc file (4/day) ~  4Mb total
+    - nsstbufr file ~ 14Mb total increase 
+
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v5.0.2
+    - obsproc_prep.v5.2.0
+    - obsproc_dump_post.v3.3.0
+    - obsproc_prep_post.v3.1.0
+    - obsproc_shared/bufr_avgdata.v2.1.0
+    - obsproc_shared/bufr_remorest.v2.1.0
+    - obsproc_shared/bufr_dumplist.v2.0.1
+
+
+ Required modules:
+  All jobs require:
+    EnvVars           (tested with 1.0.2, the default at the time)
+    prod_util         (tested with 1.1.2, the default at the time)
+    prod_envir        (tested with 1.0.3, the default at the time)
+    ips               (tested with 18.0.1.163, the default at the time)
+    impi              (tested with 18.0.1, the default at the time)
+    CFP               (tested with 2.0.2, the default at the time)
+    lsf               (tested with 10.1, the default at the time)
+  JGLOBAL_DUMP requires:
+    grib_util/1.0.6
+    bufr_dumplist/2.0.1
+    dumpjb/5.0.2
+  JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
+    w3emc/2.3.0
+    w3nco/2.0.6
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all four production jobs for gdas and gfs runs.
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - No change in dissemination.
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v11.1.0.
+   This must be implemented on Dell-p3.
+
+   This can be implemented prior to, but no later than, the FV3 GFS v15.2
+    upgrade.
+
+   Please NOTE: the new MAKE_NEST_BUOYB environment variable in the
+    exglobal_makeprepbufr.sh.ecf model script defaults to a value of 'NO' if
+    not imported.  This is to allow for a monitoring period to be done in a
+    development parallel before accepting this processing in production. Once
+    the monitoring is complete, it is expected that this variable will be
+    exported (from the ecflow lsf trigger) with a value of 'YES' to enable this
+    feature.
+
+   Please retrieve the obsproc_global.ver file:
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
+   cd EMC_obsproc; git checkout master
+   cp versions/20190510_OBSPROC_v11.1.0/obsproc_global.ver $NWROOT/versions
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.1 --> released Aug 31, 2018,
+                             --> implemented Jun 12, 2019
+
+ M obsproc_global/jobs/JGLOBAL_DUMP
+ M obsproc_global/jobs/JGLOBAL_PREP_POST
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+
+ JOB script changes:
+   JGLOBAL_DUMP & JGLOBAL_PREP_POST:
+   - Replaced default TANK* environment variable defaults having 'us007003' (a
+      phase1/2 structure) with '${envir}', appropriate to phase3 layout.
+       BENEFIT: conforms to phase3 directory structures.
+
+   JGLOBAL_DUMP:
+    - Set ice, sst & snowdepth grib field defaults to use $COMROOTp3 env var
+       BENEFIT: conforms to phase3 directory structures.
+
+ Model Script file changes:
+   exglobal_dump.sh.ecf:
+    - Removed the dependency of snowdepth files created from isnowgrib job.
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.0 --> released Aug 31, 2018,
+                             --> implemented as v3.2.1 to address phase3
+                                  $DCOMROOT; changes handled by NCO SPA
+                             --> implemented Jun 12, 2019
+
+files:
+ D obsproc_global/fix/prepobs_errtable.global
+ D obsproc_global/jobs/JGDAS_DUMP
+ D obsproc_global/jobs/JGDAS_DUMP_POST
+ D obsproc_global/jobs/JGDAS_PREP
+ D obsproc_global/jobs/JGDAS_PREP_POST
+ D obsproc_global/jobs/JGFS_DUMP
+ D obsproc_global/jobs/JGFS_DUMP_POST
+ D obsproc_global/jobs/JGFS_PREP
+ D obsproc_global/jobs/JGFS_PREP_POST
+ A obsproc_global/jobs/JGLOBAL_DUMP
+ A obsproc_global/jobs/JGLOBAL_DUMP_POST
+ A obsproc_global/jobs/JGLOBAL_PREP
+ A obsproc_global/jobs/JGLOBAL_PREP_POST
  M obsproc_global/scripts/exglobal_dump.sh.ecf
    obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
 ( A - added,  M - modified, D - deleted)
@@ -755,16 +966,16 @@ files added, modified or deleted since last release:
     BENEFIT: These types will soon be tested for future assimilation. Use will
              be controlled only by convinfo file.
     - Added temperature and moisture ob errors up to 500 mb for types 181
-      (surface land SYNOP), 183 (surface w/ est. psfc) and 187 (surface land
+      (surface land SYNOP), 183 (surface with est. psfc) and 187 (surface land
       METAR) (was missing).
     - Added uv wind ob errors up to 500 mb for types 281 (surface land SYNOP),
-      284 (surface w/ est. pstn) and 287 (surface land METAR).
+      284 (surface with est. pstn) and 287 (surface land METAR).
     BENEFIT: These types may be tested for assimilation someday. Use will be
              controlled only by convinfo file.
     - Set temperature and moisture ob errors to missing above 500 mb for types
       180 (surface marine) and 182 (splash-level dropwinsonde).
     - Set uv wind ob errors to missing above 500 mb for types 280 (surface
-      marine), 282 (buoy w/ missing psfc), 283 (SSM/I) and 285 (QuikSCAT).
+      marine), 282 (buoy with missing psfc), 283 (SSM/I) and 285 (QuikSCAT).
     BENEFIT: Prevents any chance of assimilation if pressure is grossly bad.
              (Types 180/280, 182, 282 used now; types 283 and 285 were used at
               one time.)
