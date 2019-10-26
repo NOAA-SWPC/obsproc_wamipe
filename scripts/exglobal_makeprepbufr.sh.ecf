@@ -30,7 +30,7 @@ cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
 MAKE_NSSTBUFR=${MAKE_NSSTBUFR:-YES}
-MAKE_NSST_BUOYB=${MAKE_NSST_BUOYB:-NO}   # include dbuoyb mbuoyb in nsstbufr
+MAKE_NSST_BUOYB=${MAKE_NSST_BUOYB:-YES}   # include dbuoyb mbuoyb in nsstbufr
 
 # Vars supporting MAKE_NSST_BUOYB=yes conditions
 export USHobsproc_global=${USHobsproc_global:-$HOMEobsproc_global/ush}

@@ -36,6 +36,11 @@ echo "                       total column (TC), Indiasat AMV's in tanks     "
 echo "                       b005/xx024 b005/xx025 b005/xx026.              "
 echo "         Mar 15 2019 - Add dumps of BUFR-feed drifting (NC001102) &   "
 echo "                       moored (NC001203) buoys to DUMP group #2       "
+echo "         Aug 15 2019 - rm'd background threads; now run serially;     "
+echo "                       added "./" on "thread_*", needed for Dell/ph3  "
+echo "                       Disabled processing that copies sstoi files to "
+echo "                       COMSP.                                         "
+echo "         Oct 15 2019 - set DTIME_LATEST_00110[23]=+2.99, as in sfcshp "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -283,38 +288,39 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       $DATA/postmsg "$jlogfile" "$msg"
    fi
 
-   sstgrb=${COM_SSTOI}.$PDY/sstoi_grb
-   sstold=${COM_SSTOI}.$PDYm1/sstoi_grb
+# Disabled w/ GFSv15.2 b/c sstoi file no longer needed
+#  sstgrb=${COM_SSTOI}.$PDY/sstoi_grb
+#  sstold=${COM_SSTOI}.$PDYm1/sstoi_grb
 
-   if [ -s $sstgrb ]; then
-      cp $sstgrb ${COMSP}sstgrb
-      msg="todays lowres sst grib file located and copied to ${COMSP}sstgrb"
-      $DATA/postmsg "$jlogfile" "$msg"
-   elif [ -s $sstold ]; then
-      cp $sstold ${COMSP}sstgrb
-      msg="**todays lowres sst grib file not located - copy 1-day old file"
-      $DATA/postmsg "$jlogfile" "$msg"
-   else
-      set +x
-      echo " "
-      echo " #########################################"
-      echo " cannot locate lowres sst grib file"
-      echo " #########################################"
-      echo " "
-      set -x
-      msg="***WARNING: CANNOT LOCATE LOW RES SST GRIB FILE.  Not critical."
-      $DATA/postmsg "$jlogfile" "$msg"
-   fi
+#  if [ -s $sstgrb ]; then
+#     cp $sstgrb ${COMSP}sstgrb
+#     msg="todays lowres sst grib file located and copied to ${COMSP}sstgrb"
+#     $DATA/postmsg "$jlogfile" "$msg"
+#  elif [ -s $sstold ]; then
+#     cp $sstold ${COMSP}sstgrb
+#     msg="**todays lowres sst grib file not located - copy 1-day old file"
+#     $DATA/postmsg "$jlogfile" "$msg"
+#  else
+#     set +x
+#     echo " "
+#     echo " #########################################"
+#     echo " cannot locate lowres sst grib file"
+#     echo " #########################################"
+#     echo " "
+#     set -x
+#     msg="***WARNING: CANNOT LOCATE LOW RES SST GRIB FILE.  Not critical."
+#     $DATA/postmsg "$jlogfile" "$msg"
+#  fi
 
-   if [ -s ${COMSP}sstgrb ]; then
-      rm errfile
-      $GRBINDEX ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
-      errindx=$?
-      [ "$errindx" -ne '0' ] && cat errfile
-      rm errfile
-   else
-      echo_hashed_msg "cannot create grib index since sst file does not exist"
-   fi
+#  if [ -s ${COMSP}sstgrb ]; then
+#     rm errfile
+#     $GRBINDEX ${COMSP}sstgrb ${COMSP}sstgrb.index 2> errfile
+#     errindx=$?
+#     [ "$errindx" -ne '0' ] && cat errfile
+#     rm errfile
+#  else
+#     echo_hashed_msg "cannot create grib index since sst file does not exist"
+#  fi
 
 #  The following may no longer be needed, but leave them in place for now.
 #  Print msg in the rare case the grib2 files cannot be created.
@@ -324,11 +330,12 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       else
          echo_hashed_msg "Skip engicegrb.grib2 since grib1 file does not exist"
       fi
-      if [ -s ${COMSP}sstgrb ]; then
-         $CNVGRIB -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
-      else
-         echo_hashed_msg "Skip sstgrb.grib2 since grib1 file does not exist"
-      fi
+      # Disabled w/ GFSv15.2 b/c sstoi file no longer needed
+      #if [ -s ${COMSP}sstgrb ]; then
+      #   $CNVGRIB -g12 -p40 ${COMSP}sstgrb ${COMSP}sstgrb.grib2
+      #else
+      #   echo_hashed_msg "Skip sstgrb.grib2 since grib1 file does not exist"
+      #fi
       #if [ -s ${COMSP}snogrb ]; then
       #   $CNVGRIB -g12 -p40 ${COMSP}snogrb ${COMSP}snogrb.grib2
       #else
@@ -702,6 +709,8 @@ export DUMP_NUMBER=2
 #==========================================================================
 
 DTIM_latest_sfcshp=${DTIM_latest_sfcshp:-"+2.99"}
+DTIM_latest_001102=${DTIM_latest_001102:-"+2.99"}  # dbuoyb standalone dump
+DTIM_latest_001103=${DTIM_latest_001103:-"+2.99"}  # mbuoyb standalone dump
 
 atovs=""
 if [ "$NET" = 'gdas' ]; then
@@ -1615,17 +1624,17 @@ if [ "$launcher" = cfp -o "$launcher" = aprun_cfp ]; then
 
 # To better take advantage of cfp, execute the longer running commands first.
 # Some reordering was done here based on recent sample runtimes.
-   [ $DUMP_group7 = YES ]  &&  echo thread_7 >> $DATA/poe.cmdfile  # moved up
-   [ $DUMP_group1 = YES ]  &&  echo thread_1 >> $DATA/poe.cmdfile
-   [ $DUMP_group5 = YES ]  &&  echo thread_5 >> $DATA/poe.cmdfile  # moved up
-   [ $DUMP_group6 = YES ]  &&  echo thread_6 >> $DATA/poe.cmdfile  # moved up
-   [ $DUMP_group8 = YES ]  &&  echo thread_8 >> $DATA/poe.cmdfile  # moved up
-   [ $DUMP_group11 = YES ] &&  echo thread_11 >> $DATA/poe.cmdfile # moved up
-   [ $DUMP_group10 = YES ] &&  echo thread_10 >> $DATA/poe.cmdfile # moved up
-   [ $DUMP_group2 = YES ]  &&  echo thread_2 >> $DATA/poe.cmdfile
-   [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  echo thread_3 >> $DATA/poe.cmdfile
-   [ $DUMP_group4 = YES ]  &&  echo thread_4 >> $DATA/poe.cmdfile
-   [ $DUMP_group9 = YES ]  &&  echo thread_9 >> $DATA/poe.cmdfile
+   [ $DUMP_group7 = YES ]  &&  echo ./thread_7 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group1 = YES ]  &&  echo ./thread_1 >> $DATA/poe.cmdfile
+   [ $DUMP_group5 = YES ]  &&  echo ./thread_5 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group6 = YES ]  &&  echo ./thread_6 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group8 = YES ]  &&  echo ./thread_8 >> $DATA/poe.cmdfile  # moved up
+   [ $DUMP_group11 = YES ] &&  echo ./thread_11 >> $DATA/poe.cmdfile # moved up
+   [ $DUMP_group10 = YES ] &&  echo ./thread_10 >> $DATA/poe.cmdfile # moved up
+   [ $DUMP_group2 = YES ]  &&  echo ./thread_2 >> $DATA/poe.cmdfile
+   [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  echo ./thread_3 >> $DATA/poe.cmdfile
+   [ $DUMP_group4 = YES ]  &&  echo ./thread_4 >> $DATA/poe.cmdfile
+   [ $DUMP_group9 = YES ]  &&  echo ./thread_9 >> $DATA/poe.cmdfile
 
    if [ -s $DATA/poe.cmdfile ]; then
       nthreads=$(cat $DATA/poe.cmdfile | wc -l)
@@ -1677,19 +1686,19 @@ else
       set -x
       $DATA/err_exit "***FATAL: Check if compute nodes were allocated"
    else
-      echo "Spawning background threads"
-      [ $DUMP_group1 = YES ]  &&  thread_1 &
-      [ $DUMP_group2 = YES ]  &&  thread_2 &
-      [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  thread_3 &
-      [ $DUMP_group4 = YES ]  &&  thread_4 &
-      [ $DUMP_group5 = YES ]  &&  thread_5 &
-      [ $DUMP_group6 = YES ]  &&  thread_6 &
-      [ $DUMP_group7 = YES ]  &&  thread_7 &
-      [ $DUMP_group8 = YES ]  &&  thread_8 &
-      [ $DUMP_group9 = YES ]  &&  thread_9 &
-      [ $DUMP_group10 = YES ]  &&  thread_10 &
-      [ $DUMP_group11 = YES ]  &&  thread_11 &
-      wait
+      echo "Running threads serially"
+      [ $DUMP_group1 = YES ]  &&  ./thread_1 
+      [ $DUMP_group2 = YES ]  &&  ./thread_2 
+      [ $DUMP_group3 = YES -a $ADPUPA_wait != YES ]  &&  ./thread_3 
+      [ $DUMP_group4 = YES ]  &&  ./thread_4 
+      [ $DUMP_group5 = YES ]  &&  ./thread_5 
+      [ $DUMP_group6 = YES ]  &&  ./thread_6 
+      [ $DUMP_group7 = YES ]  &&  ./thread_7 
+      [ $DUMP_group8 = YES ]  &&  ./thread_8 
+      [ $DUMP_group9 = YES ]  &&  ./thread_9 
+      [ $DUMP_group10 = YES ]  &&  ./thread_10 
+      [ $DUMP_group11 = YES ]  &&  ./thread_11 
+#     wait
    fi
 fi
 
@@ -1698,7 +1707,7 @@ fi
 #   order to maximize data availability in GFS network, particularly DROPs)
 #  --------------------------------------------------------------------------
 
-[ $DUMP_group3 = YES -a $ADPUPA_wait  = YES ]  &&  thread_3
+[ $DUMP_group3 = YES -a $ADPUPA_wait  = YES ]  &&  ./thread_3
 
 cat $DATA/1.out $DATA/2.out $DATA/3.out $DATA/4.out $DATA/5.out $DATA/6.out $DATA/7.out $DATA/8.out $DATA/9.out $DATA/10.out $DATA/11.out
 

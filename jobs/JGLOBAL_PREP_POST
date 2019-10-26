@@ -259,10 +259,8 @@ elif [ $RUN = gdas ]; then
     fi
   fi 
   if [ $PROCESS_MASTER_SHIP_STNLST == YES ]; then
-    export DCOMROOT=${DCOMROOT:-/dcom}
-    # JY dcom P1 export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/us007003/ndbc}
-    # JY dcom P3 export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/prod/ndbc}
-    export SHPNAMDIR_DCOM=${SHPNAMDIR:-/gpfs/[tg]p1/nco/ops/dcom/us007003/ndbc}
+    export DCOMROOT=${DCOMROOT:-/gpfs/dell1/nco/ops/dcom}
+    export SHPNAMDIR_DCOM=${SHPNAMDIR:-${DCOMROOT}/prod/ndbc}
     if [[ "$RUN_ENVIR" == nco ]]; then
       export VOSarch_IN=${COMROOTp2:?}/arch/${envir}/VOS
       export VOSarch_OUT=${COMROOTp2:?}/arch/${envir}/VOS

@@ -1,6 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.2 --> released Jun ??, 2019,
-                             --> implemented ??? ??, 2019
+obsproc_global release 3.2.2 --> released Jun 13, 2019,
+                             --> implemented Sep 23, 2019
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
@@ -40,12 +40,14 @@ files:
     - Added dumps of BUFR-feed buoy data streams, both drifting (dbuoyb,
        NC001102) & moored (mbuoyb, NC002103) buoys, in support of NSST 
        processing needs.
+    - Added dump window limits on BUFR-feed buoy dumps (NC00110[23]).
+    - Disabled the copy of sstoi grib files to $COMROOT.
 
    exglobal_makeprepbufr.sh.ecf:
     - Added new imported environment variables to control adding new BUFR-feed
        data dumps to the existing 'nsstbufr' data file:
         MAKE_NSST_BUOYB:     when 'YES', enables concatenating dbuoyb & mbuoyb
-                              dumps to 'nsstbufr' file. (default: NO)
+                              dumps to 'nsstbufr' file. (default: YES)
         USHobpsroc_global:   specifies path to new ush script bufr_latlonqc.sh 
         EXECobsproc_global:  specifies path to new bufr_latlonqc executable
    
@@ -59,10 +61,10 @@ files:
    ush/bufr_latlonqc.sh:
     - A new 'ush' subdirectory was added to the obsproc_global structure to
        contain this new script.
-    - This new ush script is enabled by imported environment variable 
-       (MAKE_NSST_BUOYB=YES).  When enabled, the script sets up and runs the
-       new bufr_latlonqc executable to quality check the dbuoyb & mbuoyb data
-       dumps for bad reports.
+    - This new ush script is enabled by default, but can be disabled by an
+      imported environment variable (ie, export MAKE_NSST_BUOYB=NO).  When
+      enabled, the script sets up and runs the new bufr_latlonqc executable to
+      quality check the dbuoyb & mbuoyb data dumps for bad reports.
     - The filtered output from the bufr_latlonqc executable is sent to $COMOUT
        with a filename identical to the input dump file, but with a '.llqc'
        suffix appended.  This filtered dump file is appended to the 'nsstbufr'
@@ -100,6 +102,13 @@ files:
          gdas.tHHz.dbuoyb.tm00.bufr_d
           gfs.tHHz.mbuoyb.tm00.bufr_d
          gdas.tHHz.mbuoyb.tm00.bufr_d
+    - Removal of the following files:
+          gfs.tHHz.sstgrb
+         gdas.tHHz.sstgrb
+          gfs.tHHz.sstgrb.index
+         gdas.tHHz.sstgrb.index
+         gdas.tHHz.sstgrb.grib2
+
 
    Job JGLOBAL_PREP_POST in gdas and gfs runs:
     - Quality Checked copies of the dbuoyb & mbuoyb dump files will be created:
@@ -183,14 +192,6 @@ files:
 
    This can be implemented prior to, but no later than, the FV3 GFS v15.2
     upgrade.
-
-   Please NOTE: the new MAKE_NEST_BUOYB environment variable in the
-    exglobal_makeprepbufr.sh.ecf model script defaults to a value of 'NO' if
-    not imported.  This is to allow for a monitoring period to be done in a
-    development parallel before accepting this processing in production. Once
-    the monitoring is complete, it is expected that this variable will be
-    exported (from the ecflow lsf trigger) with a value of 'YES' to enable this
-    feature.
 
    Please retrieve the obsproc_global.ver file:
    git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
