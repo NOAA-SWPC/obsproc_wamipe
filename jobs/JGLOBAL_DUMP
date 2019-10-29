@@ -197,15 +197,15 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 # TANK is root directory path to observational database used in dumpjb
 # --------------------------------------------------------------------
 export DCOMROOT=${DCOMROOT:-/dcom}
-export TANK=${TANK:-${DCOMROOT}/${envir}}
+export TANK=${TANK:-${DCOMROOT}/prod}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
 # -----------------------------------------------------------------------
-export COM_ENGICE=${COM_ENGICE:-$COMROOTp3/omb/${envir}/sice}
-export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp3/omb/${envir}/sice}
+export COM_ENGICE=${COM_ENGICE:-$COMROOTp3/omb/prod/sice}
+export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp3/omb/prod/sice}
 export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
 export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp2/gfs/prod/sst}
-export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/${envir}}
+export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/prod}
 
 #########################################################################
 # Add some prod utilities to working directory

@@ -40,7 +40,10 @@ echo "         Aug 15 2019 - rm'd background threads; now run serially;     "
 echo "                       added "./" on "thread_*", needed for Dell/ph3  "
 echo "                       Disabled processing that copies sstoi files to "
 echo "                       COMSP.                                         "
-echo "         Oct 15 2019 - set DTIME_LATEST_00110[23]=+2.99, as in sfcshp "
+echo "         Oct 15 2019 - set DTIM_LATEST_00110[23]=+2.99, as in sfcshp  "
+echo "         Oct 26 2019 - set DTIM_EARLIEST_05091=-3.00 and              "
+echo "                       DTIM_LATEST_05091=+2.99.  DTIM_* settings for  "
+echo "                       005090 rendered obsolete.                      "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -1334,8 +1337,12 @@ DTIM_earliest_005071=${DTIM_earliest_005071:-"-3.00"}
 DTIM_latest_005071=${DTIM_latest_005071:-"+2.99"}
 DTIM_earliest_005080=${DTIM_earliest_005080:-"-3.00"}
 DTIM_latest_005080=${DTIM_latest_005080:-"+2.99"}
-DTIM_earliest_005090=${DTIM_earliest_005090:-"-3.00"}
-DTIM_latest_005090=${DTIM_latest_005090:-"+2.99"}
+DTIM_earliest_005090=${DTIM_earliest_005090:-"-3.00"}  # obsolete as of
+DTIM_latest_005090=${DTIM_latest_005090:-"+2.99"}      # obsproc_satingest.v3.9.0
+DTIM_earliest_005091=${DTIM_earliest_005091:-"-3.00"}
+DTIM_latest_005091=${DTIM_latest_005091:-"+2.99"}
+
+
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM8:-on}}
 

@@ -1,6 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.2 --> released Jun 13, 2019,
-                             --> implemented Sep 23, 2019
+obsproc_global release 3.2.3 --> released Oct ??, 2019,
+                             --> implemented ??? ??, 20??
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
@@ -20,6 +20,116 @@ files:
    obsproc_global/parm/prepobs_profcqc.gfs.parm
    obsproc_global/parm/syndat_syndata.gdas.parm
    obsproc_global/parm/syndat_syndata.gfs.parm
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+   obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
+   obsproc_global/sorc/bufr_latlonqc.fd/makefile
+   obsproc_global/sorc/build.sh
+   obsproc_global/sorc/load_libs.rc
+   obsproc_global/sorc/clean.sh
+   obsproc_global/sorc/clobber.sh
+   obsproc_global/sorc/install.sh
+   obsproc_global/sorc/setlibs.rc
+   obsproc_global/ush/bufr_latlonqc.sh
+
+( A - added,  M - modified, D - deleted)
+
+
+ Model Script file changes:
+   exglobal_dump.sh.ecf:
+    - Added dump window limits (DTIM_*) for member of satwnd dump group:
+      005091.
+      BENEFIT: The WMO v31 BUFR format NPP and NOAA-20 VIIRS wind data
+               populate a new tank, b005/xx091, as of the implementation
+               of obsproc_satingest.v3.9.0.  This change ensures that 
+               these data inherit the same dump windows that the legacy
+               NPP and NOAA-20 VIIRS wind data used.
+
+
+ Output changes:
+ ---------------
+   All job scripts in gdas and gfs runs:
+    - No changes
+
+
+ Compute Resource Information:
+ -----------------------------
+   All jobs:
+    - No change in requested resources in the job cards.
+    - Negligible change in memory usage.
+    - Negligible change in wallclock run time.
+
+
+ Disk Space Changes:
+ -------------------
+    $COMROOT unchanged
+ 
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v5.0.2
+    - obsproc_prep.v5.2.0
+    - obsproc_dump_post.v3.3.0
+    - obsproc_prep_post.v3.1.0
+    - obsproc_shared/bufr_avgdata.v2.1.0
+    - obsproc_shared/bufr_remorest.v2.1.0
+    - obsproc_shared/bufr_dumplist.v2.0.2
+
+
+ Required modules:
+  All jobs require:
+    EnvVars           (tested with 1.0.2, the default at the time)
+    prod_util         (tested with 1.1.2, the default at the time)
+    prod_envir        (tested with 1.0.3, the default at the time)
+    ips               (tested with 18.0.1.163, the default at the time)
+    impi              (tested with 18.0.1, the default at the time)
+    CFP               (tested with 2.0.2, the default at the time)
+    lsf               (tested with 10.1, the default at the time)
+  JGLOBAL_DUMP requires:
+    grib_util/1.0.6
+    bufr_dumplist/2.0.1
+    dumpjb/5.0.2
+  JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
+    w3emc/2.3.0
+    w3nco/2.0.6
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all four production jobs for gdas and gfs runs.
+
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - No change in dissemination.
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v12.0.0.
+   This must be implemented on Dell-p3.
+
+   This must be implemented simultaneously with: 
+    obsproc_satingest.v3.9.0
+
+   Please retrieve the obsproc_global.ver file:
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
+   cd EMC_obsproc; git checkout master
+   cp versions/20191024_OBSPROC_v12.0.0/obsproc_global.ver $NWROOT/versions
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.2 --> released Jun 13, 2019,
+                             --> implemented Sep 23, 2019
+
+files:
  M obsproc_global/scripts/exglobal_dump.sh.ecf
  M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
  A obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
