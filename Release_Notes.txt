@@ -1,5 +1,5 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.3 --> released Oct ??, 2019,
+obsproc_global release 3.2.3 --> released Oct 30, 2019,
                              --> implemented ??? ??, 20??
 
 files:
@@ -58,11 +58,33 @@ files:
     - No change in requested resources in the job cards.
     - Negligible change in memory usage.
     - Negligible change in wallclock run time.
+    NOTE: At the time of release, operational JGLOBAL_DUMP does 
+          not encode GOES-17 satellite wind observations into
+          the satwnd bufr_d file.  A para JGLOBAL_DUMP running
+          to support GFSv15.2 does process GOES-17 satellite
+          wind observations.  The modifications in
+          obsproc_satingest.v3.9.0 to process the WMO v31 BUFR
+          standard for satellite wind data will have negligible
+          impact on wallclock run time (when compared to 
+          JGLOBAL_DUMP running in para).
 
 
  Disk Space Changes:
  -------------------
-    $COMROOT unchanged
+    Increased $COMROOT usage for the additional data to existing
+    dump files as a result of obsproc_satingest at v3.9.0.
+    For gdas network:
+    - avcsam bufr_d file ~ 155Mb per day
+    For gfs network:
+    - avcsam bufr_d file ~ 125Mb per day
+    NOTE: At the time of release, satwnd bufr_d files in production
+          $COMROOT do not contain GOES-17 data.  satwnd bufr_d files
+          populating para $COMROOT to support GFSv15.2 para do contain
+          observations from GOES-17.  The modifications in
+          obsproc_satingest.v3.9.0 to process the WMO v31 BUFR 
+          standard for satellite wind data will not impact disk
+          usage in $COMROOT once GOES-17 observations are included in
+          satwnd bufr_d files in production $COMROOT.
  
 
  Shared Software (with 1 or more jobs):
@@ -127,7 +149,7 @@ files:
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.2.2 --> released Jun 13, 2019,
-                             --> implemented Sep 23, 2019
+                             --> implemented Nov 07, 2019
 
 files:
  M obsproc_global/scripts/exglobal_dump.sh.ecf
