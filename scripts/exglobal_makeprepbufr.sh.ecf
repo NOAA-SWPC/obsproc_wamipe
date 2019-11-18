@@ -14,6 +14,7 @@ echo "  tailored exclusively to GDAS and GFS.                               "
 echo "  Mar 11 2017 - Update to handle nemsio filename patterns             "
 echo "  Mar 15 2019 - Added dbuoyb & mbuoyb to nsstfile content             "
 echo "  Jun 10 2019 - Added *buoyb qc (MAKE_NSST_BUOYB & bufr_latlonqc.sh)  "
+echo "  Nov 18 2019 - Update to handle netcdf history filename patterns     "
 echo "----------------------------------------------------------------------"
 echo 
 #############################################################################
@@ -125,8 +126,23 @@ fi
 
 # save global guess file(s) in COMOUT if they haven't already been saved
 #  here by previous tropical cyclone relocation processing
-#  first block is for nemsio input, second is for sigio input
-if [[ "$NEMSIO_IN" == .true. ]]; then
+#  first block is for netcdf history input, second is for nemsio input, 
+#  third block is for sigio input.
+if [[ "$NETCDF_IN" == .true. ]]; then
+   [ -s sgm3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgm3.nc ]  &&  \
+    cp sgm3prep $COMOUT/${RUN}.${cycle}.atmgm3.nc
+   [ -s sgp3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgp3.nc ]  &&  \
+    cp sgp3prep $COMOUT/${RUN}.${cycle}.atmgp3.nc
+   if [ -s sgesprep ]; then
+      if [ -s sgesprepA ]; then
+         cp sgesprep  $COMOUT/${RUN}.${cycle}.atmges.nc_before
+         cp sgesprepA $COMOUT/${RUN}.${cycle}.atmges.nc_after
+      else
+         [ ! -s $COMOUT/${RUN}.${cycle}.atmges.nc ]  &&  \
+         cp sgesprep $COMOUT/${RUN}.${cycle}.atmges.nc
+      fi
+   fi
+elif [[ "$NEMSIO_IN" == .true. ]]; then
    [ -s sgm3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgm3.nemsio ]  &&  \
     cp sgm3prep $COMOUT/${RUN}.${cycle}.atmgm3.nemsio
    [ -s sgp3prep -a ! -s $COMOUT/${RUN}.${cycle}.atmgp3.nemsio ]  &&  \
@@ -155,14 +171,16 @@ else
       fi
    fi
 fi
-# end nemsio vs sigio logic to copy guess files to COMOUT
+# end netcdf history vs nemsio vs sigio logic to copy guess files to COMOUT
 
 # save path name of global guess file valid at center PREPBUFR
 #  date/time (encoded into PREPBUFR file and used by q.c. programs) in COMOUT
 # FOR NOW, staying with term "sgesprep" for these "pathname" filenames even for
-# nemsio (as done in tropical cyclone relocation processing) - 03/2017
+# netcdf history or nemsio (as done in tropical cyclone relocation processing) - 03/2017, 11/2019
 if [ "$GETGUESS" = 'YES' ]; then
-   if [[ "$NEMSIO_IN" == .true. ]]; then
+   if [[ "$NETCDF_IN" == .true. ]]; then
+      set +x; echo -e "\n\"sges_pathname\" files point to netcdf history files\n";set -x
+   elif [[ "$NEMSIO_IN" == .true. ]]; then
       set +x; echo -e "\n\"sges_pathname\" files point to nemsio files\n";set -x
    fi
    if [ -s sgesprepA_pathname ]; then
@@ -503,7 +521,14 @@ if [ "$DO_QC" = 'YES' ]; then
             $DBNROOT/bin/dbn_alert MODEL GFS_BUFR_PREPda_unblok $job \
             $COMOUT/${RUN}.${cycle}.prepbufr.unblok
          fi
-         if [[ "$NEMSIO_IN" == .true. ]]; then
+         if [[ "$NETCDF_IN" == .true. ]]; then
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmges_NETCDF $job \
+             $COMOUT/${RUN}.${cycle}.atmges.nc
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmgm3_NETCDF $job \
+             $COMOUT/${RUN}.${cycle}.atmgm3.nc
+            $DBNROOT/bin/dbn_alert MODEL GFS_atmgp3_NETCDF $job \
+             $COMOUT/${RUN}.${cycle}.atmgp3.nc
+         elif [[ "$NEMSIO_IN" == .true. ]]; then
             $DBNROOT/bin/dbn_alert MODEL GFS_atmges_NEMSIO $job \
              $COMOUT/${RUN}.${cycle}.atmges.nemsio
             $DBNROOT/bin/dbn_alert MODEL GFS_atmgm3_NEMSIO $job \

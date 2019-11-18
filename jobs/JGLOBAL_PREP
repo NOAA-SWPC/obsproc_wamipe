@@ -220,7 +220,10 @@ else
   mkdir -m 755 -p $COMOUT
 fi
 
-export NEMSIO_IN=${NEMSIO_IN:-.true.}     # switch for nemsio vs sigio guess
+#export NEMSIO_IN=${NEMSIO_IN:-.true.}     # switch for nemsio vs sigio guess
+export NEMSIO_IN=${NEMSIO_IN:-""}      # switch for nemsio vs sigio guess
+export NETCDF_IN=${NETCDF_IN:-.true.}  # switch for netcdf history guess
+                                       # NOTE: only NEMSIO_IN or NETCDF_IN can be .true.
 export envir_getges=${envir_getges:-$envir}
 export GETGES_COM=${GETGES_COM:-$COMROOT} # Root location for GFS/GDAS COM data
 export GETGES_NWG=${GETGES_NWG:-$GESROOT}
@@ -300,8 +303,8 @@ export GETGUESS=${GETGUESS:-YES}
                       # Encode first guess (background) values interpolated to
                       # observation locations in the PREPBUFR file for use by
                       # the q.c. programs.  This guess is always from a global
-                      # sigma or nemsio guess file valid at the center PREPBUFR
-                      # processing date/time.
+                      # sigmai (legacy) or nemsio or netcdf history guess file 
+                      # valid at the center PREPBUFR processing date/time.
 
 export DO_QC=${DO_QC:-YES}
                       # IF NO, programs PREPOBS_PREPACQC, PREPOBS_PREPACPF,
