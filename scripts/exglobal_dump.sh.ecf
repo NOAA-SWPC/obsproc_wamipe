@@ -43,7 +43,7 @@ echo "                       COMSP.                                         "
 echo "         Oct 15 2019 - set DTIM_LATEST_00110[23]=+2.99, as in sfcshp  "
 echo "         Oct 26 2019 - set DTIM_EARLIEST_05091=-3.00 and              "
 echo "                       DTIM_LATEST_05091=+2.99.  DTIM_* settings for  "
-echo "                       005090 rendered obsolete.                      "
+echo "                       005090 are obsolete; added SKIP_005090=YES     "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -1298,6 +1298,8 @@ export DUMP_NUMBER=8
 
 ADD_satwnd="005024 005025 005026 005030 005031 005032 005034 005039"
 
+# Skip old bufr VIIRS AMVs
+export SKIP_005090=YES
 
 # satwnd types
 # ------------

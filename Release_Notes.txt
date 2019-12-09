@@ -1,6 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.2.3 --> released Oct 30, 2019,
-                             --> implemented ??? ??, 20??
+                             --> implemented Dec 05, 2019
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
@@ -44,6 +44,8 @@ files:
                of obsproc_satingest.v3.9.0.  This change ensures that 
                these data inherit the same dump windows that the legacy
                NPP and NOAA-20 VIIRS wind data used.
+    - Added export variable SKIP_005090=YES to force dump processing to
+      no longer process VIIRS AMV tank b005/xx090.
 
 
  Output changes:
@@ -95,7 +97,7 @@ files:
     - obsproc_prep_post.v3.1.0
     - obsproc_shared/bufr_avgdata.v2.1.0
     - obsproc_shared/bufr_remorest.v2.1.0
-    - obsproc_shared/bufr_dumplist.v2.0.2
+    - obsproc_shared/bufr_dumplist.v2.1.0
 
 
  Required modules:
@@ -109,7 +111,7 @@ files:
     lsf               (tested with 10.1, the default at the time)
   JGLOBAL_DUMP requires:
     grib_util/1.0.6
-    bufr_dumplist/2.0.1
+    bufr_dumplist/2.1.0
     dumpjb/5.0.2
   JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
     w3emc/2.3.0
@@ -140,7 +142,8 @@ files:
    This must be implemented on Dell-p3.
 
    This must be implemented simultaneously with: 
-    obsproc_satingest.v3.9.0
+    obsproc_satingest.v3.9.0,
+    obsproc_shared_bufr_dumplist.v2.1.0
 
    Please retrieve the obsproc_global.ver file:
    git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
