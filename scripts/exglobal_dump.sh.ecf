@@ -533,6 +533,7 @@ export DUMP_NUMBER=1
 #            ESATMS: 1 subtype(s) (if present in past 10 days of tanks)
 #            CRISFS: 1 subtype(s) (if present in past 10 days of tanks)
 #            GSRCSR: 1 subtype(s)
+#            AHICSR: 1 subtype(s)
 #            --------------------
 #            TOTAL NUMBER OF SUBTYPES = 13
 #
