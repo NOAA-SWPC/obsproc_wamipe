@@ -196,7 +196,7 @@ export FIXobsproc_shared_bufr_dumplist=${FIXobsproc_shared_bufr_dumplist:\
 
 # TANK is root directory path to observational database used in dumpjb
 # --------------------------------------------------------------------
-export DCOMROOT=${DCOMROOT:-/dcom}
+export DCOMROOT=${DCOMROOT:-/gpfs/dell1/nco/ops/dcom}
 export TANK=${TANK:-${DCOMROOT}/prod}
 
 # directory paths to ice, sst & snowdepth grib files used in model script
