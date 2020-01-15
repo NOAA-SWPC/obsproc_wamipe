@@ -1,4 +1,14 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.4 --> released Jan 13, 2020,
+                             --> implemented Jan 13, 2020
+
+ Model Script file changes:
+  scripts/exglobal_dump.sh.ecf
+    - Added to alert gdas.tCCz.saphir.tm00.bufr_d product to NOMADS for a NASA partner.
+
+Changes initiated and implemented by NCO SPA.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.2.3 --> released Oct 30, 2019,
                              --> implemented Dec 05, 2019
 

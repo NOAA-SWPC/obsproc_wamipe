@@ -44,6 +44,8 @@ echo "         Oct 15 2019 - set DTIM_LATEST_00110[23]=+2.99, as in sfcshp  "
 echo "         Oct 26 2019 - set DTIM_EARLIEST_05091=-3.00 and              "
 echo "                       DTIM_LATEST_05091=+2.99.  DTIM_* settings for  "
 echo "                       005090 are obsolete; added SKIP_005090=YES     "
+echo "         Jan 03 2020 - turn on gdas.tCCz.saphir.tm00.bufr_d alerts,   "
+echo "                       per DF request                                 "
 echo "         Dec 09 2019 - Update to dump gsrcsr, gsrasr, ompslp, ahicsr, "
 echo "                       sstvcw, sstvpw                                 "
 #############################################################################
@@ -624,8 +626,10 @@ if [ "$SENDDBN" = "YES" ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_cris $job \
        ${COMSP}cris.tm00.bufr_d
    fi
-### restricted   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_saphir $job \
-### restricted    ${COMSP}saphir.tm00.bufr_d
+   if [ "${NET}" = "gdas" ]; then
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_saphir $job \
+       ${COMSP}saphir.tm00.bufr_d    ### restricted, only GDAS, turn on 01/13/2020
+   fi
    if [ "$atms" = atms ];then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_atms $job \
        ${COMSP}atms.tm00.bufr_d
