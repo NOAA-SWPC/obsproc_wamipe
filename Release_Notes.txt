@@ -1,4 +1,14 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.5 --> implemented by SPA on Feb 11, 2020
+
+ JOB script changes:
+   JGLOBAL_DUMP:
+    - updated the default COM_SSTOI assignment to use compath.py utility
+      in order to find 1-degree sst data on phase 3
+    - updated the default COM_SSTRTG assignment to use compath.py utility
+      in order to find rtgssthr data on phase 3
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.2.4 --> released Jan 13, 2020,
                              --> implemented Jan 13, 2020
 

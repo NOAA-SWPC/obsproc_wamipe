@@ -203,8 +203,8 @@ export TANK=${TANK:-${DCOMROOT}/prod}
 # -----------------------------------------------------------------------
 export COM_ENGICE=${COM_ENGICE:-$COMROOTp3/omb/prod/sice}
 export COM_ICE5MIN=${COM_ICE5MIN:-$COMROOTp3/omb/prod/sice}
-export COM_SSTOI=${COM_SSTOI:-$COMROOTp1/gfs/prod/sst}
-export COM_SSTRTG=${COM_SSTRTG:-$COMROOTp2/gfs/prod/sst}
+export COM_SSTOI=${COM_SSTOI:-$(compath.py gfs/prod/sst)}
+export COM_SSTRTG=${COM_SSTRTG:-$(compath.py gfs/prod/sst)}
 export TANK_GRIBFLDS=${TANK_GRIBFLDS:-${DCOMROOT}/prod}
 
 #########################################################################
