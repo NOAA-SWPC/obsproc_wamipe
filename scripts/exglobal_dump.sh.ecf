@@ -46,6 +46,11 @@ echo "                       DTIM_LATEST_05091=+2.99.  DTIM_* settings for  "
 echo "                       005090 are obsolete; added SKIP_005090=YES     "
 echo "         Jan 03 2020 - turn on gdas.tCCz.saphir.tm00.bufr_d alerts,   "
 echo "                       per DF request                                 "
+echo "         Apr 06 2020 - Update to remove crisdb and escris and replace "
+echo "                       with crsfdb and escrsf.  On Apr 22, 2020, NSR  "
+echo "                       CrIS data from NPP is being replaced by FSR.   "
+echo "                       The cris dump group is obsolete with the change"
+echo "                       to FSR.                                        "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 
@@ -74,7 +79,7 @@ set +u
 # JOB_NUMBER not present indicates dump BOTH prepbufr and non-prepbufr data.
 # -----------------------------------------------------------------------------
 # Dump group #1 (non-pb, TIME_TRIM defaults to OFF) =
-#               avcsam eshrs3 ssmisu cris saphir atms 1bhrs4 sevcsr tesac mls
+#               avcsam eshrs3 ssmisu saphir atms 1bhrs4 sevcsr tesac mls
 #               esatms crisfs
 #
 # Dump group #2 (pb, TIME_TRIM defaults to OFF) =
@@ -95,7 +100,7 @@ set +u
 #
 # Dump group #7 (non-pb, TIME_TRIM defaults to OFF) =
 #               avcspm esmhs goesfv 1bmhs airsev atmsdb gome omi trkob gpsro
-#               escris crisf4
+#               escrsf crisf4
 #
 # Dump group #8 (pb, TIME_TRIM defaults to ON) =
 #               satwnd
@@ -104,7 +109,7 @@ set +u
 #               geoimr
 #
 # Dump group #10 (non-pb, TIME_TRIM defaults to OFF) =
-#               esiasi mtiasi esamua crisdb iasidb sevasr 1bamua bathy osbuv8
+#               esiasi mtiasi esamua crsfdb iasidb sevasr 1bamua bathy osbuv8
 #
 # Dump group #11 (non-pb, TIME_TRIM defaults to OFF) =
 #               amsr2
@@ -522,7 +527,6 @@ export DUMP_NUMBER=1
 # Dump # 1 : AVCSAM: 1 subtype(s)
 #            ESHRS3: 1 subtype(s)
 #            SSMISU: 1 subtype(s)
-#            CRIS:   1 subtype(s) (if present in past 10 days of tanks)
 #            SAPHIR: 1 subtype(s)
 #            ATMS:   1 subtype(s) (if present in past 10 days of tanks)
 #            1BHRS4: 1 subtype(s)
@@ -532,23 +536,13 @@ export DUMP_NUMBER=1
 #            ESATMS: 1 subtype(s) (if present in past 10 days of tanks)
 #            CRISFS: 1 subtype(s) (if present in past 10 days of tanks)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 12
+#            TOTAL NUMBER OF SUBTYPES = 11
 #
 #=========================================================================
 
 DTIM_latest_avcsam=${DTIM_latest_avcsam:-"+2.99"}
 DTIM_latest_eshrs3=${DTIM_latest_eshrs3:-"+2.99"}
 DTIM_latest_ssmisu=${DTIM_latest_ssmisu:-"+2.99"}
-#-----------------------------------------------
-# check for cris tank presence in past 10 days
-cris=""
-err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh cris
-err_check_tanks=$?
-if [ $err_check_tanks -eq 0 ];then
-   cris=cris
-   DTIM_latest_cris=${DTIM_latest_cris:-"+2.99"}
-fi
 #-----------------------------------------------
 DTIM_latest_saphir=${DTIM_latest_saphir:-"+2.99"}
 #-----------------------------------------------
@@ -601,7 +595,7 @@ fi
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM1:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcsam eshrs3 ssmisu $cris \
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcsam eshrs3 ssmisu \
  saphir $atms 1bhrs4 sevcsr tesac $mls $esatms $crisfs
 error1=$?
 echo "$error1" > $DATA/error1
@@ -613,10 +607,6 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}eshrs3.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_ssmisu $job \
     ${COMSP}ssmisu.tm00.bufr_d
-   if [ "$cris" = cris ];then
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_cris $job \
-       ${COMSP}cris.tm00.bufr_d
-   fi
    if [ "${NET}" = "gdas" ]; then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_saphir $job \
        ${COMSP}saphir.tm00.bufr_d    ### restricted, only GDAS, turn on 01/13/2020
@@ -1175,7 +1165,7 @@ export DUMP_NUMBER=7
 #            OMI:    1 subtype(s)
 #            TRKOB:  1 subtype(s)
 #            GPSRO:  1 subtype(s)
-#            ESCRIS: 1 subtype(s) (if present in past 10 days of tanks)
+#            ESCRSF: 1 subtype(s) (if present in past 10 days of tanks)
 #            CRISF4: 1 subtype(s) (if present in past 10 days of tanks)
 #            --------------------
 #            TOTAL NUMBER OF SUBTYPES = 12
@@ -1193,14 +1183,14 @@ DTIM_latest_omi=${DTIM_latest_omi:-"+2.99"}
 DTIM_latest_trkob=${DTIM_latest_trkob:-"+2.99"}
 DTIM_latest_gpsro=${DTIM_latest_gpsro:-"+2.99"}
 #-----------------------------------------------
-# check for escris tank presence in past 10 days
-escris=""
+# check for escrsf tank presence in past 10 days
+escrsf=""
 err_check_tanks=0
-sh $USHobsproc_dump/check_tanks.sh escris
+sh $USHobsproc_dump/check_tanks.sh escrsf
 err_check_tanks=$?
 if [ $err_check_tanks -eq 0 ];then
-   escris=escris
-   DTIM_latest_escris=${DTIM_latest_escris:-"+2.99"}
+   escrsf=escrsf
+   DTIM_latest_escrsf=${DTIM_latest_escrsf:-"+2.99"}
 fi
 #-----------------------------------------------
 #-----------------------------------------------
@@ -1218,7 +1208,7 @@ fi
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM7:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcspm esmhs goesfv 1bmhs \
- airsev atmsdb gome omi trkob gpsro $escris $crisf4
+ airsev atmsdb gome omi trkob gpsro $escrsf $crisf4
 error7=$?
 echo "$error7" > $DATA/error7
 
@@ -1243,9 +1233,9 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}trkob.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_gpsro $job \
     ${COMSP}gpsro.tm00.bufr_d
-   if [ "$escris" = escris ];then
-      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_escris $job \
-       ${COMSP}escris.tm00.bufr_d
+   if [ "$escrsf" = escrsf ];then
+      $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_escrsf $job \
+       ${COMSP}escrsf.tm00.bufr_d
    fi
    if [ "$crisf4" = crisf4 ];then
       $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisf4 $job \
@@ -1459,7 +1449,7 @@ export DUMP_NUMBER=10
 # Dump #10 : ESIASI: 1 subtype(s)
 #            MTIASI: 1 subtype(s)
 #            ESAMUA: 1 subtype(s)
-#            CRISDB: 1 subtype(s)
+#            CRSFDB: 1 subtype(s)
 #            IASIDB: 1 subtype(s)
 #            SEVASR: 1 subtype(s)
 #            1BAMUA: 1 subtype(s)
@@ -1475,7 +1465,7 @@ export DUMP_NUMBER=10
 DTIM_latest_esiasi=${DTIM_latest_esiasi:-"+2.99"}
 DTIM_latest_mtiasi=${DTIM_latest_mtiasi:-"+2.99"}
 DTIM_latest_esamua=${DTIM_latest_esamua:-"+2.99"}
-DTIM_latest_crisdb=${DTIM_latest_crisdb:-"+2.99"}
+DTIM_latest_crsfdb=${DTIM_latest_crsfdb:-"+2.99"}
 DTIM_latest_iasidb=${DTIM_latest_iasidb:-"+2.99"}
 DTIM_latest_sevasr=${DTIM_latest_sevasr:-"+2.99"}
 DTIM_latest_1bamua=${DTIM_latest_1bamua:-"+2.99"}
@@ -1487,7 +1477,7 @@ DTIM_latest_ompst8=${DTIM_latest_ompst8:-"+2.99"}
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM10:-off}}
 
 $ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 esiasi mtiasi esamua \
- crisdb iasidb sevasr 1bamua bathy osbuv8 ompsn8 ompst8
+ crsfdb iasidb sevasr 1bamua bathy osbuv8 ompsn8 ompst8
 error10=$?
 echo "$error10" > $DATA/error10
 
@@ -1498,8 +1488,8 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}mtiasi.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esamua $job \
     ${COMSP}esamua.tm00.bufr_d
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crisdb $job \
-    ${COMSP}crisdb.tm00.bufr_d
+   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_crsfdb $job \
+    ${COMSP}crsfdb.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_iasidb $job \
     ${COMSP}iasidb.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_sevasr $job \
