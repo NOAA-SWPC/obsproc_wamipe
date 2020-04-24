@@ -1,26 +1,6 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.5 --> implemented by SPA on Feb 11, 2020
-
- JOB script changes:
-   JGLOBAL_DUMP:
-    - updated the default COM_SSTOI assignment to use compath.py utility
-      in order to find 1-degree sst data on phase 3
-    - updated the default COM_SSTRTG assignment to use compath.py utility
-      in order to find rtgssthr data on phase 3
-
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.4 --> released Jan 13, 2020,
-                             --> implemented Jan 13, 2020
-
- Model Script file changes:
-  scripts/exglobal_dump.sh.ecf
-    - Added to alert gdas.tCCz.saphir.tm00.bufr_d product to NOMADS for a NASA partner.
-
-Changes initiated and implemented by NCO SPA.
-
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.3 --> released Oct 30, 2019,
-                             --> implemented Dec 05, 2019
+obsproc_global release 3.2.6 --> released Apr 09, 2020,
+                             --> implemented Apr 22, 2020
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
@@ -51,6 +31,150 @@ files:
    obsproc_global/sorc/install.sh
    obsproc_global/sorc/setlibs.rc
    obsproc_global/ush/bufr_latlonqc.sh
+
+( A - added,  M - modified, D - deleted)
+
+
+ Model Script file changes:
+   exglobal_dump.sh.ecf:
+    - 1) Removed member of dump group # 1: cris
+    - 2) Renamed member of dump group # 7: escris changed to escrsf
+    - 3) Renamed member of dump group #10: crisdb changed to crsfdb
+      BENEFIT: crisdb is renamed to crsfdb and escris is renamed
+               to escrsf in response to the cessation of NSR
+               CrIS data from NPP on April 22, 2020.  FSR CrIS data
+               from NPP is the replacement. Cessation of NSR data
+               renders the cris dump group obsolete.
+
+
+ Output changes:
+ ---------------
+   All job scripts in gdas and gfs runs:
+    - g*s.tCCz.cris.tm00.bufr_d files will no longer be generated.
+    - g*s.tCCz.crisdb.tm00.bufr_d replaced by
+      g*s.tCCz.crsfdb.tm00.bufr_d
+    - g*s.tCCz.escris.tm00.bufr_d replaced by
+      g*s.tCCz.escrsf.tm00.bufr_d
+
+
+ Compute Resource Information:
+ -----------------------------
+   All jobs:
+    - No change in requested resources in the job cards.
+    - Negligible change in memory usage.
+    - Negligible change in wallclock run time.
+    NOTE: At the time of release, sample near real time data
+          was not available to process to confirm compute
+          resource information. 
+
+
+ Disk Space Changes:
+ -------------------
+    For gdas network:
+    - cris bufr_d files not being generated avails ~2.2 Gb per day
+    For gfs network:
+    - cris bufr_d files not being generated avails ~1.6 Gb per day
+    NOTE: At the time of release, sample near real time data
+          was not available to process to confirm disk space
+          usage.  The following are estimates.
+    For gdas network:
+    - crsfdb bufr_d files will be ~2.5 Gb per day
+    - escrsf bufr_d files will exceed ~700 Mb per day 
+    For gfs netowrk:
+    - crsfdb bufr_d files will be ~2.0 Gb per day
+    - escrsf bufr_d files will exceed ~650 Mb per day 
+ 
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v5.0.3
+    - obsproc_prep.v5.2.0
+    - obsproc_dump_post.v3.3.1
+    - obsproc_prep_post.v3.1.0
+    - obsproc_shared/bufr_avgdata.v2.1.0
+    - obsproc_shared/bufr_remorest.v2.1.0
+    - obsproc_shared/bufr_dumplist.v2.2.0
+
+
+ Required modules:
+  All jobs require:
+    EnvVars           (tested with 1.0.2, the default at the time)
+    prod_util         (tested with 1.1.3, the default at the time)
+    prod_envir        (tested with 1.1.0, the default at the time)
+    ips               (tested with 18.0.1.163, the default at the time)
+    impi              (tested with 18.0.1, the default at the time)
+    CFP               (tested with 2.0.2, the default at the time)
+    lsf               (tested with 10.1, the default at the time)
+  JGLOBAL_DUMP requires:
+    grib_util/1.0.6
+    bufr_dumplist/2.2.0
+    dumpjb/5.0.3
+  JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
+    w3emc/2.3.0
+    w3nco/2.0.6
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test JGLOBAL DUMP for gdas and gfs runs.
+
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - DBN alerts stop for g*s.tCCz.cris.tm00.bufr_d files
+   - DBN alerts for g*s.tCCz.escris.tm00.bufr_d are replaced by
+     g*s.tCCz.escrsf.tm00.bufr_d 
+   - DBN alerts for g*s.tCCz.crisdb.tm00.bufr_d are replaced by
+     g*s.tCCz.crsfdb.tm00.bufr_d 
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v12.0.0.
+   This must be implemented on Dell-p3.
+
+   This must be implemented simultaneously with: 
+     v2.2.0 of obsproc_shared_bufr_dumplist.
+
+   Please retrieve the obsproc_global.ver file:
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
+   cd EMC_obsproc; git checkout master
+   cp versions/20191024_OBSPROC_v12.0.0/obsproc_global.ver $NWROOT/versions
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.5 --> implemented by SPA on Feb 11, 2020
+
+ JOB script changes:
+   JGLOBAL_DUMP:
+    - updated the default COM_SSTOI assignment to use compath.py utility
+      in order to find 1-degree sst data on phase 3
+    - updated the default COM_SSTRTG assignment to use compath.py utility
+      in order to find rtgssthr data on phase 3
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.4 --> released Jan 13, 2020,
+                             --> implemented Jan 13, 2020
+
+ Model Script file changes:
+  scripts/exglobal_dump.sh.ecf
+    - Added to alert gdas.tCCz.saphir.tm00.bufr_d product to NOMADS for a NASA partner.
+
+Changes initiated and implemented by NCO SPA.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.3 --> released Oct 30, 2019,
+                             --> implemented Dec 05, 2019
+
+files:
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
 
 ( A - added,  M - modified, D - deleted)
 
