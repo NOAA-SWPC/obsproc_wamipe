@@ -220,11 +220,11 @@ else
   mkdir -m 755 -p $COMOUT
 fi
 
-export NEMSIO_IN=${NEMSIO_IN:-.true.}     # switch for nemsio vs sigio guess
-export NETCDF_IN=${NETCDF_IN:-""}         # switch for netcdf history guess
-                                          # NOTE: only NEMSIO_IN or NETCDF_IN can be .true.
+export NEMSIO_IN=${NEMSIO_IN:-.false.}        # switch for nemsio vs sigio guess
+export NETCDF_IN=${NETCDF_IN:-.true.}         # switch for netcdf history guess
+                                              # NOTE: only NEMSIO_IN or NETCDF_IN can be .true.
 export envir_getges=${envir_getges:-$envir}
-export GETGES_COM=${GETGES_COM:-$COMROOT} # Root location for GFS/GDAS COM data
+export GETGES_COM=${GETGES_COM:-$COMROOT}     # Root location for GFS/GDAS COM data
 export GETGES_NWG=${GETGES_NWG:-$GESROOT}
 export COMINgdas=${COMINgdas:-$(compath.py gfs/${envir_getges})/gdas.$PDY/${cyc}}
 export COMINgfs=${COMINgfs:-$(compath.py gfs/${envir_getges})/gfs.$PDY/${cyc}}
