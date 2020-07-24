@@ -227,7 +227,7 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
-export COMPONENT=${COMPONENT:-atmos}}
+export COMPONENT=${COMPONENT:-atmos}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
   export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
