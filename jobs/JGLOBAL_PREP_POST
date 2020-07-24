@@ -28,6 +28,10 @@ echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
 echo
 set -x
 
+# Retrieve GFS version to be used in obsproc_prep_post/ush/gdas_counts.sh
+VERSION_FILE_gfs=${VERSION_FILE_gfs:-$NWROOT/versions/gfs.ver}
+[ -f $VERSION_FILE_gfs ] && . $VERSION_FILE_gfs
+
 ################################
 # Print out version information
 ################################
