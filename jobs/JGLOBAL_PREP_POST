@@ -44,6 +44,7 @@ echo "OBSPROC_PREP_POST version used by this job is" \
        "${obsproc_prep_post_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
        "${obsproc_shared_bufr_remorest_ver:-not set}"
+echo "GFS version used by this job is ${gfs_ver:-not set}"
 echo
 echo "####################################################################"
 echo
@@ -165,6 +166,7 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
+
 
 #########################################################################
 # Add some prod utilities to working directory
