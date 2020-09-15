@@ -206,26 +206,27 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+export COMPONENT=${COMPONENT:-atmos}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
   mkdir -m 755 -p $COMOUT
 fi
 
 # comin and comin_m1 are paths to dump status files for bufr_avgdata.sh
-export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
-export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDYm1}/${cyc}}
+export comin=${comin:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
+export comin_m1=${comin_m1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDYm1}/${cyc}/${COMPONENT}}
 
 # ---------------------------
 # Paths for non-obsproc items

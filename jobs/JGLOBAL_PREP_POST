@@ -28,6 +28,10 @@ echo DATAROOT is ${DATAROOT:?"###FATAL ERROR \"DATAROOT\" is not set"}
 echo
 set -x
 
+# Retrieve GFS version to be used in obsproc_prep_post/ush/gdas_counts.sh
+VERSION_FILE_gfs=${VERSION_FILE_gfs:-$NWROOT/versions/gfs.ver}
+[ -f $VERSION_FILE_gfs ] && . $VERSION_FILE_gfs
+
 ################################
 # Print out version information
 ################################
@@ -40,6 +44,7 @@ echo "OBSPROC_PREP_POST version used by this job is" \
        "${obsproc_prep_post_ver:-not set}"
 echo "OBSPROC_SHARED_BUFR_REMOREST version used by this job is" \
        "${obsproc_shared_bufr_remorest_ver:-not set}"
+echo "GFS version used by this job is ${gfs_ver:-not set}"
 echo
 echo "####################################################################"
 echo
@@ -162,6 +167,7 @@ export EXECobsproc_shared_bufr_remorest=${EXECobsproc_shared_bufr_remorest:\
 export USHobsproc_shared_bufr_remorest=${USHobsproc_shared_bufr_remorest:\
 -$HOMEobsproc_shared_bufr_remorest/ush}
 
+
 #########################################################################
 # Add some prod utilities to working directory
 #########################################################################
@@ -182,26 +188,27 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 # Define COM directories
 #########################
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
+export COMPONENT=${COMPONENT:-atmos}
 
 if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}
+  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
+  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
   mkdir -m 775 -p $COMOUT
 else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
+  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
 
 # COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
 #  prevent job from writing into a non-unique directory that might already have
 #  output in it from a previous checkout run for the same cycle
 # -----------------------------------------------------------------------------
   export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}}
+  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
   mkdir -m 755 -p $COMOUT
 fi
 
 # The following are used by $PROCESS_TIMETWINS in the GDAS when it is YES
 # -----------------------------------------------------------------------
-export COMINGFS=${COMINGFS:-${COMIN_ROOT:?}/${NET}/${envir}/${NET}.${PDY}/${cyc}}
+export COMINGFS=${COMINGFS:-${COMIN_ROOT:?}/${NET}/${envir}/${NET}.${PDY}/${cyc}/${COMPONENT}}
 export COMIN1=${COMIN1:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.}
 
 #################################################################
