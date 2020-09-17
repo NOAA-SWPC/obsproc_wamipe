@@ -51,7 +51,18 @@ echo "                       with crsfdb and escrsf.  On Apr 22, 2020, NSR  "
 echo "                       CrIS data from NPP is being replaced by FSR.   "
 echo "                       The cris dump group is obsolete with the change"
 echo "                       to FSR.                                        "
-echo "         ??? ?? 202? - Update to dump gsrcsr, gsrasr, ompslp, ahicsr, "
+echo "         Aug 20 2020 - Incremented subsets for the adpsfc and sfcshp  "
+echo "                       dump groups to match bufr_dumplist.            "
+echo "                       Removed mbuoyb and dbuoyb from dump group #2.  "
+echo "                       Removed obsolete dump groups escrsf and goesfv "
+echo "                       from dump group #7.                            "
+echo "                     - In Dump group #8, disabled processing of legacy"
+echo "                       EUMETSAT AMV subsets 005064, 005065, and       "
+echo "                       005066. Added DTIM settings for new WMO BUFR   "
+echo "                       format EUMETSAT AMV subsets 005067, 005068, and"
+echo "                       005069. On Oct 6, 2020, EUMETSAT AMV format    "
+echo "                       changes to use new WMO BUFR sequence, 3-10-077."
+echo "         Oct 09 2020 - Update to dump gsrcsr, gsrasr, ompslp, ahicsr, "
 echo "                       sstvcw, sstvpw, leogeo, hdob                   "
 echo "                       Update to remove obsolete GOES-15 data.        "
 echo "                       Update to remove legacy VIIRS AMV data.        "
@@ -88,7 +99,7 @@ set +u
 #               esatms crisfs gsrcsr ahicsr sstvcw
 #
 # Dump group #2 (pb, TIME_TRIM defaults to OFF) =
-#               sfcshp atovs* adpsfc ascatt dbuoyb mbuoyb
+#               sfcshp atovs* adpsfc ascatt
 #                   * - for GDAS only
 #
 # Dump group #3 (pb, TIME_TRIM defaults to OFF) =
@@ -104,7 +115,7 @@ set +u
 #               nexrad
 #
 # Dump group #7 (non-pb, TIME_TRIM defaults to OFF) =
-#               avcspm esmhs goesfv 1bmhs airsev atmsdb gome omi trkob gpsro
+#               avcspm esmhs 1bmhs airsev atmsdb gome omi trkob gpsro
 #               crisf4
 #
 # Dump group #8 (pb, TIME_TRIM defaults to ON) =
@@ -696,36 +707,30 @@ export DUMP_NUMBER=2
 #
 #--------------------------------------------------------------------------
 # GDAS:
-# Dump # 2 : SFCSHP: 5 subtype(s)
+# Dump # 2 : SFCSHP: 9 subtype(s)
 #            ATOVS:  1 subtype(s)
-#            ADPSFC: 4 subtype(s)
+#            ADPSFC: 7 subtype(s)
 #            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
-#            DBUOYB: = subtype    (not a dump group mnemonic)
-#            MBUOYB: = subtype    (not a dump group mnemonic)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 12
+#            TOTAL NUMBER OF SUBTYPES = 18 - 19
 #
 #--------------------------------------------------------------------------
 # GFS:
-# Dump # 2 : SFCSHP: 5 subtype(s)
-#            ADPSFC: 4 subtype(s)
+# Dump # 2 : SFCSHP: 9 subtype(s)
+#            ADPSFC: 7 subtype(s)
 #            ASCATT: 1 subtype(s)
 #  xxxxxxxxx WNDSAT: 1 subtype(s) (if present in past 10 days of tanks)
-#            DBUOYB: = subtype    (not a dump group mnemonic)
-#            MBUOYB: = subtype    (not a dump group mnemonic)
 # ===> Dumping of WNDSAT removed from here until new ingest feed is established
 #      (had been dumped with a time window radius of -3.00 to +2.99 hours)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES =  12
+#            TOTAL NUMBER OF SUBTYPES =  17 - 18
 #
 #==========================================================================
 
 DTIM_latest_sfcshp=${DTIM_latest_sfcshp:-"+2.99"}
-DTIM_latest_001102=${DTIM_latest_001102:-"+2.99"}  # dbuoyb standalone dump
-DTIM_latest_001103=${DTIM_latest_001103:-"+2.99"}  # mbuoyb standalone dump
 
 atovs=""
 if [ "$NET" = 'gdas' ]; then
@@ -751,8 +756,7 @@ fi
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM2:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc ascatt \
-  $wndsat dbuoyb mbuoyb
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 sfcshp $atovs adpsfc ascatt $wndsat
 error2=$?
 echo "$error2" > $DATA/error2
 
@@ -888,8 +892,7 @@ export DUMP_NUMBER=4
 #
 #=======================================================================
 
-# Skip NeXRaD VAD WINDS FROM LEVEL 2 DECODER (not ready to be handled in GSI)
-
+# Skip NeXRaD VAD WINDS FROM LEVEL 2 DECODER (not ready to be handled in GSI) (002017)
 export SKIP_002017=YES
 
 # Dump AIRCFT and AIRCAR with wide time window to improve PREPOBS_PREPACQC
@@ -1178,7 +1181,6 @@ export DUMP_NUMBER=7
 #--------------------------------------------------------------------------
 # Dump # 7 : AVCSPM: 1 subtype(s)
 #            ESMHS:  1 subtype(s)
-#            GOESFV: 1 subtype(s)
 #            1BMHS:  1 subtype(s)
 #            AIRSEV: 1 subtype(s)
 #            ATMSDB: 1 subtype(s)
@@ -1188,13 +1190,12 @@ export DUMP_NUMBER=7
 #            GPSRO:  1 subtype(s)
 #            CRISF4: 1 subtype(s) (if present in past 10 days of tanks)
 #            --------------------
-#            TOTAL NUMBER OF SUBTYPES = 11
+#            TOTAL NUMBER OF SUBTYPES = 10
 #
 #=========================================================================
 
 DTIM_latest_avcspm=${DTIM_latest_avcspm:-"+2.99"}
 DTIM_latest_esmhs=${DTIM_latest_esmhs:-"+2.99"}
-DTIM_latest_goesfv=${DTIM_latest_goesfv:-"+2.99"}
 DTIM_latest_1bmhs=${DTIM_latest_1bmhs:-"+2.99"}
 DTIM_latest_airsev=${DTIM_latest_airsev:-"+2.99"}
 DTIM_latest_atmsdb=${DTIM_latest_atmsdb:-"+2.99"}
@@ -1216,7 +1217,7 @@ fi
 
 TIME_TRIM=${TIME_TRIM:-${TIME_TRIM7:-off}}
 
-$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcspm esmhs goesfv 1bmhs \
+$ushscript_dump/bufr_dump_obs.sh $dumptime 3.0 1 avcspm esmhs 1bmhs \
  airsev atmsdb gome omi trkob gpsro $crisf4
 error7=$?
 echo "$error7" > $DATA/error7
@@ -1226,8 +1227,6 @@ if [ "$SENDDBN" = "YES" ]; then
     ${COMSP}avcspm.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_esmhs $job \
     ${COMSP}esmhs.tm00.bufr_d
-   $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_goesfv $job \
-    ${COMSP}goesfv.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_1bmhs $job \
     ${COMSP}1bmhs.tm00.bufr_d
    $DBNROOT/bin/dbn_alert MODEL ${NET_uc}_BUFR_airsev $job \
@@ -1283,8 +1282,9 @@ export DUMP_NUMBER=8
 # NOTES ABOUT THIS DUMP GROUP:
 #   (1) time window radius is +/- 1.5 hrs for all SATWND types
 #       EXCEPT: SATWND subtypes 005/030, 005/031, 005/032, 005/034, 005/039,
-#               005/064, 005/065, 005/066, 005/070, 005/071, 005/072,
-#               005/080 and 005/091 where it is
+#               005/064, 005/065, 005/066, 005/067, 005/068, 005/069,
+#               005/070, 005/071, 005/072, 005/080 and 005/090
+#               where it is
 #               -3.00 to +2.99 hours.
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
@@ -1297,8 +1297,10 @@ export DUMP_NUMBER=8
 
 ADD_satwnd="005024 005025 005026 005030 005031 005032 005034 005039 005072"
 
-# Skip old bufr VIIRS AMVs
-export SKIP_005090=YES
+# Skip old bufr METEOSAT AMVs; for testing skip in trigger or version file
+#export SKIP_005064=YES
+#export SKIP_005065=YES
+#export SKIP_005066=YES
 
 # satwnd types
 # ------------
@@ -1324,6 +1326,12 @@ DTIM_earliest_005065=${DTIM_earliest_005065:-"-3.00"}
 DTIM_latest_005065=${DTIM_latest_005065:-"+2.99"}
 DTIM_earliest_005066=${DTIM_earliest_005066:-"-3.00"}
 DTIM_latest_005066=${DTIM_latest_005066:-"+2.99"}
+DTIM_earliest_005067=${DTIM_earliest_005067:-"-3.00"}
+DTIM_latest_005067=${DTIM_latest_005067:-"+2.99"}
+DTIM_earliest_005068=${DTIM_earliest_005068:-"-3.00"}
+DTIM_latest_005068=${DTIM_latest_005068:-"+2.99"}
+DTIM_earliest_005069=${DTIM_earliest_005069:-"-3.00"}
+DTIM_latest_005069=${DTIM_latest_005069:-"+2.99"}
 DTIM_earliest_005070=${DTIM_earliest_005070:-"-3.00"}
 DTIM_latest_005070=${DTIM_latest_005070:-"+2.99"}
 DTIM_earliest_005071=${DTIM_earliest_005071:-"-3.00"}

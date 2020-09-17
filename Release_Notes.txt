@@ -1,10 +1,10 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.2.6 --> released Apr 09, 2020,
-                             --> implemented Apr 22, 2020
+obsproc_global release 3.3.0 --> released Aug 28, 2020,
+                             --> implemented ??? ??, 2020
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
-   obsproc_global/jobs/JGLOBAL_DUMP
+ M obsproc_global/jobs/JGLOBAL_DUMP
    obsproc_global/jobs/JGLOBAL_DUMP_POST
    obsproc_global/jobs/JGLOBAL_PREP
    obsproc_global/jobs/JGLOBAL_PREP_POST
@@ -21,16 +21,176 @@ files:
    obsproc_global/parm/syndat_syndata.gdas.parm
    obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
-   obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
    obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
    obsproc_global/sorc/bufr_latlonqc.fd/makefile
    obsproc_global/sorc/build.sh
-   obsproc_global/sorc/load_libs.rc
+ M obsproc_global/sorc/load_libs.rc
    obsproc_global/sorc/clean.sh
    obsproc_global/sorc/clobber.sh
    obsproc_global/sorc/install.sh
    obsproc_global/sorc/setlibs.rc
    obsproc_global/ush/bufr_latlonqc.sh
+
+( A - added,  M - modified, D - deleted)
+
+
+ JOB script changes:
+   JGLOBAL_DUMP:
+   - Corrected default value for DCOMROOT.
+
+
+ Model Script file changes:
+   exglobal_dump.sh.ecf:
+    - 1) Incremented the subsets for the adpsfc and sfcshp dump 
+         groups.
+         BENEFIT: coordinates adpsfc and sfcshp in dump group #2
+                  with the updated bufr_dumplist.
+    - 2) Removed dbuoyb and mbuoyb from dump group #2.
+         BENEFIT: The individual dump files for duoyb and mbuoyb
+                  are no longer required now that they are included
+                  in the sfcshp dump group.
+    - 3) Updated dump group #8 to disable the processing of legacy
+         EUMETSAT AMV subsets 005064, 005065, and 005066.  Added
+         DTIM settings for the new BUFR format EUMETSAT AMV subsets
+         005067, 005068, and 005069 in the satwnd dump group.  On
+         Oct 6, 2020, EUMETSAT AMV format changed to use new WMO
+         BUFR sequence 3-10-077.
+   exglobal_makeprepbufr.sh.ecf:
+    - 1) Set default value for MAKE_NSST_BUOYB to "NO".
+         BENEFIT: no longer need to append mbuoyb and dbuoyb dump
+                  files to nsstbufr file since those data are 
+                  included in the sfcshp dump file.
+    - 2) Added feature to use tstsp in place of COMSP when generating
+         nsstbufr files in development.
+         BENEFIT: allows for more flexible development when testing
+                  nsstbufr file generation.
+
+
+ Source code changes:
+   load_libs.rc:
+    - update to use bufrlib version 11.3.0
+    - remove settings for IBM phase 1/2. 
+
+
+ Output changes:
+ ---------------
+   Job JGLOBAL_DUMP:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v2.3.0:
+       - Dump files $COMROOT/gfs/prod/g*s.$PDY/$cyc/g*s.t${cyc}z.adpsfc.tm00.bufr_d
+         now contain restriced, fixed, and mobile synoptic reports in BUFR format
+         from b000/xx100, b000/xx101, and b000/xx102 tanks respectively. 
+       - Dump files $COMROOT/gfs/prod/g*s.$PDY/$cyc/g*s.t${cyc}z.sfcshp.tm00.bufr_d
+         now contain drifting and moored buoy reports in BUFR format from b001/xx102
+         and b001/xx103 tanks respectively.
+   Job JGLOBAL_PREP:
+    - As a result of update to use obsproc_shared/bufr_dumplist.v2.3.0:
+       - BUFR formatted synoptic (report types 181/281, 183, 192/292, 284) and buoy
+         (report types 180/280, 282, 183, 284, 194/294) reports are encoded into
+         PREPBUFR files and are available for assimilation.
+
+
+ Compute Resource Information:
+ -----------------------------
+   All jobs:
+    - No change in requested resources in the job cards.
+    - Negligible change in memory usage.
+    - Wallclock run time increases:
+       - gdas dump: ~10s increase per cycle
+       - gfs dump : ~28s increase per cycle
+       - gdas prep: ~ 8s increase per cycle
+       - gfs prep : ~16s increase per cycle
+
+
+
+ Disk Space Changes:
+ -------------------
+    For gdas network:
+    - adpsfc bufr_d files will increase by ~6.4 Mb per day
+    - sfcshp bufr_d files will increase by ~9.4 Mb per day 
+    - prepbufr files will increase by ~5.8 Mb per day 
+    For gfs netowrk:
+    - adpsfc bufr_d files will increase by ~6.1 Mb per day
+    - sfcshp bufr_d files will increase by ~9.5 Mb per day 
+    - prepbufr files will increase by ~5.8 Mb per day 
+ 
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v5.1.0
+    - obsproc_prep.v5.3.0
+    - obsproc_dump_post.v3.4.0
+    - obsproc_prep_post.v3.1.1
+    - obsproc_shared/bufr_avgdata.v2.1.0
+    - obsproc_shared/bufr_remorest.v2.1.1
+    - obsproc_shared/bufr_dumplist.v2.3.0
+
+
+ Required modules:
+  All jobs require:
+    EnvVars           (tested with 1.0.3, the default at the time)
+    prod_util         (tested with 1.1.4, the default at the time)
+    prod_envir        (tested with 1.1.0, the default at the time)
+    ips               (tested with 18.0.1.163, the default at the time)
+    impi              (tested with 18.0.1, the default at the time)
+    CFP               (tested with 2.0.2, the default at the time)
+    lsf               (tested with 10.1, the default at the time)
+  JGLOBAL_DUMP requires:
+    grib_util/1.1.1
+    bufr_dumplist/2.3.0
+    dumpjb/5.1.0
+  JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
+    w3emc/2.3.0
+    w3nco/2.0.6
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all 4 JGLOBAL_* jobs for gdas and gfs cycles.
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - No change in dissemination.
+
+
+ Special Instructions:
+ ---------------------
+   This is part of OBSPROC.v14.0.0.
+   This must be implemented on Dell-p3.
+
+   This must be implemented simultaneously with the implementations of: 
+      v4.2.0  of decod_dcelrw,
+      v2.5.2  of obsproc_cdas,
+      v3.3.1  of obsproc_rtma,
+      v3.2.1  of obsproc_urma,
+      v2.4.0  of obsproc_dump_monitor,
+      v5.1.0  of obsproc_dump,
+      v3.4.0  of obsproc_dump_post,
+      v5.3.0  of obsproc_prep,
+      v3.1.1  of obsproc_prep_post,
+      v2.2.0  of obsproc_shared_bufr_dumplist - previously released to support RTOFS,
+      v2.1.1  of obsproc_shared_bufr_remorest,
+      v15.3.3 of GFS.
+
+   Please retrieve the obsproc_global.ver file:
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
+   cd EMC_obsproc; git checkout master
+   cp versions/20200818_OBSPROC_v14.0.0/obsproc_global.ver $NWROOT/versions
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.2.6 --> released Apr 09, 2020,
+                             --> implemented Apr 22, 2020
+
+files:
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
 
 ( A - added,  M - modified, D - deleted)
 

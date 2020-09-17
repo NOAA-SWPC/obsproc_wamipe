@@ -15,6 +15,9 @@ echo "  Mar 11 2017 - Update to handle nemsio filename patterns             "
 echo "  Mar 15 2019 - Added dbuoyb & mbuoyb to nsstfile content             "
 echo "  Jun 10 2019 - Added *buoyb qc (MAKE_NSST_BUOYB & bufr_latlonqc.sh)  "
 echo "  Nov 18 2019 - Update to handle netcdf history filename patterns     "
+echo "  Jul 27 2020 - Added feature to use tstsp when generating nsstbufr   "
+echo "  files. Set MAKE_NSST_BUOYB default to NO.                           "
+echo "  Oct 09 2020 - Update to handle netcdf history filename patterns     "
 echo "----------------------------------------------------------------------"
 echo 
 #############################################################################
@@ -31,13 +34,17 @@ cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
 MAKE_NSSTBUFR=${MAKE_NSSTBUFR:-YES}
-MAKE_NSST_BUOYB=${MAKE_NSST_BUOYB:-YES}   # include dbuoyb mbuoyb in nsstbufr
+MAKE_NSST_BUOYB=${MAKE_NSST_BUOYB:-NO}   # include dbuoyb mbuoyb in nsstbufr
+                                         # NOTE: feature obsolete with 
+                                         # obsproc_global.v3.3.0.  Functionality
+                                         # may be removed in future release.
 
 # Vars supporting MAKE_NSST_BUOYB=yes conditions
 export USHobsproc_global=${USHobsproc_global:-$HOMEobsproc_global/ush}
 export EXECobsproc_global=${EXECobsproc_global:-$HOMEobsproc_global/exec}
 
 export COMSP=${COMSP:-$COMIN/${RUN}.${cycle}.}
+export tstsp=${tstsp:-/tmp/null/}
 
 if [ "$DO_QC" = 'YES' -a "$CQCBUFR" = 'YES' -a -n "$COM1" -a -n "$CQCC" ]; then
 
@@ -563,7 +570,11 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
       echo "xglm: DTYPS_nsst='$DTYPS_nsst'"
 
       for type in $DTYPS_nsst ; do
-         file=${COMSP}$type.$tmmark.bufr_d
+         if [ -f ${tstsp}$type.$tmmark.bufr_d ]; then
+            file=${tstsp}$type.$tmmark.bufr_d
+         elif [ -s ${COMSP}$type.$tmmark.bufr_d ]; then
+            file=${COMSP}$type.$tmmark.bufr_d
+         fi
          if [ -s $file ]; then
 
 # -- run check on missing lat/lon for *buoyb data streams
