@@ -252,7 +252,7 @@ export POE=${POE:-YES}
 #   (Applies only when either POE=YES or BACK=YES, and PREPDATA=YES)
 #   Consider the size of the backgrounds fields if using threads. 
 
-export NSPLIT=${NSPLIT:-3}
+export NSPLIT=${NSPLIT:-4}
 
 #  BUFRLIST indicates the list of BUFR data dump file names to process
 
