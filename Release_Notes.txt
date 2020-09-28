@@ -1,13 +1,13 @@
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-obsproc_global release 3.3.0 --> released Aug 28, 2020,
-                             --> implemented ??? ??, 2020
+obsproc_global release 3.4.0 --> released Oct 09, 2020,
+                             --> implemented ??? ??, 2021
 
 files:
    obsproc_global/fix/prepobs_oiqc.oberrs
  M obsproc_global/jobs/JGLOBAL_DUMP
-   obsproc_global/jobs/JGLOBAL_DUMP_POST
-   obsproc_global/jobs/JGLOBAL_PREP
-   obsproc_global/jobs/JGLOBAL_PREP_POST
+ M obsproc_global/jobs/JGLOBAL_DUMP_POST
+ M obsproc_global/jobs/JGLOBAL_PREP
+ M obsproc_global/jobs/JGLOBAL_PREP_POST
    obsproc_global/parm/prepobs_cqcbufr.gdas.parm
    obsproc_global/parm/prepobs_cqcbufr.gfs.parm
    obsproc_global/parm/prepobs_prepacqc.gdas.parm
@@ -22,15 +22,144 @@ files:
    obsproc_global/parm/syndat_syndata.gfs.parm
  M obsproc_global/scripts/exglobal_dump.sh.ecf
  M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
-   obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
-   obsproc_global/sorc/bufr_latlonqc.fd/makefile
-   obsproc_global/sorc/build.sh
+ D obsproc_global/sorc/bufr_latlonqc.fd/latlonqc.f
+ D obsproc_global/sorc/bufr_latlonqc.fd/makefile
+ D obsproc_global/sorc/build.sh
+ D obsproc_global/sorc/load_libs.rc
+ D obsproc_global/sorc/clean.sh
+ D obsproc_global/sorc/clobber.sh
+ D obsproc_global/sorc/install.sh
+ D obsproc_global/sorc/setlibs.rc
+ D obsproc_global/ush/bufr_latlonqc.sh
+
+( A - added,  M - modified, D - deleted)
+
+
+ JOB script changes:
+   JGLOBAL_DUMP, JGLOBAL_DUMP_POST:
+   - Modified to use the new $COMPONENT subdirectory structure.
+     BENEFIT: Needed to work correctly with the GFS v16 upgrade.
+   JGLOBAL_PREP:
+   - Modified to use the new $COMPONENT subdirectory structure.
+   - Modified to integrate the NETCDF_IN switch for encoding the
+      first guess information into the prepbufr file.
+     BENEFIT: Needed to work correctly with the GFS v16 upgrade.
+   - Modified default setting for NSPLIT from 3 to 4.
+     BENEFIT: Needed to help reduce wall clock processing time.
+   JGLOBAL_PREP_POST:
+   - Modified to use the new $COMPONENT subdirectory structure.
+   - Modified to source GFS version file, $NWROOT/versions/gfs.ver.
+     BENEFIT: Needed to work correctly with the GFS v16 upgrade.
+
+
+ Model Script file changes:
+?  exglobal_dump.sh.ecf:
+?  exglobal_makeprepbufr.sh:
+
+
+ Source code changes:
+   bufr_latlonqc.fd, build,sh, load_libs.rc, clean.sh, clobber.sh,
+   install.sh, setlibs.rc:
+   - Removed; functionality rendered obsolete with implementation of
+     obsproc_global.v3.3.0.
+
+
+ USH script file changes:
+   bufr_latlonqc.sh:
+   - Removed; functionality rendered obsolete with implementation of
+     obsproc_global.v3.3.0.
+
+
+ Output changes:
+ ---------------
+?  Job JGLOBAL_DUMP:
+?  Job JGLOBAL_PREP:
+
+
+ Compute Resource Information:
+ -----------------------------
+?
+
+ Disk Space Changes:
+ -------------------
+?   For gdas network:
+?   For gfs network:
+
+
+ Shared Software (with 1 or more jobs):
+ --------------------------------------
+    - obsproc_dump.v5.1.0
+    - obsproc_prep.v5.4.0
+    - obsproc_dump_post.v3.4.0
+    - obsproc_prep_post.v3.2.0
+    - obsproc_shared/bufr_avgdata.v2.1.0
+    - obsproc_shared/bufr_remorest.v2.1.1
+    - obsproc_shared/bufr_dumplist.v2.3.0
+
+
+ Required modules:
+  All jobs require:
+    EnvVars           (tested with 1.0.3, the default at the time)
+    prod_util         (tested with 1.1.4, the default at the time)
+    prod_envir        (tested with 1.1.0, the default at the time)
+    ips               (tested with 18.0.1.163, the default at the time)
+    impi              (tested with 18.0.1, the default at the time)
+    CFP               (tested with 2.0.2, the default at the time)
+    lsf               (tested with 10.1, the default at the time)
+  JGLOBAL_DUMP requires:
+    grib_util/1.1.1
+    bufr_dumplist/2.3.0
+    dumpjb/5.1.0
+  JGLOBAL_DUMP_POST, JGLOBAL_PREP, and JGLOBAL_PREP_POST require:
+    w3emc/2.4.0
+    w3nco/2.0.6
+
+
+ Preimplementation Testing Requirements:
+ ---------------------------------------
+   - Test all 4 JGLOBAL_* jobs for gdas and gfs cycles.
+
+
+ Downstream users:
+ ----------------
+   - The main users of this output are the GDAS and GFS networks.
+   - Dump count information produced by the dump_post jobs are used by
+     the models_realtime package.
+
+
+ Dissemination:
+ --------------
+   - No change in dissemination.
+
+
+ Special Instructions:
+ ---------------------
+?  This is part of OBSPROC.v14.0.0.
+   This must be implemented on Dell-p3.
+
+   This must be implemented simultaneously with the implementations of: 
+     v16.0.0 of GFS,
+      v3.4.1 of obsproc_nam,
+      v3.2.2 of obsproc_rap,
+      v3.3.2 of obsproc_rtma,
+      v5.4.0 of obsproc_prep,
+      v3.2.0 of obsproc_prep_post,
+      v3.3.1 of obsproc_urma.
+
+   Please retrieve the obsproc_global.ver file:
+   git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
+   cd EMC_obsproc; git checkout master
+?  cp versions/20201009_OBSPROC_v1?.0.0/obsproc_global.ver $NWROOT/versions
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+obsproc_global release 3.3.0 --> released Aug 28, 2020,
+                             --> implemented ??? ??, 2020
+
+files:
+ M obsproc_global/jobs/JGLOBAL_DUMP
+ M obsproc_global/scripts/exglobal_dump.sh.ecf
+ M obsproc_global/scripts/exglobal_makeprepbufr.sh.ecf
  M obsproc_global/sorc/load_libs.rc
-   obsproc_global/sorc/clean.sh
-   obsproc_global/sorc/clobber.sh
-   obsproc_global/sorc/install.sh
-   obsproc_global/sorc/setlibs.rc
-   obsproc_global/ush/bufr_latlonqc.sh
 
 ( A - added,  M - modified, D - deleted)
 
@@ -100,7 +229,6 @@ files:
        - gfs dump : ~28s increase per cycle
        - gdas prep: ~ 8s increase per cycle
        - gfs prep : ~16s increase per cycle
-
 
 
  Disk Space Changes:
