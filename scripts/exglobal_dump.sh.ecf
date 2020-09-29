@@ -66,7 +66,6 @@ echo "         Oct 09 2020 - Update to dump gsrcsr, gsrasr, ompslp, ahicsr, "
 echo "                       sstvcw, sstvpw, leogeo, hdob                   "
 echo "                       Update to remove obsolete GOES-15 data.        "
 echo "                       Update to remove legacy VIIRS AMV data.        "
-echo "                       Update to remove obsolete escrsf data.         "
 #############################################################################
 
 # NOTE: NET is changed to gdas in the parent Job script for the gdas RUN 

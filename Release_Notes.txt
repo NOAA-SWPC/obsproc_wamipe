@@ -53,7 +53,24 @@ files:
 
 
  Model Script file changes:
-?  exglobal_dump.sh.ecf:
+   exglobal_dump.sh.ecf:
+    - Removed setting for legacy VIIRS AMV data.
+    - Updated dump group #1 to add:
+      - processing for GOES-16/17 Clear Sky Radiance data (gsrcsr).
+      - processing for Himawari-8 Clear Sky Radiance data (ahicsr).
+      - processing for VIIRS SST radiance clear and over water
+        data (sstvcw).
+    - Updated dump group #4 to add processing for High Density
+      observations from reconnaissance aircraft (hdob).
+    - Updated dump group #8 to:
+      - include LEO-GEO, subset 005072, in the satwnd dump processing.
+      - remove GOES-15 subsets: 005010, 005011, 005012, and 005019 
+        from the satwnd dump processing. 
+    - Updated dump group #10 to add:
+      - processing for GOES-16/17 All Sky Radiance data (gsrasr).
+      - processing for NPP OMPS Limb Profiler data (ompslp). 
+      - processing for VIIRS SST radiance probably clear and over
+        water data (sstvpw).
 ?  exglobal_makeprepbufr.sh:
 
 
@@ -72,13 +89,31 @@ files:
 
  Output changes:
  ---------------
-?  Job JGLOBAL_DUMP:
+   Job JGLOBAL_DUMP:
+    The following new bufr dump files will populate $COMROOT, and
+    will be alerted:
+     g*s.t00z.ahicsr.tm00.bufr_d
+     g*s.t00z.gsrasr.tm00.bufr_d
+     g*s.t00z.gsrcsr.tm00.bufr_d
+     g*s.t00z.hdob.tm00.bufr_d
+     g*s.t00z.ompslp.tm00.bufr_d
+     g*s.t00z.sstvcw.tm00.bufr_d
+     g*s.t00z.sstvpw.tm00.bufr_d
+    The following dump file will contain a new subset, NC005072:
+     g*s.t00z.satwnd.tm00.bufr_d
+    The following dump file will no longer contain GOES-15
+    subsets (NC005010, NC005011, NC005012, NC005019):
+     g*s.t00z.satwnd.tm00.bufr_d
 ?  Job JGLOBAL_PREP:
 
 
  Compute Resource Information:
  -----------------------------
-?
+   There are no changes in job cards for:
+    JGLOBAL_DUMP, JGLOBAL_DUMP_POST, JGLOBAL_PREP_POST. 
+?  There are changes in job cards for JGLOBAL_PREP:
+?  Memory
+?  Wall clock run time
 
  Disk Space Changes:
  -------------------
@@ -135,7 +170,7 @@ files:
 
  Preimplementation Testing Requirements:
  ---------------------------------------
-   - Test all 4 JGLOBAL_* jobs for gdas and gfs cycles.
+   - Test all 4 JGLOBAL_* jobs for all gdas and gfs cycles.
 
 
  Downstream users:
