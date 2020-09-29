@@ -82,8 +82,26 @@ files:
 
  Disk Space Changes:
  -------------------
-?   For gdas network:
-?   For gfs network:
+    For gdas network:
+    - satwnd bufr_d files will increase by ~10.3 Mb per day
+    - new ahicsr bufr_d files will add ~ 53 Mb per day
+    - new gsrasr bufr_d files will add ~ 978 Mb per day
+    - new gsrcsr bufr_d files will add ~ 705 Mb per day
+    - new hdob bufr_d files will add ~ 0.67 Mb per day
+    - new ompslp bufr_d files will add ~ 2.6 Mb per day
+    - new sstvcw bufr_d files will add ~ 7155 Mb per day
+    - new sstvpw bufr_d files will add ~ 1235 Mb per day
+?   - prepbufr files will increase by ~ Mb per day
+    For gfs network:
+    - satwnd bufr_d files will increase by ~4.0 Mb per day
+    - new ahicsr bufr_d files will add ~ 44 Mb per day
+    - new gsrasr bufr_d files will add ~ 897 Mb per day
+    - new gsrcsr bufr_d files will add ~ 645 Mb per day
+    - new hdob bufr_d files will add ~ 0.63 Mb per day
+    - new ompslp bufr_d files will add ~ 0.3 Mb per day
+    - new sstvcw bufr_d files will add ~ 4950 Mb per day
+    - new sstvpw bufr_d files will add ~ 852 Mb per day
+?   - prepbufr files will increase by ~ Mb per day
 
 
  Shared Software (with 1 or more jobs):
