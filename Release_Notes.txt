@@ -71,18 +71,25 @@ files:
       - processing for NPP OMPS Limb Profiler data (ompslp). 
       - processing for VIIRS SST radiance probably clear and over
         water data (sstvpw).
-?  exglobal_makeprepbufr.sh:
+   exglobal_makeprepbufr.sh:
+    - Removed processing that cats mbuoyb and dbuoyb to the nsstbufr
+      file.  This functionality was rendered obsolete with the
+      implementation of obsproc_global.v3.3.0.
+    - Code added to copy global guess files in NetCDF format to
+      $COMOUT when $NETCDF_IN=.true..
+    - Code added to run dbn_alert for NetCDF format global guess
+      files when $NETCDF_IN=.true..
 
 
  Source code changes:
-   bufr_latlonqc.fd, build,sh, load_libs.rc, clean.sh, clobber.sh,
+   sorc/: bufr_latlonqc.fd, build,sh, load_libs.rc, clean.sh, clobber.sh,
    install.sh, setlibs.rc:
    - Removed; functionality rendered obsolete with implementation of
      obsproc_global.v3.3.0.
 
 
  USH script file changes:
-   bufr_latlonqc.sh:
+   ush/: bufr_latlonqc.sh:
    - Removed; functionality rendered obsolete with implementation of
      obsproc_global.v3.3.0.
 
@@ -104,16 +111,36 @@ files:
     The following dump file will no longer contain GOES-15
     subsets (NC005010, NC005011, NC005012, NC005019):
      g*s.t00z.satwnd.tm00.bufr_d
-?  Job JGLOBAL_PREP:
 
 
  Compute Resource Information:
  -----------------------------
-   There are no changes in job cards for:
-    JGLOBAL_DUMP, JGLOBAL_DUMP_POST, JGLOBAL_PREP_POST. 
-?  There are changes in job cards for JGLOBAL_PREP:
-?  Memory
-?  Wall clock run time
+   Job cards:
+    JGLOBAL_DUMP, JGLOBAL_DUMP_POST, JGLOBAL_PREP_POST: 
+     - no change
+    JGLOBAL_PREP:
+     #BSUB -R "span[ptile=2]"
+     #BSUB -n 4
+     #BSUB -R affinity[core(1)]
+     ##BSUB -M 18000
+   Memory:
+    gfs_dump increases memory usage ~3116 Mb per cycle
+    gdas_dump increases memory usage ~3359 Mb per cycle 
+    gfs_dump_post: no change
+    gdas_dump_post: no change
+    gfs_prep increases memory usage ~12816 Mb per cycle
+    gdas_prep increases memory usage ~11765 Mb per cycle
+    gfs_prep_post: no change
+    gdas_prep_post: no change
+   Wall clock run time:
+    gfs_dump increases ~18 s per cycle
+    gdas_dump increases ~18 s per cycle 
+    gfs_dump_post: no change
+    gdas_dump_post: increases ~8 s per cycle 
+    gfs_prep increases ~159 s per cycle
+    gdas_prep increases ~156 s per cycle
+    gfs_prep_post: no change
+    gdas_prep_post: no change
 
  Disk Space Changes:
  -------------------
@@ -126,7 +153,6 @@ files:
     - new ompslp bufr_d files will add ~ 2.6 Mb per day
     - new sstvcw bufr_d files will add ~ 7155 Mb per day
     - new sstvpw bufr_d files will add ~ 1235 Mb per day
-?   - prepbufr files will increase by ~ Mb per day
     For gfs network:
     - satwnd bufr_d files will increase by ~4.0 Mb per day
     - new ahicsr bufr_d files will add ~ 44 Mb per day
@@ -136,7 +162,6 @@ files:
     - new ompslp bufr_d files will add ~ 0.3 Mb per day
     - new sstvcw bufr_d files will add ~ 4950 Mb per day
     - new sstvpw bufr_d files will add ~ 852 Mb per day
-?   - prepbufr files will increase by ~ Mb per day
 
 
  Shared Software (with 1 or more jobs):
@@ -187,7 +212,7 @@ files:
 
  Special Instructions:
  ---------------------
-?  This is part of OBSPROC.v14.0.0.
+?  This is part of OBSPROC.v1?.0.0.
    This must be implemented on Dell-p3.
 
    This must be implemented simultaneously with the implementations of: 
