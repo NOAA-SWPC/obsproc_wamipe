@@ -18,6 +18,10 @@ echo "  Nov 18 2019 - Update to handle netcdf history filename patterns     "
 echo "  Jul 27 2020 - Added feature to use tstsp when generating nsstbufr   "
 echo "  files. Set MAKE_NSST_BUOYB default to NO.                           "
 echo "  Oct 09 2020 - Update to handle netcdf history filename patterns     "
+echo "                Update to remove obsolete functionality of adding     "
+echo "                bufr format buoy reports to nsstbufr file.  These data"
+echo "                are now included in the sfcshp file, already included "
+echo "                in the nsstbufr file.                                 " 
 echo "----------------------------------------------------------------------"
 echo 
 #############################################################################
@@ -34,14 +38,6 @@ cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
 MAKE_NSSTBUFR=${MAKE_NSSTBUFR:-YES}
-MAKE_NSST_BUOYB=${MAKE_NSST_BUOYB:-NO}   # include dbuoyb mbuoyb in nsstbufr
-                                         # NOTE: feature obsolete with 
-                                         # obsproc_global.v3.3.0.  Functionality
-                                         # may be removed in future release.
-
-# Vars supporting MAKE_NSST_BUOYB=yes conditions
-export USHobsproc_global=${USHobsproc_global:-$HOMEobsproc_global/ush}
-export EXECobsproc_global=${EXECobsproc_global:-$HOMEobsproc_global/exec}
 
 export COMSP=${COMSP:-$COMIN/${RUN}.${cycle}.}
 export tstsp=${tstsp:-/tmp/null/}
@@ -552,7 +548,7 @@ if [ "$DO_QC" = 'YES' ]; then
          fi
       fi
    fi
-fi
+fi  # end [ "$DO_QC" = 'YES' ]
 ## create combined ocean data dump file expected by NSST
 if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
    > nsstbufr
@@ -562,11 +558,6 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
 
       DTYPS_nsst='sfcshp tesac bathy trkob'
 
-# -- add *buoyb data streams if enabled
-      if [[ "$MAKE_NSST_BUOYB"  == 'YES' ]] ; then 
-         DTYPS_nsst="$DTYPS_nsst dbuoyb mbuoyb"
-      fi
-
       echo "xglm: DTYPS_nsst='$DTYPS_nsst'"
 
       for type in $DTYPS_nsst ; do
@@ -575,41 +566,10 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
          elif [ -s ${COMSP}$type.$tmmark.bufr_d ]; then
             file=${COMSP}$type.$tmmark.bufr_d
          fi
+
          if [ -s $file ]; then
-
-# -- run check on missing lat/lon for *buoyb data streams
-            if [[ "$type" == "dbuoyb" || "$type" == "mbuoyb" ]] ; then 
-              rc_bll=0
-              echo 'bufr_latlonqc' > pgmname
-              echo "$type" > typename
-              [ -s ./break ] && paste pgmname typename break >> $pgmout
-              $USHobsproc_global/bufr_latlonqc.sh $file >> $pgmout
-              rc_bll=$?
-              echo "xglm: rc_bll='$rc_bll'"
-
-              if [ $rc_bll -ne 0 ]; then
-                 msg="**WARNING: exit status $rc_bll from bufr_latlonqc on $file"
-                       $DATA/postmsg "$jlogfile" "$msg"
-
-              else # $rc_bll -ne 0
-
-# -- save filtered qc-chk'd file to COMSP
-                echo "xglm: post-bll files:" ; ls -l ${file}* ; echo 
-                file2=$(basename $file).2
-                cp -p $file2 ${file}.llqc
-
-#               echo ; ls -l ${file}* ; echo 
-
-                cat $file2 >> nsstbufr
-                err_cat=$?
-
-              fi # $rc_bll -ne 0
-
-            else # "$type" == "dbuoyb" -o "$type" == "mbuoyb"
-
               cat $file >> nsstbufr
               err_cat=$?
-            fi # "$type" == "dbuoyb" -o "$type" == "mbuoyb"
             if [ $err_cat -ne 0 ]; then
               msg="**WARNING: exit status $err_cat from cat of $file to nsstbufr"
               $DATA/postmsg "$jlogfile" "$msg"

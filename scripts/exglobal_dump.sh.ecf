@@ -1288,9 +1288,9 @@ export DUMP_NUMBER=8
 #   (2) TIME TRIMMING IS DONE IN THIS DUMP (default, unless overridden)
 #
 #--------------------------------------------------------------------------
-# Dump # 8 : SATWND: 14 subtype(s)
+# Dump # 8 : SATWND: 16 subtype(s)  (bufr_dumplist.v2.3.0)
 #            --------------------- 
-#            TOTAL NUMBER OF SUBTYPES = 25 ???
+#            TOTAL NUMBER OF SUBTYPES = 25
 #
 #=======================================================================
 
