@@ -212,7 +212,7 @@ files:
 
  Special Instructions:
  ---------------------
-?  This is part of OBSPROC.v1?.0.0.
+   This is part of OBSPROC.v15.0.0.
    This must be implemented on Dell-p3.
 
    This must be implemented simultaneously with the implementations of: 
@@ -227,7 +227,7 @@ files:
    Please retrieve the obsproc_global.ver file:
    git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
    cd EMC_obsproc; git checkout master
-?  cp versions/20201009_OBSPROC_v1?.0.0/obsproc_global.ver $NWROOT/versions
+   cp versions/20201009_OBSPROC_v15.0.0/obsproc_global.ver $NWROOT/versions
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 obsproc_global release 3.3.0 --> released Aug 28, 2020,
