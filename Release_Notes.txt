@@ -223,7 +223,7 @@ files:
       v3.3.2 of obsproc_rtma,
       v5.4.0 of obsproc_prep,
       v3.2.0 of obsproc_prep_post,
-      v3.3.1 of obsproc_urma.
+      v3.2.2 of obsproc_urma.
 
    Please retrieve the obsproc_global.ver file:
    git clone ssh://$USER@vlab.ncep.noaa.gov:29418/EMC_obsproc
