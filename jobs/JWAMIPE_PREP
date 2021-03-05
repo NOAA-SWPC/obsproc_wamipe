@@ -181,7 +181,7 @@ export DICTPREP=${DICTPREP:-${NWROOT}/decoders/decod_shared/dictionaries_${dicti
 # prepobs_makeprepbufr.sh and its child scripts prepobs_syndata.sh and
 # prepobsp_prevents.sh.
 # ---------------------------------------------------------------------------
-export HOMEgfs=${HOMEgfs:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
+export HOMEgfs=${HOMEwfs:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
 
 #########################################################################
 # Add some prod utilities to working directory
