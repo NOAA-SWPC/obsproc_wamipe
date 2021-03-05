@@ -222,7 +222,7 @@ else
 fi
 
 export NEMSIO_IN=${NEMSIO_IN:-.false.}        # switch for nemsio vs sigio guess
-export NETCDF_IN=${NETCDF_IN:-.true.}         # switch for netcdf history guess
+export NETCDF_IN=${NETCDF_IN:-.false.}         # switch for netcdf history guess
                                               # NOTE: only NEMSIO_IN or NETCDF_IN can be .true.
 export envir_getges=${envir_getges:-$envir}
 export GETGES_COM=${GETGES_COM:-$COMROOT}     # Root location for GFS/GDAS COM data
