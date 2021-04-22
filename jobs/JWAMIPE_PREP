@@ -2,6 +2,95 @@
 set -xa
 date -u
 
+#############################
+# What used to be in prep.sh
+#############################
+
+##############################################
+# Run setpdy and initialize PDY variables
+##############################################
+export cycle="t${cyc}z"
+setpdy.sh
+. ./PDY
+
+
+##############################################
+# Set com directory
+##############################################
+export CDATE=${CDATE:-${PDY}${cyc}}
+export CDUMP=${CDUMP:-${RUN:-"wfs"}}
+if [ $RUN_ENVIR = "nco" ]; then
+    export ROTDIR=${COMROOT:?}/$NET/$envir
+    export RSTDIR=${GESROOT:?}/$envir
+fi
+
+
+#############################
+# Source relevant config files
+#############################
+configs="base prep prepbufr"
+export EXPDIR=${EXPDIR:-$HOMEwamipe/parm/config}
+config_path=${EXPDIR:-$NWROOT/wamipe.${wamipe_ver}/parm/config}
+for config in $configs; do
+    . $config_path/config.$config
+    export err=$? ; err_chk "Error sourcing config files in $config_path"
+done
+
+
+#####################################
+# Source machine runtime environment
+#####################################
+. $BASE_ENV/${machine}.env prep
+export err=$? ; err_chk "Error sourcing env/${machine}.env"
+
+######################################
+# Set script and dependency variables
+######################################
+export OPREFIX="${CDUMP}.t${cyc}z."
+export COMOUT="$ROTDIR/$CDUMP.$PDY/$cyc"
+[[ ! -d $COMOUT ]] && mkdir -p $COMOUT
+
+############################
+# Copy dump files to rotdir
+############################
+$HOMEwamipe/ush/getdump.sh $CDATE $PDUMP $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc} $COMOUT
+export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}"
+
+#   Ensure previous cycle gdas dumps are available (used by cycle & downstream)
+GDATE=$($NDATE -$assim_freq $CDATE)
+gPDY=$(echo $GDATE | cut -c1-8)
+gcyc=$(echo $GDATE | cut -c9-10)
+GDUMP=wdas
+PDUMP=gdas
+gCOMOUT="$ROTDIR/$GDUMP.$gPDY/$gcyc"
+if [ ! -s $gCOMOUT/$GDUMP.t${gcyc}z.updated.status.tm00.bufr_d ]; then
+  $HOMEwamipe/ush/getdump.sh $GDATE gdas $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc} $gCOMOUT
+  export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}"
+fi
+
+###########################
+# If NODA, we can exit now
+###########################
+[ $NODA = "YES" ] && exit 0
+
+######################################################
+# Generate prepbufr files from dumps or copy from OPS
+######################################################
+
+rm $COMOUT/${OPREFIX}prepbufr
+rm $COMOUT/${OPREFIX}prepbufr.acft_profiles
+rm $COMOUT/${OPREFIX}nsstbufr
+
+export job="j${CDUMP}_prep_${cyc}"
+export DATAROOT=${DATAROOT:-"$RUNDIR/$CDATE/$CDUMP/prepbufr"}
+if [ $ROTDIR_DUMP = "NO" ]; then
+  COMIN_OBS=${COMIN_OBS:-$DMPDIR/${CDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}}
+  export COMSP=${COMSP:-$COMIN_OBS/$CDUMP.t${cyc}z.}
+fi
+export COMIN=${COMIN:-$ROTDIR/$CDUMP.$PDY/$cyc}
+export COMINwdas=${COMINwdas:-$ROTDIR/wdas.$PDY/$cyc}
+export COMINwfs=${COMINwfs:-$ROTDIR/wfs.$PDY/$cyc}
+
 ###################################################################
 # Set DEBUG LEVEL - modifies info in execution trace prompt string
 ###################################################################
@@ -181,7 +270,7 @@ export DICTPREP=${DICTPREP:-${NWROOT}/decoders/decod_shared/dictionaries_${dicti
 # prepobs_makeprepbufr.sh and its child scripts prepobs_syndata.sh and
 # prepobsp_prevents.sh.
 # ---------------------------------------------------------------------------
-export HOMEgfs=${HOMEwfs:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
+export HOMEgfs=${HOMEwamipe:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
 
 #########################################################################
 # Add some prod utilities to working directory
@@ -342,4 +431,4 @@ if [ "$KEEPDATA" != YES ]; then
 fi
 date -u
 
-exit
+exit 0
