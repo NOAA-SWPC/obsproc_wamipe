@@ -53,7 +53,10 @@ export COMOUT="$ROTDIR/$CDUMP.$PDY/$cyc"
 ############################
 # Copy dump files to rotdir
 ############################
-$HOMEwamipe/ush/getdump.sh $CDATE $PDUMP $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc} $COMOUT
+if [ $RUN_ENVIR = "nco" ] ; then
+    atmos="/atmos"
+fi
+$HOMEwamipe/ush/getdump.sh $CDATE $PDUMP $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}${atmos} $COMOUT
 export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}"
 
 #   Ensure previous cycle gdas dumps are available (used by cycle & downstream)
@@ -64,7 +67,7 @@ GDUMP=wdas
 PDUMP=gdas
 gCOMOUT="$ROTDIR/$GDUMP.$gPDY/$gcyc"
 if [ ! -s $gCOMOUT/$GDUMP.t${gcyc}z.updated.status.tm00.bufr_d ]; then
-  $HOMEwamipe/ush/getdump.sh $GDATE gdas $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc} $gCOMOUT
+  $HOMEwamipe/ush/getdump.sh $GDATE gdas $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}${atmos} $gCOMOUT
   export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}"
 fi
 
