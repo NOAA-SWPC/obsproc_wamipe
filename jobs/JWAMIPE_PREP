@@ -297,22 +297,6 @@ cp $UTILROOT/ush/setpdy.sh .; chmod +x setpdy.sh
 export COMIN_ROOT=${COMIN_ROOT:-${COMROOT:-""}}
 export COMPONENT=${COMPONENT:-atmos}
 
-if [[ "$RUN_ENVIR" == nco ]]; then
-  export COMIN=${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
-  export COMOUT=${COMROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}
-  mkdir -m 775 -p $COMOUT
-else
-  export COMIN=${COMIN:-${COMIN_ROOT:?}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
-
-# COMOUT_ROOT for developers defaults to unique $DATA/com directory as root to
-#  prevent job from writing into a non-unique directory that might already have
-#  output in it from a previous checkout run for the same cycle
-# -----------------------------------------------------------------------------
-  export COMOUT_ROOT=${COMOUT_ROOT:-${DATA}/com}
-  export COMOUT=${COMOUT:-${COMOUT_ROOT}/${NET}/${envir}/${RUN}.${PDY}/${cyc}/${COMPONENT}}
-  mkdir -m 755 -p $COMOUT
-fi
-
 export NEMSIO_IN=${NEMSIO_IN:-.false.}        # switch for nemsio vs sigio guess
 export NETCDF_IN=${NETCDF_IN:-.false.}         # switch for netcdf history guess
                                               # NOTE: only NEMSIO_IN or NETCDF_IN can be .true.
