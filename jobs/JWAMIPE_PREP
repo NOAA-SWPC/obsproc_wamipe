@@ -6,6 +6,16 @@ date -u
 # What used to be in prep.sh
 #############################
 
+###############################
+# Create new working directory
+###############################
+jobid=${jobid:-${job}.$(hostname -s).$$}
+export DATA=${DATA:-$DATAROOT/${jobid}}
+rm -rf $DATA
+mkdir -p $DATA
+cd $DATA
+export pgmout=OUTPUT.$$
+
 ##############################################
 # Run setpdy and initialize PDY variables
 ##############################################
@@ -20,7 +30,6 @@ setpdy.sh
 export CDATE=${CDATE:-${PDY}${cyc}}
 export CDUMP=${CDUMP:-${RUN:-"wfs"}}
 if [ $RUN_ENVIR = "nco" ]; then
-    export ROTDIR=${COMROOT:?}/$NET/$envir
     export RSTDIR=${GESROOT:?}/$envir
 fi
 
@@ -29,7 +38,7 @@ fi
 # Source relevant config files
 #############################
 configs="base prep prepbufr"
-export EXPDIR=${EXPDIR:-$HOMEwamipe/parm/config}
+export EXPDIR=${EXPDIR:-$HOMEwfs/parm/config}
 config_path=${EXPDIR:-$NWROOT/wamipe.${wamipe_ver}/parm/config}
 for config in $configs; do
     . $config_path/config.$config
@@ -47,17 +56,20 @@ export err=$? ; err_chk "Error sourcing env/${machine}.env"
 # Set script and dependency variables
 ######################################
 export OPREFIX="${CDUMP}.t${cyc}z."
-export COMOUT="$ROTDIR/$CDUMP.$PDY/$cyc"
+export COMOUT=${COMOUT:-$(compath.py -o $NET/${wfs_ver}/$CDUMP.$PDY/$cyc)}
 [[ ! -d $COMOUT ]] && mkdir -p $COMOUT
 
 ############################
-# Copy dump files to rotdir
+# Copy dump files to comout
 ############################
 if [ $RUN_ENVIR = "nco" ] ; then
     atmos="/atmos"
 fi
-$HOMEwamipe/ush/getdump.sh $CDATE $PDUMP $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}${atmos} $COMOUT
-export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}"
+
+export COMINgfs=${COMINgfs:-$(compath.py gfs/${gfs_version}/$PDUMP.$PDY/${cyc}${atmos})}
+
+$HOMEwfs/ush/getdump.sh $CDATE $PDUMP $COMINgfs $COMOUT
+export err=$? ; err_chk "Error getting dump files out of $COMINgfs"
 
 #   Ensure previous cycle gdas dumps are available (used by cycle & downstream)
 GDATE=$($NDATE -$assim_freq $CDATE)
@@ -65,10 +77,11 @@ gPDY=$(echo $GDATE | cut -c1-8)
 gcyc=$(echo $GDATE | cut -c9-10)
 GDUMP=wdas
 PDUMP=gdas
-gCOMOUT="$ROTDIR/$GDUMP.$gPDY/$gcyc"
+gCOMOUT=${gCOMOUT:-$(compath.py $NET/${wfs_ver}/$GDUMP.$gPDY/$gcyc)}
+gCOMINgfs=${gCOMINgfs:-$(compath.py gfs/${gfs_version}/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}${atmos})}
 if [ ! -s $gCOMOUT/$GDUMP.t${gcyc}z.updated.status.tm00.bufr_d ]; then
-  $HOMEwamipe/ush/getdump.sh $GDATE gdas $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}${atmos} $gCOMOUT
-  export err=$? ; err_chk "Error getting dump files out of $DMPDIR/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}"
+  $HOMEwfs/ush/getdump.sh $GDATE $PDUMP $gCOMINgfs $gCOMOUT
+  export err=$? ; err_chk "Error getting dump files out of $gCOMINgfs"
 fi
 
 ###########################
@@ -86,13 +99,9 @@ rm $COMOUT/${OPREFIX}nsstbufr
 
 export job="j${CDUMP}_prep_${cyc}"
 export DATAROOT=${DATAROOT:-"$RUNDIR/$CDATE/$CDUMP/prepbufr"}
-if [ $ROTDIR_DUMP = "NO" ]; then
-  COMIN_OBS=${COMIN_OBS:-$DMPDIR/${CDUMP}${DUMP_SUFFIX}.${PDY}/${cyc}}
-  export COMSP=${COMSP:-$COMIN_OBS/$CDUMP.t${cyc}z.}
-fi
-export COMIN=${COMIN:-$ROTDIR/$CDUMP.$PDY/$cyc}
-export COMINwdas=${COMINwdas:-$ROTDIR/wdas.$PDY/$cyc}
-export COMINwfs=${COMINwfs:-$ROTDIR/wfs.$PDY/$cyc}
+export COMIN=${COMIN:-$(compath.py $NET/${wfs_ver}/$CDUMP.$PDY/$cyc)}
+export COMINwdas=${COMINwdas:-$(compath.py $NET/${wfs_ver}/wdas.$PDY/$cyc)}
+export COMINwfs=${COMINwfs:-$(compath.py $NET/${wfs_ver}/wfs.$PDY/$cyc)}
 
 ###################################################################
 # Set DEBUG LEVEL - modifies info in execution trace prompt string
@@ -123,8 +132,8 @@ set -x
 # Force prepobs_makeprepbufr.sh to use prepobs_errtable.global from
 # gfs.v*/fix/fix_gsi instead of from obsproc_global.v*/fix
 # -----> Ask NCO if they want this in driver script?
-VERSION_FILE_gfs=$NWROOT/versions/gfs.ver
-[ -f $VERSION_FILE_gfs ] && . $VERSION_FILE_gfs
+#VERSION_FILE_gfs=$NWROOT/versions/gfs.ver
+#[ -f $VERSION_FILE_gfs ] && . $VERSION_FILE_gfs
 
 ################################
 # Print out version information
@@ -188,21 +197,6 @@ set -x
 ##############################
 export cycle=t${cyc}z
 export tmmark=tm00
-
-###############################
-# Create new working directory
-###############################
-jobid=${jobid:-${job}.$(hostname -s).$$}
-export DATA=${DATA:-$DATAROOT/${jobid}}
-rm -rf $DATA
-mkdir -p $DATA
-cd $DATA
-export pgmout=OUTPUT.$$
-
-######################################
-# Set job log file for postmsg output
-######################################
-jlogfile=${jlogfile:-${DATA}/jlogfile}
 
 #################################################
 # SENDCOM      - Copy files to $COMOUT directory
@@ -273,7 +267,7 @@ export DICTPREP=${DICTPREP:-${NWROOT}/decoders/decod_shared/dictionaries_${dicti
 # prepobs_makeprepbufr.sh and its child scripts prepobs_syndata.sh and
 # prepobsp_prevents.sh.
 # ---------------------------------------------------------------------------
-export HOMEgfs=${HOMEwamipe:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
+export HOMEgfs=${HOMEwfs:-${NWROOT:?}/gfs.${gfs_ver:?"###FATAL ERROR \"gfs_ver\" is not set"}}
 
 #########################################################################
 # Add some prod utilities to working directory
@@ -398,7 +392,7 @@ env
 #####################
 # Execute the script
 #####################
-$SCRIPTSobsproc_global/exglobal_makeprepbufr.sh.ecf
+$SCRIPTSobsproc_global/exglobal_makeprepbufr.sh
 eval err_${RUN}_makeprepbufr=$?
 eval [[ \$err_${RUN}_makeprepbufr -ne 0 ]] && $DATA/err_exit
 

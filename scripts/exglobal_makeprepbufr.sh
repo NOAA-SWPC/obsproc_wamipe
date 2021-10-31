@@ -30,9 +30,6 @@ set -x
 # Make sure we are in the $DATA directory
 cd $DATA
 
-msg="HAS BEGUN on `hostname`"
-$DATA/postmsg "$jlogfile" "$msg"
-
 cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
@@ -75,9 +72,6 @@ fi
 
 cdate10=$CDATE
 
-msg="CENTER TIME FOR PREPBUFR PROCESSING IS $cdate10"
-$DATA/postmsg "$jlogfile" "$msg"
-
 ksh $ushscript_prep/prepobs_makeprepbufr.sh $cdate10
 errsc=$?
 
@@ -87,7 +81,6 @@ if [ "$CHGRP_RSTPROD" = 'YES' ]; then
    msg="NOTE: These files (if present) are RESTRICTED to rstprod group: \
 prepbufr_pre-qc, prepbufr, prepbufr.acft_profiles*, acqc_???*, \
 acqc_merged*_sorted, tosslist, prepbufr.unblok"
-   $DATA/postmsg "$jlogfile" "$msg"
 set +x
    echo " "
    echo "$msg"
@@ -570,8 +563,7 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
               cat $file >> nsstbufr
               err_cat=$?
             if [ $err_cat -ne 0 ]; then
-              msg="**WARNING: exit status $err_cat from cat of $file to nsstbufr"
-              $DATA/postmsg "$jlogfile" "$msg"
+              echo "**WARNING: exit status $err_cat from cat of $file to nsstbufr"
             fi
          else
             echo $file is empty or does not exist
@@ -582,9 +574,6 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
       cp nsstbufr $COMOUT/${RUN}.${cycle}.nsstbufr
       chgrp rstprod $COMOUT/${RUN}.${cycle}.nsstbufr
       chmod 640 $COMOUT/${RUN}.${cycle}.nsstbufr
-      msg="NOTE: nsstbufr file contains RESTRICTED data, only users in \
-rstprod group have read permission"
-      $DATA/postmsg "$jlogfile" "$msg"
    else
       cp /dev/null $COMOUT/${RUN}.${cycle}.nsstbufr
       warning=yes
@@ -592,9 +581,6 @@ rstprod group have read permission"
 fi # if [[ "$MAKE_NSSTBUFR" == 'YES' ]]
 
 if [ "$warning" = 'yes' ]; then
-   msg="**WARNING: Since user $USER is not in rstprod group all RESTRICTED \
-files are replaced with a null file"
-   $DATA/postmsg "$jlogfile" "$msg"
 set +x
    echo " "
    echo "$msg"
@@ -621,8 +607,5 @@ cat allout
 # rm allout
 
 sleep 10
-
-msg='ENDED NORMALLY.'
-$DATA/postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################

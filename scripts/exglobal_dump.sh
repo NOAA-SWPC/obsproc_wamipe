@@ -206,9 +206,6 @@ set -u
 # Make sure we are in the $DATA directory
 cd $DATA
 
-msg="HAS BEGUN on `hostname`"
-$DATA/postmsg "$jlogfile" "$msg"
-
 cat break > $pgmout
 
 export dumptime=`cut -c7-16 ncepdate`
@@ -216,9 +213,6 @@ export cycp=`echo $dumptime|cut -c9-10`
 
 export NET_uc=$(echo $NET | tr [a-z] [A-Z])
 export tmmark_uc=$(echo $tmmark | tr [a-z] [A-Z])
-
-msg="$NET_uc ANALYSIS TIME IS $PDY$cyc"
-$DATA/postmsg "$jlogfile" "$msg"
 
 set +x
 echo
@@ -250,12 +244,8 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    #if [ -s $snogrb ]; then
    #   cp $snogrb ${COMSP}snogrb
-   #   msg="todays 0.5 degree snow grib file located and copied to ${COMSP}snogrb"
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #elif [ -s $snoold ]; then
    #   cp $snoold ${COMSP}snogrb
-   #   msg="**todays 0.5 degree snow grib file not located - copy 1-day old file"
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #else
    #   set +x
    #   echo " "
@@ -264,8 +254,6 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
    #   echo " #####################################################"
    #   echo " "
    #   set -x
-   #   msg="***WARNING: CANNOT LOCATE 0.5 DEGREE SNOW GRIB FILE.  Not critical."
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #fi
 
    #snogrb_t574=$TANK_GRIBFLDS/$PDY/wgrbbul/snowdepth.t574.grb
@@ -273,12 +261,8 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    #if [ -s $snogrb_t574 ]; then
    #   cp $snogrb_t574 ${COMSP}snogrb_t574
-   #   msg="todays T574 snow grib file located and copied to ${COMSP}snogrb_t574"
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #elif [ -s $snoold_t574 ]; then
    #   cp $snoold_t574 ${COMSP}snogrb_t574
-   #   msg="**todays T574 snow grib file not located - copy 1-day old file"
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #else
    #   set +x
    #   echo " "
@@ -287,8 +271,6 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
    #   echo " ###############################################"
    #   echo " "
    #   set -x
-   #   msg="***WARNING: CANNOT LOCATE T574 SNOW GRIB FILE.  Not critical."
-   #   $DATA/postmsg "$jlogfile" "$msg"
    #fi
 
    engicegrb=${COM_ENGICE}.$PDY/engice.t00z.grb
@@ -296,12 +278,8 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $engicegrb ]; then
       cp $engicegrb ${COMSP}engicegrb
-      msg="todays engice grib file located and copied to ${COMSP}engicegrb"
-      $DATA/postmsg "$jlogfile" "$msg"
    elif [ -s $engiceold ]; then
       cp $engiceold ${COMSP}engicegrb
-      msg="**todays engice grib file not located - copy 1-day old file"
-      $DATA/postmsg "$jlogfile" "$msg"
    else
       set +x
       echo " "
@@ -310,8 +288,6 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       echo " ############################################"
       echo " "
       set -x
-      msg="***WARNING: CANNOT LOCATE LOW RES ENGICE GRIB FILE.  Not critical."
-      $DATA/postmsg "$jlogfile" "$msg"
    fi
 
 # Disabled w/ GFSv15.2 b/c sstoi file no longer needed
@@ -320,12 +296,8 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
 #  if [ -s $sstgrb ]; then
 #     cp $sstgrb ${COMSP}sstgrb
-#     msg="todays lowres sst grib file located and copied to ${COMSP}sstgrb"
-#     $DATA/postmsg "$jlogfile" "$msg"
 #  elif [ -s $sstold ]; then
 #     cp $sstold ${COMSP}sstgrb
-#     msg="**todays lowres sst grib file not located - copy 1-day old file"
-#     $DATA/postmsg "$jlogfile" "$msg"
 #  else
 #     set +x
 #     echo " "
@@ -334,8 +306,6 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 #     echo " #########################################"
 #     echo " "
 #     set -x
-#     msg="***WARNING: CANNOT LOCATE LOW RES SST GRIB FILE.  Not critical."
-#     $DATA/postmsg "$jlogfile" "$msg"
 #  fi
 
 #  if [ -s ${COMSP}sstgrb ]; then
@@ -428,8 +398,6 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
           ndaysback_warn=1;;
          *) 
          msg="***FATAL ERROR: unexpected grib field file $gribfile"; 
-         echo_hashed_msg "$msg"
-         $DATA/postmsg "$jlogfile" "$msg"
          $DATA/err_exit;;
       esac
 # set up string of dates to check
@@ -461,15 +429,12 @@ set +x; echo -e "\n---> path to finddate.sh below is: `which finddate.sh`"; set 
             set +x;echo -e "\n$tryfile not available.\n";set -x
          fi
          if [ $ndtry -gt $ndaysback_warn ];then
-            msg="***WARNING: INVESTIGATE UNEXPECTED ABSENCE OF $tryfile"
             echo_hashed_msg "$msg"
-            $DATA/postmsg "$jlogfile" "$msg"
          fi   
       done
       if [ $found != true ]; then
          msg="***WARNING: NO USEFUL RECENT FILES FOUND FOR $gribfile!!!"
          echo_hashed_msg "$msg"
-         $DATA/postmsg "$jlogfile" "$msg"
       fi    
    done
    if [ "$SENDECF" = "YES" ]; then
@@ -510,9 +475,6 @@ if [ "$PROCESS_DUMP" = 'YES' ]; then
 #  The data "dump" script for tm00
 ####################################
 ####################################
-
-msg="START THE $tmmark_uc $NET_uc DATA $dump_ind CENTERED ON $dumptime"
-$DATA/postmsg "$jlogfile" "$msg"
 
 set +x
 #----------------------------------------------------------------
@@ -1600,9 +1562,6 @@ sys_tp=${sys_tp:-$(getsystem.pl -tp)}
 getsystp_err=$?
 if [ $getsystp_err -ne 0 ]; then
    msg="***WARNING: error using getsystem.pl to determine system type and phase"
-   set +u
-   [ -n "$jlogfile" ] && $DATA/postmsg "$jlogfile" "$msg"
-   set -u
 fi
 echo sys_tp is set to: $sys_tp
 
@@ -1829,8 +1788,5 @@ cat allout
 # rm allout
 
 sleep 10
-
-msg='ENDED NORMALLY.'
-$DATA/postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
