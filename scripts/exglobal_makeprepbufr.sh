@@ -30,6 +30,8 @@ set -x
 # Make sure we are in the $DATA directory
 cd $DATA
 
+echo "HAS BEGUN ON `hostname`"
+
 cat break > $pgmout
 
 CHGRP_RSTPROD=${CHGRP_RSTPROD:-YES}
@@ -72,20 +74,17 @@ fi
 
 cdate10=$CDATE
 
+echo "CENTER TIME FOR PREPBUFR PROCESSING IS $cdate10"
+
 ksh $ushscript_prep/prepobs_makeprepbufr.sh $cdate10
 errsc=$?
 
 [ "$errsc" -ne '0' ]  &&  exit $errsc
 
 if [ "$CHGRP_RSTPROD" = 'YES' ]; then
-   msg="NOTE: These files (if present) are RESTRICTED to rstprod group: \
+   echo "NOTE: These files (if present) are RESTRICTED to rstprod group: \
 prepbufr_pre-qc, prepbufr, prepbufr.acft_profiles*, acqc_???*, \
 acqc_merged*_sorted, tosslist, prepbufr.unblok"
-set +x
-   echo " "
-   echo "$msg"
-   echo " "
-set -x
 fi
 warning=no
 
@@ -574,6 +573,8 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
       cp nsstbufr $COMOUT/${RUN}.${cycle}.nsstbufr
       chgrp rstprod $COMOUT/${RUN}.${cycle}.nsstbufr
       chmod 640 $COMOUT/${RUN}.${cycle}.nsstbufr
+      echo "NOTE: nsstbufr file contains RESTRICTED data, only users in \
+rstprod group have read permission"
    else
       cp /dev/null $COMOUT/${RUN}.${cycle}.nsstbufr
       warning=yes
@@ -581,11 +582,8 @@ if [[ "$MAKE_NSSTBUFR" == 'YES' ]]; then
 fi # if [[ "$MAKE_NSSTBUFR" == 'YES' ]]
 
 if [ "$warning" = 'yes' ]; then
-set +x
-   echo " "
-   echo "$msg"
-   echo " "
-set -x
+   echo "**WARNING: Since user $USER is not in rstprod group all RESTRICTED \
+files are replaced with a null file"
 fi
 
 ########################################################
@@ -607,5 +605,7 @@ cat allout
 # rm allout
 
 sleep 10
+
+echo 'ENDED NORMALLY.'
 
 ################## END OF SCRIPT #######################

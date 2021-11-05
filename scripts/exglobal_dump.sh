@@ -206,6 +206,8 @@ set -u
 # Make sure we are in the $DATA directory
 cd $DATA
 
+echo "HAS BEGUN on `hostname`"
+
 cat break > $pgmout
 
 export dumptime=`cut -c7-16 ncepdate`
@@ -213,6 +215,8 @@ export cycp=`echo $dumptime|cut -c9-10`
 
 export NET_uc=$(echo $NET | tr [a-z] [A-Z])
 export tmmark_uc=$(echo $tmmark | tr [a-z] [A-Z])
+
+echo "$NET_uc ANALYSIS TIME IS $PDY$cyc"
 
 set +x
 echo
@@ -278,8 +282,10 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
 
    if [ -s $engicegrb ]; then
       cp $engicegrb ${COMSP}engicegrb
+      echo "todays engice grib file located and copied to ${COMSP}engicegrb"
    elif [ -s $engiceold ]; then
       cp $engiceold ${COMSP}engicegrb
+      echo "**todays engice grib file not located - copy 1-day old file"
    else
       set +x
       echo " "
@@ -288,6 +294,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
       echo " ############################################"
       echo " "
       set -x
+      echo "***WARNING: CANNOT LOCATE LOW RES ENGICE GRIB FILE. Not critical."
    fi
 
 # Disabled w/ GFSv15.2 b/c sstoi file no longer needed
@@ -397,7 +404,7 @@ if [ "$PROCESS_GRIBFLDS" = 'YES' ]; then
           ndaysback=10;
           ndaysback_warn=1;;
          *) 
-         msg="***FATAL ERROR: unexpected grib field file $gribfile"; 
+         echo "***FATAL ERROR: unexpected grib field file $gribfile";
          $DATA/err_exit;;
       esac
 # set up string of dates to check
@@ -429,12 +436,11 @@ set +x; echo -e "\n---> path to finddate.sh below is: `which finddate.sh`"; set 
             set +x;echo -e "\n$tryfile not available.\n";set -x
          fi
          if [ $ndtry -gt $ndaysback_warn ];then
-            echo_hashed_msg "$msg"
+            echo "***WARNING: INVESTIGATE UNEXPECTED ABSENCE OF $tryfile"
          fi   
       done
       if [ $found != true ]; then
-         msg="***WARNING: NO USEFUL RECENT FILES FOUND FOR $gribfile!!!"
-         echo_hashed_msg "$msg"
+         echo "***WARNING: NO USEFUL RECENT FILES FOUND FOR $gribfile!!!"
       fi    
    done
    if [ "$SENDECF" = "YES" ]; then
@@ -476,6 +482,7 @@ if [ "$PROCESS_DUMP" = 'YES' ]; then
 ####################################
 ####################################
 
+echo "START THE $tmmark_uc $NET_uc DATA $dump_ind CENTERED ON $dumptime"
 set +x
 #----------------------------------------------------------------
 cat<<\EOF>thread_1; chmod +x thread_1
@@ -1558,10 +1565,10 @@ set -x
 #  determine local system name and type if available
 #  -------------------------------------------------
 SITE=${SITE:-""}
-sys_tp=${sys_tp:-$(getsystem.pl -tp)}
+sys_tp=${sys_tp:-$(getsystem --phase)}
 getsystp_err=$?
 if [ $getsystp_err -ne 0 ]; then
-   msg="***WARNING: error using getsystem.pl to determine system type and phase"
+   echo "***WARNING: error using getsystem.pl to determine system type and phase"
 fi
 echo sys_tp is set to: $sys_tp
 
@@ -1788,5 +1795,7 @@ cat allout
 # rm allout
 
 sleep 10
+
+echo 'ENDED NORMALLY.'
 
 ################## END OF SCRIPT #######################
