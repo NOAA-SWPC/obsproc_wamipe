@@ -10,7 +10,7 @@ date -u
 # Create new working directory
 ###############################
 jobid=${jobid:-${job}.$(hostname -s).$$}
-export DATA=${DATA:-$DATAROOT/${jobid}}
+export DATA=${DATA:-${DATAROOT:?}/${jobid:?}}
 rm -rf $DATA
 mkdir -p $DATA
 cd $DATA
@@ -29,20 +29,17 @@ setpdy.sh
 ##############################################
 export CDATE=${CDATE:-${PDY}${cyc}}
 export CDUMP=${CDUMP:-${RUN:-"wfs"}}
-if [ $RUN_ENVIR = "nco" ]; then
-    export RSTDIR=${GESROOT:?}/$envir
-fi
-
+export ROTDIR=${ROTDIR:-$(compath.py $NET/$wfs_ver)}
 
 #############################
 # Source relevant config files
 #############################
 configs="base prep prepbufr"
 export EXPDIR=${EXPDIR:-$HOMEwfs/parm/config}
-config_path=${EXPDIR:-$NWROOT/wamipe.${wamipe_ver}/parm/config}
+export config_path=${config_path:-$HOMEwfs/parm/config}
 for config in $configs; do
     . $config_path/config.$config
-    export err=$? ; err_chk "Error sourcing config files in $config_path"
+    export err=$? ; err_chk
 done
 
 
@@ -50,7 +47,7 @@ done
 # Source machine runtime environment
 #####################################
 . $BASE_ENV/${machine}.env prep
-export err=$? ; err_chk "Error sourcing env/${machine}.env"
+export err=$? ; err_chk
 
 ######################################
 # Set script and dependency variables
@@ -66,10 +63,13 @@ if [ $RUN_ENVIR = "nco" ] ; then
     atmos="/atmos"
 fi
 
-export COMINgfs=${COMINgfs:-$(compath.py gfs/${gfs_version}/$PDUMP.$PDY/${cyc}${atmos})}
+export COMINgfs=${COMINgfs:-$(compath.py gfs/${gfs_ver}/$PDUMP.$PDY/${cyc}${atmos})}
+export COMINobsproc=${COMINobsproc:-$(compath.py obsproc/${obsproc_ver}/$PDUMP.$PDY/${cyc}${atmos})}
 
-$HOMEwfs/ush/getdump.sh $CDATE $PDUMP $COMINgfs $COMOUT
-export err=$? ; err_chk "Error getting dump files out of $COMINgfs"
+$HOMEwfs/ush/getdump.sh $CDATE $PDUMP $COMINobsproc $COMOUT
+export err=$? ; err_chk
+$HOMEwfs/ush/get_global_data.sh $CDATE $PDUMP $COMINgfs $COMOUT
+export err=$? ; err_chk
 
 #   Ensure previous cycle gdas dumps are available (used by cycle & downstream)
 GDATE=$($NDATE -$assim_freq $CDATE)
@@ -78,10 +78,13 @@ gcyc=$(echo $GDATE | cut -c9-10)
 GDUMP=wdas
 PDUMP=gdas
 gCOMOUT=${gCOMOUT:-$(compath.py $NET/${wfs_ver}/$GDUMP.$gPDY/$gcyc)}
-gCOMINgfs=${gCOMINgfs:-$(compath.py gfs/${gfs_version}/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}${atmos})}
+gCOMINgfs=${gCOMINgfs:-$(compath.py gfs/${gfs_ver}/${PDUMP}${DUMP_SUFFIX}.${gPDY}/${gcyc}${atmos})}
+gCOMINobsproc=${COMINobsproc:-$(compath.py obsproc/${obsproc_ver}/$PDUMP.$gPDY/${gcyc}${atmos})}
 if [ ! -s $gCOMOUT/$GDUMP.t${gcyc}z.updated.status.tm00.bufr_d ]; then
-  $HOMEwfs/ush/getdump.sh $GDATE $PDUMP $gCOMINgfs $gCOMOUT
-  export err=$? ; err_chk "Error getting dump files out of $gCOMINgfs"
+  $HOMEwfs/ush/getdump.sh $GDATE $PDUMP $gCOMINobsproc $gCOMOUT
+  export err=$? ; err_chk
+  $HOMEwfs/ush/get_global_data.sh $GDATE $PDUMP $gCOMINgfs $gCOMOUT
+  export err=$? ; err_chk 
 fi
 
 ###########################
@@ -145,6 +148,7 @@ echo
 echo "Current OBSPROC_GLOBAL version is ${obsproc_global_ver:-not set}"
 echo "OBSPROC_PREP version used by this job is ${obsproc_prep_ver:-not set}"
 echo "GFS version used by this job is ${gfs_ver:-not set}"
+echo "OBSPROC version used by this job is ${obsproc_ver:-not set}"
 echo
 echo "####################################################################"
 echo
